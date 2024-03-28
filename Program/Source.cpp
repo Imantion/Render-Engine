@@ -15,11 +15,13 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 
+
 int main()
 {
 	Engine::Window window(WindowProc);
 
 	MSG msg = { 0 };
+	uint32_t* pixels = (uint32_t*)window.get_memory();
 
 	while (!window.isClosed())
 	{
@@ -30,9 +32,21 @@ int main()
 
 			if (msg.message == WM_QUIT)
 				break;
-		}
-		Sleep(1);
 
+			uint32_t* pixel = pixels;
+			for (size_t i = 0; i < window.getWindowHeight(); i++)
+			{
+				for (size_t j = 0; j < window.getWindowWidth(); j++)
+				{
+					if (i * i + j * j <= 100000)
+						*pixel = 0xFF0000;
+					pixel++;
+				}
+			}
+			
+		}
+		
+		window.stretch();
 	}
 	return 0;
 }
