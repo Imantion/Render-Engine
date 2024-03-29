@@ -13,21 +13,33 @@ namespace Engine
 		~Window();
 
 		void onDestroy();
+		void onResize();
+		void ResizeFrameBuffer(int wWidth, int wHeight);
 		bool isClosed() const;
 
-		void stretch();
+		void flush();
+		void clearScreen();
+		void setPixel(int x, int y);
+		
 
-		void* get_memory() { return memory; }
-
-		int getWindowHeight() { return height; }
-		int getWindowWidth() { return width; }
+		int getWindowHeight() { return buffer.height; }
+		int getWindowWidth() { return buffer.width; }
 	private:
+
 		void* m_handle = nullptr;
-		void* memory;
-		BITMAPINFO bitmap_info;
+		HDC device_context;
 		int height;
 		int width;
-		
+		int buffersize;
+		bool closed;
+
+		struct BitmapBuffer
+		{
+			int width, height;
+			BITMAPINFO bitmap_info;
+			void* memory;
+			int pitch; // in bytes
+		} buffer;
 	};
 
 } // namespace Engine
