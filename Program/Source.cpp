@@ -1,6 +1,6 @@
 #include <iostream>
 #include <Window/Window.h>
-#include <Windows.h>
+#include "Render/Scene.h"
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -17,6 +17,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 		Engine::Window* window = (Engine::Window*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
 		window->onResize();
+
 		window->flush();
 	}
 		
@@ -28,7 +29,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 int main()
 {
 	Engine::Window window(WindowProc);
-
+	Engine::Scene scene;
 	MSG msg = { 0 };
 
 	while (!window.isClosed())
@@ -43,14 +44,7 @@ int main()
 	
 		}
 	
-		for (size_t i = 0; i < window.getWindowHeight(); i++)
-		{
-			for (size_t j = 0; j < window.getWindowWidth(); j++)
-			{
-				if ((i - 300) * (i - 300) + (j - 300) * (j - 300) <= 100000 / 3)
-					window.setPixel(j, i);
-			}
-		}
+		scene.render(window);
 		window.flush();
 	}
 	return 0;

@@ -14,7 +14,7 @@ Window::Window(WindowProcPtr WindowProc)
 	wc.lpfnWndProc = WindowProc;	
 
 	RegisterClassEx(&wc);
-	RECT rc = { 0, 0, 800, 600 };
+	RECT rc = { 0, 0, 640, 360 };
 	AdjustWindowRect(&rc, WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU, false);
 
 	int w_width = rc.right - rc.left;
@@ -28,7 +28,7 @@ Window::Window(WindowProcPtr WindowProc)
 	width = rc.right - rc.left;
 	height = rc.bottom - rc.top;
 
-	ResizeFrameBuffer(width, height);
+	ResizeFrameBuffer(640, 360);
 	
 
 	assert(w_handle);
@@ -63,16 +63,20 @@ void Window::onResize()
 
 	width = rc.right - rc.left;
 	height = rc.bottom - rc.top;
+
+	/*ResizeFrameBuffer(width, height);*/
 }
 
 void Engine::Window::ResizeFrameBuffer(int bWidth, int bHeight)
 {
-	buffersize = bWidth * bHeight * 4;
+	
 
 	if (buffer.memory)
 		VirtualFree(buffer.memory, 0, MEM_RELEASE);
 	buffer.width = bWidth;
 	buffer.height = bHeight;
+	buffersize = buffer.width * buffer.height * 4;
+
 	buffer.pitch = buffer.width * 4;
 	buffer.memory = VirtualAlloc(0, buffersize, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 	BITMAPINFO bitmap_info;
@@ -90,7 +94,7 @@ void Window::setPixel(int x, int y)
 	if (x < 0 || x > buffer.width || y < 0 || y > buffer.height)
 		return;
 
-	uint32_t color = 0xFF0000;
+	uint32_t color = 0x0000ff;
 	uint8_t* row = (uint8_t*)buffer.memory + x * 4 + y * buffer.pitch;
 	uint32_t* pixel = (uint32_t*)row;
 	*pixel = color;
