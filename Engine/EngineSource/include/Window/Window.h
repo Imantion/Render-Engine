@@ -9,7 +9,7 @@ namespace Engine
 	class Window
 	{
 	public:
-		Window(WindowProcPtr);
+		Window(int wWidth, int wHeight, WindowProcPtr);
 		~Window();
 
 		void onDestroy();

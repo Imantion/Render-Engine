@@ -20,6 +20,14 @@ vec3 vec3::operator+(const vec3& v) const {
     return vec3(x + v.x, y + v.y, z + v.z);
 }
 
+vec3& Engine::vec3::operator+=(const vec3& v)
+{
+    x += v.x;
+    y += v.y;
+    z += v.z;
+    return *this;
+}
+
 vec3 vec3::operator-(const vec3& v) const {
     return vec3(x - v.x, y - v.y, z - v.z);
 }

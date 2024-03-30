@@ -6,7 +6,7 @@ using namespace Engine;
 
 
 
-Window::Window(WindowProcPtr WindowProc)
+Window::Window(int wWidth, int wHeight, WindowProcPtr WindowProc)
 {
 	WNDCLASSEX wc = {};
 	wc.cbSize = sizeof(WNDCLASSEX);
@@ -14,7 +14,7 @@ Window::Window(WindowProcPtr WindowProc)
 	wc.lpfnWndProc = WindowProc;	
 
 	RegisterClassEx(&wc);
-	RECT rc = { 0, 0, 640, 360 };
+	RECT rc = { 0, 0, wWidth, wHeight };
 	AdjustWindowRect(&rc, WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU, false);
 
 	int w_width = rc.right - rc.left;
@@ -28,7 +28,7 @@ Window::Window(WindowProcPtr WindowProc)
 	width = rc.right - rc.left;
 	height = rc.bottom - rc.top;
 
-	ResizeFrameBuffer(640, 360);
+	ResizeFrameBuffer(wWidth, wHeight);
 	
 
 	assert(w_handle);
@@ -73,8 +73,8 @@ void Engine::Window::ResizeFrameBuffer(int bWidth, int bHeight)
 
 	if (buffer.memory)
 		VirtualFree(buffer.memory, 0, MEM_RELEASE);
-	buffer.width = bWidth;
-	buffer.height = bHeight;
+	buffer.width = bWidth * 0.5;
+	buffer.height = bHeight * 0.5;
 	buffersize = buffer.width * buffer.height * 4;
 
 	buffer.pitch = buffer.width * 4;

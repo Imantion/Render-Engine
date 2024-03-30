@@ -1,9 +1,12 @@
 #include <math.h>
 #include "Render/Scene.h"
 #include "Window/Window.h"
-#include "Math/vec.h"
-#include "Math/math.h"
-#include <iostream>
+
+
+Engine::Scene::Scene():
+	sphr(vec3(0, 0, 5), 0.5)
+{	
+}
 
 void Engine::Scene::render(Engine::Window& window)
 {
@@ -24,9 +27,14 @@ void Engine::Scene::render(Engine::Window& window)
 	}
 }
 
+void Engine::Scene::moveSphere(vec3 direction)
+{
+	sphr.position += direction;
+}
+
 float Engine::Scene::hitSphere(const ray& r, const sphere& s)
 {
-	vec3 oc = r.position - s.position;
+	vec3 oc = r.origin - s.position;
 	float a = dot(r.direction, r.direction);
 	float b = 2 * dot(oc, r.direction);
 	float c = dot(oc, oc) - s.radius * s.radius;
@@ -41,8 +49,11 @@ float Engine::Scene::hitSphere(const ray& r, const sphere& s)
 
 uint32_t Engine::Scene::PerPixel(vec2 coord)
 {
+	vec3 rayDirection = vec3(0, 0, 1);
+	vec3 rayOrigin = vec3(coord.x, coord.y, 0);
+	ray r = ray(rayOrigin, rayDirection);
 
-	float dist = hitSphere(ray(vec3(coord.x, coord.y, 0), vec3(0, 0, 1)), sphere(vec3(0, 0, 5), 0.5));
+	float dist = hitSphere(r, sphr);
 
 	if (dist > 0)
 		return 0x00000000 | 255;

@@ -1,6 +1,6 @@
-#include <iostream>
 #include <Window/Window.h>
 #include "Render/Scene.h"
+#include "Application.h"
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -19,7 +19,19 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		window->onResize();
 
 		window->flush();
-	}
+	}break;
+	case WM_SYSKEYDOWN:
+	case WM_SYSKEYUP:
+	case WM_KEYDOWN:
+	case WM_KEYUP:
+	{
+		uint32_t VKCode = wParam;
+
+		bool wasDown = (lParam & (1 << 30)) != 0;
+		bool isDown = (lParam & (1 << 31)) == 0;
+
+		Application::processKeyboardInput(VKCode, wasDown, isDown);
+	} break;
 		
 	}
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
@@ -28,11 +40,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 int main()
 {
-	Engine::Window window(WindowProc);
-	Engine::Scene scene;
+	Application app(400, 300, WindowProc);
+
 	MSG msg = { 0 };
 
-	while (!window.isClosed())
+	while (app.isOpen())
 	{
 		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 		{
@@ -43,9 +55,8 @@ int main()
 				break;
 	
 		}
-	
-		scene.render(window);
-		window.flush();
+		
+		app.update(0.01);
 	}
 	return 0;
 }
