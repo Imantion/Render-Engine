@@ -27,12 +27,16 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 		uint32_t VKCode = wParam;
 
-		bool wasDown = (lParam & (1 << 30)) != 0;
-		bool isDown = (lParam & (1 << 31)) == 0;
+		bool wasDown = (lParam & (1 << 30)) != 0; // For wm_keydown 30 bit - The previous key state. The value is 1 if the key is down before the message is sent, or it is zero if the key is up.
+		bool isDown = (lParam & (1 << 31)) == 0; // 31 bit - The transition state. The value is always 0 for a WM_KEYDOWN message.
 
 		Application::processKeyboardInput(VKCode, wasDown, isDown);
 	} break;
-		
+	
+	case WM_LBUTTONDOWN:
+	case WM_LBUTTONUP:
+		Application::processMouseInput(wParam, lParam);
+
 	}
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
