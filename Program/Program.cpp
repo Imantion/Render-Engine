@@ -1,6 +1,8 @@
 #include <Window/Window.h>
 #include "Render/Scene.h"
 #include "Application.h"
+#include <iostream>
+#include "Utils/Timer.h"
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -47,7 +49,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 int main()
 {
-	Application app(400, 300, WindowProc);
+	Application app(800, 400, WindowProc);
+	Engine::Timer timer(60);
 
 	MSG msg = { 0 };
 
@@ -63,7 +66,13 @@ int main()
 	
 		}
 		
-		app.update(0.01);
+		if (timer.FrameElapsed())
+		{
+			app.update(timer.DeltaTime());
+			std::cout << timer.DeltaTime() << std::endl;
+		}
+
+		timer.Sleep();
 	}
 	return 0;
 }

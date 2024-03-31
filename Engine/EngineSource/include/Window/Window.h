@@ -21,6 +21,7 @@ namespace Engine
 		void clearScreen();
 		void setPixel(int x, int y);
 		
+		float getAspectRation() { return aspectRatio; }
 		void* getMemoryBuffer() { return buffer.memory; }
 		int getWindowHeight() { return height; }
 		int getWindowWidth() { return width; }
@@ -34,7 +35,7 @@ namespace Engine
 		int width;
 		int buffersize;
 		bool closed;
-		float aspectRatio = 16 / 9;
+		float aspectRatio;
 
 		struct BitmapBuffer
 		{

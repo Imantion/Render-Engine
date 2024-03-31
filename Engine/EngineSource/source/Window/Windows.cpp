@@ -8,6 +8,9 @@ using namespace Engine;
 
 Window::Window(int wWidth, int wHeight, WindowProcPtr WindowProc)
 {
+
+	aspectRatio = (float)wWidth / wHeight;
+
 	WNDCLASSEX wc = {};
 	wc.cbSize = sizeof(WNDCLASSEX);
 	wc.lpszClassName = L"Window";
@@ -28,7 +31,7 @@ Window::Window(int wWidth, int wHeight, WindowProcPtr WindowProc)
 	width = rc.right - rc.left;
 	height = rc.bottom - rc.top;
 
-	ResizeFrameBuffer(wWidth, wHeight);
+	ResizeFrameBuffer(wWidth * 0.5, wHeight * 0.5);
 	
 
 	assert(w_handle);
@@ -64,6 +67,8 @@ void Window::onResize()
 	width = rc.right - rc.left;
 	height = rc.bottom - rc.top;
 
+	aspectRatio = (float)width / height;
+
 	/*ResizeFrameBuffer(width, height);*/
 }
 
@@ -73,8 +78,8 @@ void Engine::Window::ResizeFrameBuffer(int bWidth, int bHeight)
 
 	if (buffer.memory)
 		VirtualFree(buffer.memory, 0, MEM_RELEASE);
-	buffer.width = bWidth * 0.5;
-	buffer.height = bHeight * 0.5;
+	buffer.width = bWidth;
+	buffer.height = bHeight;
 	buffersize = buffer.width * buffer.height * 4;
 
 	buffer.pitch = buffer.width * 4;

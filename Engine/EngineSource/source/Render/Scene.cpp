@@ -15,15 +15,14 @@ void Engine::Scene::render(Engine::Window& window)
 	BR = vec2(1.0 / window.getBufferWidth(), 0);
 	TL = vec2(0, 1.0 / window.getBufferHeight());
 
-	float aspect = (float)window.getWindowWidth() / window.getWindowHeight();
 	for (size_t y = 0; y < window.getBufferHeight(); y++)
 	{
 		for (size_t x = 0; x < window.getBufferWidth(); x++)
 		{
 			vec2 coord = (BR * x) + (TL * y);
 
-			coord = coord * 2.0f - 1;
-			coord.x *= aspect;
+			coord = coord * 2.0f - 1; // Converting coordinate to be in range (-1;1) instead of (0;1) 
+			coord.x *= window.getAspectRation();
 
 			memoryBuffer[x + y * window.getBufferWidth()] = PerPixel(coord);
 		}
@@ -46,6 +45,7 @@ void Engine::Scene::setSpherePosition(vec2 position)
 {
 	position = BR * position.x + TL * position.y;
 	position = position * 2 - 1;
+
 
 	sphr.position = vec3(position.x, -position.y, sphr.position.z);
 }

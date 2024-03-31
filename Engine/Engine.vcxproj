@@ -147,6 +147,7 @@
     <ClInclude Include="EngineSource\include\Math\math.h" />
     <ClInclude Include="EngineSource\include\Render\Scene.h" />
     <ClInclude Include="EngineSource\include\Math\vec.h" />
+    <ClInclude Include="EngineSource\include\Utils\Timer.h" />
     <ClInclude Include="EngineSource\include\Window\Window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
