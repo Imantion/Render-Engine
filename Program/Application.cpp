@@ -2,6 +2,8 @@
 #include "Render/Scene.h"
 #include "Window/Window.h"
 #include <windowsx.h>
+#include <iostream>
+
 std::unordered_map<uint32_t, Application::KeyState> Application::keyboard {
 	{ 'W', Application::KeyState()},
 	{ 'A', Application::KeyState()},
@@ -19,14 +21,25 @@ Engine::vec2 Application::mousePosition;
 
 Application::Application(int windowSize, int windowHeight, WinProc func)
 {
-	window = new Engine::Window(windowSize, windowHeight, func);
-	scene = new Engine::Scene();
+	window =  std::make_shared<Engine::Window>(windowSize, windowHeight, func);
+	scene = std::make_shared<Engine::Scene>();
 }
 
 Application::~Application()
 {
-	delete window;
-	delete scene;
+}
+
+Engine::vec2 Application::mousePositionRelativeToBuffer()
+{
+	uint32_t bufferW = window->getBufferWidth();
+	uint32_t windowW = window->getWindowWidth();
+	float x = mousePosition.x * ((bufferW < windowW) ? (float)bufferW / windowW : 1);
+
+	uint32_t bufferH = window->getBufferHeight();
+	uint32_t windowH = window->getWindowHeight();
+	float y = mousePosition.y * ((bufferH < windowH) ? (float)bufferH / windowH : 1);
+
+	return Engine::vec2(x, y);
 }
 
 void Application::processKeyboardInput(uint32_t keycode, bool wasDown, bool isDown)
@@ -67,7 +80,9 @@ void Application::update(float deltaTime)
 		sphereMoveDirection += Engine::vec3(1 * deltaTime, 0, 0);
 
 	if (mouse[Application::MouseButtons::LEFT].isDown)
-		sphereMoveDirection += Engine::vec3(1 * deltaTime, 0, 0);
+		scene->setSpherePosition(mousePositionRelativeToBuffer());
+
+	
 
 	scene->moveSphere(sphereMoveDirection);	
 

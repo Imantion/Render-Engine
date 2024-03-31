@@ -36,6 +36,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_LBUTTONDOWN:
 	case WM_LBUTTONUP:
 		Application::processMouseInput(wParam, lParam);
+		break;
+	case WM_MOUSEMOVE:
+		Application::updateMousePosition(lParam);
 
 	}
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);

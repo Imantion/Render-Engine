@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <unordered_map>
 #include <Windows.h>
+#include <memory>
 
 namespace Engine
 {
@@ -40,13 +41,15 @@ public:
 
 private:
 
+	Engine::vec2 mousePositionRelativeToBuffer();
+
 	static std::unordered_map<uint32_t, KeyState> keyboard;
 	static std::unordered_map<MouseButtons, KeyState> mouse;
 	static Engine::vec2 mousePosition;
 
 
-	Engine::Window* window;
-	Engine::Scene* scene;
+	std::shared_ptr<Engine::Window> window;
+	std::shared_ptr < Engine::Scene> scene;
 
 };
 

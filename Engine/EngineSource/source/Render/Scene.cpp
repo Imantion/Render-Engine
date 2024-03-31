@@ -12,12 +12,15 @@ void Engine::Scene::render(Engine::Window& window)
 {
 	uint32_t* memoryBuffer = (uint32_t*)window.getMemoryBuffer();
 
+	BR = vec2(1.0 / window.getBufferWidth(), 0);
+	TL = vec2(0, 1.0 / window.getBufferHeight());
+
 	float aspect = (float)window.getWindowWidth() / window.getWindowHeight();
 	for (size_t y = 0; y < window.getBufferHeight(); y++)
 	{
 		for (size_t x = 0; x < window.getBufferWidth(); x++)
 		{
-			vec2 coord{ (float)x / window.getBufferWidth(), (float)y / window.getBufferHeight() };
+			vec2 coord = (BR * x) + (TL * y);
 
 			coord = coord * 2.0f - 1;
 			coord.x *= aspect;
@@ -27,10 +30,26 @@ void Engine::Scene::render(Engine::Window& window)
 	}
 }
 
+
+
 void Engine::Scene::moveSphere(vec3 direction)
 {
 	sphr.position += direction;
 }
+
+void Engine::Scene::setSpherePosition(vec3 position)
+{
+	sphr.position = position;
+}
+
+void Engine::Scene::setSpherePosition(vec2 position)
+{
+	position = BR * position.x + TL * position.y;
+	position = position * 2 - 1;
+
+	sphr.position = vec3(position.x, -position.y, sphr.position.z);
+}
+
 
 float Engine::Scene::hitSphere(const ray& r, const sphere& s)
 {
