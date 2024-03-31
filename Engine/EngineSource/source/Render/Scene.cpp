@@ -22,7 +22,7 @@ void Engine::Scene::render(Engine::Window& window)
 			vec2 coord = (BR * x) + (TL * y);
 
 			coord = coord * 2.0f - 1; // Converting coordinate to be in range (-1;1) instead of (0;1) 
-			coord.x *= window.getAspectRation();
+			coord.x *= window.getAspectRation(); // Multiplying by aspectration to be resolution independent
 
 			memoryBuffer[x + y * window.getBufferWidth()] = PerPixel(coord);
 		}
@@ -39,15 +39,6 @@ void Engine::Scene::moveSphere(vec3 direction)
 void Engine::Scene::setSpherePosition(vec3 position)
 {
 	sphr.position = position;
-}
-
-void Engine::Scene::setSpherePosition(vec2 position)
-{
-	position = BR * position.x + TL * position.y;
-	position = position * 2 - 1;
-
-
-	sphr.position = vec3(position.x, -position.y, sphr.position.z);
 }
 
 

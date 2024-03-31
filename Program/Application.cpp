@@ -80,7 +80,16 @@ void Application::update(float deltaTime)
 		sphereMoveDirection += Engine::vec3(1 * deltaTime, 0, 0);
 
 	if (mouse[Application::MouseButtons::LEFT].isDown)
-		scene->setSpherePosition(mousePositionRelativeToBuffer());
+	{
+		Engine::sphere* s = &scene->getSphere();
+		Engine::vec2 position = mousePositionRelativeToBuffer();
+		position = scene->getBR() * position.x + scene->getTL() * position.y;
+		position = position * 2 - 1;
+
+		position.x *= window->getAspectRation();
+
+		s->position = Engine::vec3(position.x, -position.y, s->position.z);
+	}
 
 	
 

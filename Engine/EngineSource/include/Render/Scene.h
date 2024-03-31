@@ -16,14 +16,16 @@ namespace Engine
 		Scene(const sphere& s) : sphr(s) {}
 
 		void render(Window& window);
+		uint32_t PerPixel(vec2 coord);
+
 		void moveSphere(vec3 direction);
 		void setSpherePosition(vec3 position);
-		void setSpherePosition(vec2 position);
 
 		float hitSphere(const ray& r, const sphere& s);
 
-
-		uint32_t PerPixel(vec2 coord);
+		sphere& getSphere() { return sphr; }
+		vec2 getBR() { return BR; }
+		vec2 getTL() { return TL; }
 
 	private:
 
