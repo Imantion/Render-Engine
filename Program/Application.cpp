@@ -4,18 +4,8 @@
 #include <windowsx.h>
 #include <iostream>
 
-std::unordered_map<uint32_t, Application::KeyState> Application::keyboard {
-	{ 'W', Application::KeyState()},
-	{ 'A', Application::KeyState()},
-	{ 'S', Application::KeyState()},
-	{ 'D', Application::KeyState()},
-};
-
-std::unordered_map<Application::MouseButtons, Application::KeyState> Application::mouse{
-	{Application::MouseButtons::LEFT, Application::KeyState()},
-	{Application::MouseButtons::MIDLE, Application::KeyState()},
-	{Application::MouseButtons::RIGHT, Application::KeyState()},
-};
+std::vector<Application::KeyState> Application::keyboard(4);
+std::vector<Application::KeyState> Application::mouse(3);
 
 Engine::vec2 Application::mousePosition;
 
@@ -44,20 +34,37 @@ Engine::vec2 Application::mousePositionRelativeToBuffer()
 
 void Application::processKeyboardInput(uint32_t keycode, bool wasDown, bool isDown)
 {
-	if (keyboard.find(keycode) != keyboard.end())
+	switch (keycode)
 	{
-		keyboard[keycode].isDown = isDown;
-		keyboard[keycode].wasDown = wasDown;
+	case 'W':
+		keyboard[Application::KeyboardButtons::W].isDown = isDown;
+		keyboard[Application::KeyboardButtons::W].wasDown = wasDown;
+		break;
+	case 'A':
+		keyboard[Application::KeyboardButtons::A].isDown = isDown;
+		keyboard[Application::KeyboardButtons::A].wasDown = wasDown;
+		break;
+	case 'S':
+		keyboard[Application::KeyboardButtons::S].isDown = isDown;
+		keyboard[Application::KeyboardButtons::S].wasDown = wasDown;
+		break;
+	case 'D':
+		keyboard[Application::KeyboardButtons::D].isDown = isDown;
+		keyboard[Application::KeyboardButtons::D].wasDown = wasDown;
+		break;
+	default:
+		break;
 	}
 }
 
 void Application::processMouseInput(WPARAM wParam, LPARAM lParam)
 {
-	for (size_t i = 1; i < mouse.size() + 1; i++)
+	for (size_t i = 0; i < mouse.size(); i++)
 	{
 		Application::MouseButtons button = (Application::MouseButtons)i;
 		mouse[button].wasDown = mouse[button].isDown;
-		mouse[button].isDown = (button & wParam) == i;
+		mouse[button].isDown = (((int)button + 1) & wParam) == i + 1; // button starts count from 0. wParam defines RMB,MMB,LMB counting from 1
+																	 // That's why adding 1 to resolv this 
 	}
 }
 
@@ -70,13 +77,13 @@ void Application::updateMousePosition(LPARAM lParam)
 void Application::update(float deltaTime)
 {
 	Engine::vec3 sphereMoveDirection = (0, 0, 0);
-	if (keyboard['W'].isDown)
+	if (keyboard[Application::KeyboardButtons::W].isDown)
 		sphereMoveDirection += Engine::vec3(0, 1 * deltaTime, 0);
-	if (keyboard['A'].isDown)
+	if (keyboard[Application::KeyboardButtons::A].isDown)
 		sphereMoveDirection += Engine::vec3(-1 * deltaTime, 0, 0);
-	if (keyboard['S'].isDown)
+	if (keyboard[Application::KeyboardButtons::S].isDown)
 		sphereMoveDirection += Engine::vec3(0, -1 * deltaTime, 0);
-	if (keyboard['D'].isDown)
+	if (keyboard[Application::KeyboardButtons::D].isDown)
 		sphereMoveDirection += Engine::vec3(1 * deltaTime, 0, 0);
 
 	if (mouse[Application::MouseButtons::LEFT].isDown)

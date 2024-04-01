@@ -1,6 +1,6 @@
 #pragma once
 #include <stdint.h>
-#include <unordered_map>
+#include <vector>
 #include <Windows.h>
 #include <memory>
 
@@ -28,9 +28,17 @@ public:
 
 	enum MouseButtons
 	{
-		LEFT = 1,
+		LEFT,
 		MIDLE,
 		RIGHT,
+	};
+
+	enum KeyboardButtons
+	{
+		W,
+		A,
+		S,
+		D
 	};
 
 	void update(float deltaTime);
@@ -43,8 +51,8 @@ private:
 
 	Engine::vec2 mousePositionRelativeToBuffer();
 
-	static std::unordered_map<uint32_t, KeyState> keyboard;
-	static std::unordered_map<MouseButtons, KeyState> mouse;
+	static std::vector<KeyState> keyboard;
+	static std::vector<KeyState> mouse;
 	static Engine::vec2 mousePosition;
 
 

@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "Windows.h" // Хіба треба інклюдити WinApi, щоб typedef створити, і це сумно
+#include "memory"
 
 namespace Engine
 {
@@ -22,7 +23,7 @@ namespace Engine
 		void setPixel(int x, int y);
 		
 		float getAspectRation() { return aspectRatio; }
-		void* getMemoryBuffer() { return buffer.memory; }
+		void* getMemoryBuffer() { return buffer.memory.get(); }
 		int getWindowHeight() { return height; }
 		int getWindowWidth() { return width; }
 		int getBufferHeight() { return buffer.height; }
@@ -39,11 +40,16 @@ namespace Engine
 
 		struct BitmapBuffer
 		{
+			BitmapBuffer() : memory{0, std::free} {}
 			int width, height;
 			BITMAPINFO bitmap_info;
-			void* memory;
+			std::unique_ptr<void, decltype(&std::free)> memory;
 			int pitch; // in bytes
 		} buffer;
+
+		auto get_ptr(std::size_t size) {
+			return std::unique_ptr<void, decltype(&std::free)>(std::malloc(size), std::free);
+		}
 	};
 
 } // namespace Engine

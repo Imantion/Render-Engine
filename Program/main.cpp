@@ -3,6 +3,9 @@
 #include "Application.h"
 #include <iostream>
 #include "Utils/Timer.h"
+#include <thread>
+
+#define FRAME_RATE 60
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -28,9 +31,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_KEYUP:
 	{
 		uint32_t VKCode = wParam;
+		WORD keyFlags = HIWORD(lParam);
 
-		bool wasDown = (lParam & (1 << 30)) != 0; // For wm_keydown 30 bit - The previous key state. The value is 1 if the key is down before the message is sent, or it is zero if the key is up.
-		bool isDown = (lParam & (1 << 31)) == 0; // 31 bit - The transition state. The value is always 0 for a WM_KEYDOWN message.
+		bool wasDown = (keyFlags & KF_REPEAT) != 0; 
+		bool isDown = (keyFlags & KF_UP) == 0;
 
 		Application::processKeyboardInput(VKCode, wasDown, isDown);
 	} break;
@@ -47,10 +51,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 }
 
 
-int main()
+int main(int argc, char* argv[])
 {
 	Application app(800, 400, WindowProc);
-	Engine::Timer timer(60);
+	Engine::Timer timer;
 
 	MSG msg = { 0 };
 
@@ -66,13 +70,13 @@ int main()
 	
 		}
 		
-		if (timer.FrameElapsed())
+		if (timer.timeElapsed(FRAME_RATE))
 		{
 			app.update(timer.DeltaTime());
 			std::cout << timer.DeltaTime() << std::endl;
 		}
 
-		timer.Sleep();
+		std::this_thread::yield();
 	}
 	return 0;
 }

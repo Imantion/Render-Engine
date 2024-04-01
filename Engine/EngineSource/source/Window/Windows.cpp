@@ -5,7 +5,6 @@
 using namespace Engine;
 
 
-
 Window::Window(int wWidth, int wHeight, WindowProcPtr WindowProc)
 {
 
@@ -74,16 +73,13 @@ void Window::onResize()
 
 void Engine::Window::ResizeFrameBuffer(int bWidth, int bHeight)
 {
-	
-
-	if (buffer.memory)
-		VirtualFree(buffer.memory, 0, MEM_RELEASE);
+	buffer.memory.release();
 	buffer.width = bWidth;
 	buffer.height = bHeight;
 	buffersize = buffer.width * buffer.height * 4;
 
 	buffer.pitch = buffer.width * 4;
-	buffer.memory = VirtualAlloc(0, buffersize, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+	buffer.memory = get_ptr(buffersize);
 	BITMAPINFO bitmap_info;
 	bitmap_info.bmiHeader.biSize = sizeof(bitmap_info.bmiHeader);
 	bitmap_info.bmiHeader.biWidth = buffer.width;
@@ -100,7 +96,7 @@ void Window::setPixel(int x, int y)
 		return;
 
 	uint32_t color = 0x0000ff;
-	uint8_t* row = (uint8_t*)buffer.memory + x * 4 + y * buffer.pitch;
+	uint8_t* row = (uint8_t*)buffer.memory.get() + x * 4 + y * buffer.pitch;
 	uint32_t* pixel = (uint32_t*)row;
 	*pixel = color;
 
@@ -112,7 +108,7 @@ bool Window::isClosed() const
 
 void Engine::Window::flush()
 {
-	StretchDIBits(device_context, 0, 0, width, height, 0, 0, buffer.width, buffer.height, buffer.memory, &(buffer.bitmap_info), DIB_RGB_COLORS, SRCCOPY);
+	StretchDIBits(device_context, 0, 0, width, height, 0, 0, buffer.width, buffer.height, buffer.memory.get(), &(buffer.bitmap_info), DIB_RGB_COLORS, SRCCOPY);
 }
 
 void Engine::Window::clearScreen()
