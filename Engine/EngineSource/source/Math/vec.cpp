@@ -41,6 +41,16 @@ vec3& Engine::vec3::operator=(const vec3& v)
     return *this;
 }
 
+bool Engine::vec3::operator==(const vec3& v) const
+{
+    return (x == v.x) && (y == v.y) && (z == v.z);
+}
+
+bool Engine::vec3::operator!=(const vec3& v) const
+{
+    return !((x == v.x) && (y == v.y) && (z == v.z));
+}
+
 vec3 vec3::operator*(float t) const {
     return vec3(x * t, y * t, z * t);
 }

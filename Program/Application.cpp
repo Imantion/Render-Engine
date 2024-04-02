@@ -76,6 +76,8 @@ void Application::updateMousePosition(LPARAM lParam)
 
 void Application::update(float deltaTime)
 {
+	scene->render(*window);
+
 	Engine::vec3 sphereMoveDirection = (0, 0, 0);
 	if (keyboard[Application::KeyboardButtons::W].isDown)
 		sphereMoveDirection += Engine::vec3(0, 1 * deltaTime, 0);
@@ -88,21 +90,20 @@ void Application::update(float deltaTime)
 
 	if (mouse[Application::MouseButtons::LEFT].isDown)
 	{
-		Engine::sphere* s = &scene->getSphere();
 		Engine::vec2 position = mousePositionRelativeToBuffer();
 		position = scene->getBR() * position.x + scene->getTL() * position.y;
 		position = position * 2 - 1;
 
 		position.x *= window->getAspectRation();
 
-		s->position = Engine::vec3(position.x, -position.y, s->position.z);
+		scene->setSpherePosition(Engine::vec3(position.x, -position.y, scene->getSphere().position.z));
 	}
 
 	
 
 	scene->moveSphere(sphereMoveDirection);	
 
-	scene->render(*window);
+	
 	window->flush();
 }
 

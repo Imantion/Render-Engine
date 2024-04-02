@@ -14,6 +14,7 @@ namespace Engine
         vec2 operator+(const vec2& v) const { return vec2(x + v.x, y + v.y); }
         vec2 operator-(float t) const { return vec2(x - t, y - t); }
         vec2 operator*(float t) const { return vec2(x * t, y * t); }
+        bool operator!=(const vec2& v) { return !((x == v.x) && (y == v.y)); }
 
     };
 
@@ -39,6 +40,8 @@ namespace Engine
         vec3& operator+=(const vec3& v);
         vec3 operator-(const vec3& v) const;
         vec3& operator=(const vec3& v);
+        bool operator==(const vec3& v) const;
+        bool operator!=(const vec3& v) const;
         vec3 operator*(float t) const;
         vec3 operator/(float t) const;
         vec3 operator-() const;

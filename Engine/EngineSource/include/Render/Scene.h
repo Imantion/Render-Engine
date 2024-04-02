@@ -13,7 +13,7 @@ namespace Engine
 	public:
 
 		Scene();
-		Scene(const sphere& s) : sphr(s) {}
+		Scene(const sphere& s) : sphr(s), redrawScene(true) {}
 
 		void render(Window& window);
 		uint32_t PerPixel(vec2 coord);
@@ -29,6 +29,7 @@ namespace Engine
 
 	private:
 
+		bool redrawScene;
 		sphere sphr;
 		vec2 TL, BR;
 	};
