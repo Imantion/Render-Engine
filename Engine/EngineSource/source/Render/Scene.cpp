@@ -2,8 +2,6 @@
 #include "Render/Scene.h"
 #include "Window/Window.h"
 
-
-
 Engine::Scene::Scene():
 	sphr(vec3(0, 0, 5), 0.5), redrawScene(true)
 {	
@@ -68,10 +66,14 @@ uint32_t Engine::Scene::PerPixel(vec2 coord)
 	vec3 rayOrigin = vec3(coord.x, coord.y, 0);
 	ray r = ray(rayOrigin, rayDirection);
 
-	float dist = hitSphere(r, sphr);
+	hitInfo hInfo;
 
-	if (dist > 0)
-		return RGB(255,0,0); // Blue color.For DIB bitmaps RGB pallet is in reverse order i.e. BGR
+	if (sphr.hit(r, 0.0f, FLT_MAX, hInfo))
+	{
+		vec3 color = (hInfo.normal + 1) * 0.5;
+
+		return RGB(255 * color.b, 255 * color.g, 255 * color.r);
+	}
 
 	return RGB(128, 128, 128); // Gray color
 }

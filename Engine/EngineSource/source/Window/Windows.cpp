@@ -18,12 +18,12 @@ Window::Window(int wWidth, int wHeight, WindowProcPtr WindowProc)
 
 	RegisterClassEx(&wc);
 	RECT rc = { 0, 0, wWidth, wHeight };
-	AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW | WS_CAPTION | WS_SYSMENU | WS_SIZEBOX, false);
+	AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW | WS_SIZEBOX, false);
 
 	int w_width = rc.right - rc.left;
 	int w_height = rc.bottom - rc.top;
 
-	m_handle = CreateWindowEx(NULL, L"Window", L"RayTracing", WS_OVERLAPPEDWINDOW | WS_CAPTION | WS_SYSMENU | WS_SIZEBOX, CW_USEDEFAULT, CW_USEDEFAULT,
+	m_handle = CreateWindowEx(NULL, L"Window", L"RayTracing", WS_OVERLAPPEDWINDOW | WS_SIZEBOX, CW_USEDEFAULT, CW_USEDEFAULT,
 		w_width, w_height, NULL, nullptr, nullptr, nullptr);
 
 	HWND w_handle = (HWND)m_handle;
@@ -31,7 +31,7 @@ Window::Window(int wWidth, int wHeight, WindowProcPtr WindowProc)
 	width = rc.right - rc.left;
 	height = rc.bottom - rc.top;
 
-	ResizeFrameBuffer(wWidth * 0.5, wHeight * 0.5);
+	ResizeFrameBuffer(wWidth, wHeight);
 	
 
 	assert(w_handle);
@@ -71,7 +71,7 @@ void Window::onResize()
 
 	wasResized = true;
 
-	/*ResizeFrameBuffer(width, height);*/
+	ResizeFrameBuffer(width * 0.8, height * 0.8);
 }
 
 void Engine::Window::ResizeFrameBuffer(int bWidth, int bHeight)

@@ -39,7 +39,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		Input::processKeyboardInput(wParam, false);
 
 	} break;
-	
+
 	case WM_LBUTTONDOWN:
 	case WM_LBUTTONUP:
 		Input::processMouseInput(wParam, lParam);
@@ -47,6 +47,17 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_MOUSEMOVE:
 		Input::updateMousePosition(lParam);
 
+	break;
+	case WM_SETCURSOR:
+		if (LOWORD(lParam) == HTLEFT || LOWORD(lParam) == HTRIGHT ||
+			LOWORD(lParam) == HTTOP || LOWORD(lParam) == HTTOPLEFT ||
+			LOWORD(lParam) == HTTOPRIGHT || LOWORD(lParam) == HTBOTTOM ||
+			LOWORD(lParam) == HTBOTTOMLEFT || LOWORD(lParam) == HTBOTTOMRIGHT) {
+			SetCursor(LoadCursor(NULL, IDC_SIZEWE));
+		}
+		else {
+			SetCursor(LoadCursor(NULL, IDC_ARROW));
+		}
 	}
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
