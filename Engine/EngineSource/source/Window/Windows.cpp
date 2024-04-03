@@ -71,7 +71,7 @@ void Window::onResize()
 
 	wasResized = true;
 
-	ResizeFrameBuffer(width * 0.8, height * 0.8);
+	ResizeFrameBuffer(width, height);
 }
 
 void Engine::Window::ResizeFrameBuffer(int bWidth, int bHeight)
