@@ -84,8 +84,8 @@ int main(int argc, char* argv[])
 		
 		if (timer.timeElapsed(FRAME_RATE))
 		{
-			app.update(timer.DeltaTime());
-			std::cout << timer.DeltaTime() << std::endl;
+			app.update(timer.getDeltatime());
+			std::cout << timer.getDeltatime() << std::endl;
 		}
 
 		std::this_thread::yield();

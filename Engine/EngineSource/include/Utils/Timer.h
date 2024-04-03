@@ -13,19 +13,24 @@ namespace Engine
         }
         bool timeElapsed(int frameRate)
         {
-            double frameInterval = 1000.0f / frameRate;
-            time_point currentTime = clock::now();
-            std::chrono::duration<float, std::milli> elapsedTime = currentTime - m_startTime; // calculating elapsed time
-            if (elapsedTime.count() >= frameInterval) { // checks if elapsed time equels or above of 1 frame time
-                deltatime = elapsedTime.count();
-                m_startTime = currentTime;
+            double frameInterval = 1.0f / frameRate; // if frameInterval = 1, means 1 second passed
+            calculateDeltatime();
+            if (deltatime >= frameInterval) { // checks if elapsed time equels or above of 1 frame time
+                m_startTime = clock::now();
                 return true;
             }
             return false;
         }
 
-        float DeltaTime() {
-            return deltatime * 0.001;
+        float getDeltatime() {
+            return deltatime;
+        }
+    private:
+        void calculateDeltatime()
+        {
+            time_point currentTime = clock::now();
+            std::chrono::duration<float, std::milli> elapsedTime = currentTime - m_startTime;
+            deltatime = elapsedTime.count() * 0.001;
         }
 
     private:
