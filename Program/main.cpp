@@ -1,9 +1,10 @@
-#include <Window/Window.h>
-#include "Render/Scene.h"
-#include "Application.h"
-#include <iostream>
-#include "Utils/Timer.h"
 #include <thread>
+#include <iostream>
+#include "Window/Window.h"
+#include "Render/Scene.h"
+#include "App/Application.h"
+#include "Input/Input.h"
+#include "Utils/Timer.h"
 
 #define FRAME_RATE 60
 
@@ -26,25 +27,25 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		window->flush();
 	}break;
 	case WM_SYSKEYDOWN:
-	case WM_SYSKEYUP:
 	case WM_KEYDOWN:
+	{
+		WORD keyFlags = HIWORD(lParam);
+		if ((keyFlags & KF_REPEAT) == 0)
+			Input::processKeyboardInput(wParam, true);
+	} break;
+	case WM_SYSKEYUP:
 	case WM_KEYUP:
 	{
-		uint32_t VKCode = wParam;
-		WORD keyFlags = HIWORD(lParam);
+		Input::processKeyboardInput(wParam, false);
 
-		bool wasDown = (keyFlags & KF_REPEAT) != 0; 
-		bool isDown = (keyFlags & KF_UP) == 0;
-
-		Application::processKeyboardInput(VKCode, wasDown, isDown);
 	} break;
 	
 	case WM_LBUTTONDOWN:
 	case WM_LBUTTONUP:
-		Application::processMouseInput(wParam, lParam);
+		Input::processMouseInput(wParam, lParam);
 		break;
 	case WM_MOUSEMOVE:
-		Application::updateMousePosition(lParam);
+		Input::updateMousePosition(lParam);
 
 	}
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);

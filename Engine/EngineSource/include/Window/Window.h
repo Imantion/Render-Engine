@@ -28,6 +28,8 @@ namespace Engine
 		int getWindowWidth() { return width; }
 		int getBufferHeight() { return buffer.height; }
 		int getBufferWidth() { return buffer.width; }
+
+		bool wasWindowResized();
 	private:
 
 		void* m_handle = nullptr;
@@ -36,6 +38,7 @@ namespace Engine
 		int width;
 		int buffersize;
 		bool closed;
+		bool wasResized;
 		float aspectRatio;
 
 		struct BitmapBuffer

@@ -1,6 +1,6 @@
 #pragma once
 #include <stdint.h>
-#include <vector>
+#include <array>
 #include <Windows.h>
 #include <memory>
 
@@ -16,10 +16,6 @@ typedef LRESULT(CALLBACK* WinProc)(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM l
 class Application
 {
 public:
-
-	static void processKeyboardInput(uint32_t keycode, bool wasDown, bool isDown);
-	static void processMouseInput(WPARAM wParam, LPARAM lParam);
-	static void updateMousePosition(LPARAM lParam);
 
 	struct KeyState {
 		bool wasDown;
@@ -49,11 +45,7 @@ public:
 
 private:
 
-	Engine::vec2 mousePositionRelativeToBuffer();
-
-	static std::vector<KeyState> keyboard;
-	static std::vector<KeyState> mouse;
-	static Engine::vec2 mousePosition;
+	Engine::vec2 WindowCoordinatesToBufferCoordinates(Engine::vec2 coordinates);
 
 
 	std::shared_ptr<Engine::Window> window;

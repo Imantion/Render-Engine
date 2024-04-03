@@ -9,6 +9,7 @@ Window::Window(int wWidth, int wHeight, WindowProcPtr WindowProc)
 {
 
 	aspectRatio = (float)wWidth / wHeight;
+	wasResized = true;
 
 	WNDCLASSEX wc = {};
 	wc.cbSize = sizeof(WNDCLASSEX);
@@ -17,12 +18,12 @@ Window::Window(int wWidth, int wHeight, WindowProcPtr WindowProc)
 
 	RegisterClassEx(&wc);
 	RECT rc = { 0, 0, wWidth, wHeight };
-	AdjustWindowRect(&rc, WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU, false);
+	AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW | WS_CAPTION | WS_SYSMENU | WS_SIZEBOX, false);
 
 	int w_width = rc.right - rc.left;
 	int w_height = rc.bottom - rc.top;
 
-	m_handle = CreateWindowEx(NULL, L"Window", L"RayTracing", WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_SIZEBOX, CW_USEDEFAULT, CW_USEDEFAULT,
+	m_handle = CreateWindowEx(NULL, L"Window", L"RayTracing", WS_OVERLAPPEDWINDOW | WS_CAPTION | WS_SYSMENU | WS_SIZEBOX, CW_USEDEFAULT, CW_USEDEFAULT,
 		w_width, w_height, NULL, nullptr, nullptr, nullptr);
 
 	HWND w_handle = (HWND)m_handle;
@@ -68,6 +69,8 @@ void Window::onResize()
 
 	aspectRatio = (float)width / height;
 
+	wasResized = true;
+
 	/*ResizeFrameBuffer(width, height);*/
 }
 
@@ -100,6 +103,12 @@ void Window::setPixel(int x, int y)
 	uint32_t* pixel = (uint32_t*)row;
 	*pixel = color;
 
+}
+bool Engine::Window::wasWindowResized()
+{
+	bool returnWasResized = wasResized;
+	wasResized = false;
+	return returnWasResized;
 }
 bool Window::isClosed() const
 {

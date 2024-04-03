@@ -21,8 +21,6 @@ namespace Engine
 		void moveSphere(vec3 direction);
 		void setSpherePosition(vec3 position);
 
-		float hitSphere(const ray& r, const sphere& s);
-
 		sphere& getSphere() { return sphr; }
 		vec2 getBR() { return BR; }
 		vec2 getTL() { return TL; }

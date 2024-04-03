@@ -3,6 +3,7 @@
 #include "Window/Window.h"
 
 
+
 Engine::Scene::Scene():
 	sphr(vec3(0, 0, 5), 0.5), redrawScene(true)
 {	
@@ -13,13 +14,12 @@ void Engine::Scene::render(Engine::Window& window)
 	uint32_t* memoryBuffer = (uint32_t*)window.getMemoryBuffer();
 
 
-	vec2 tempBR = vec2(1.0 / window.getBufferWidth(), 0);
-	vec2 tempTL = vec2(0, 1.0 / window.getBufferHeight());
 
-	if (tempBR != BR || tempTL != TL)
+
+	if (window.wasWindowResized())
 	{
-		BR = tempBR;
-		TL = tempTL;
+		BR = vec2(1.0 / window.getBufferWidth(), 0);;
+		TL = vec2(0, 1.0 / window.getBufferHeight());;
 		redrawScene = true;
 	}
 
@@ -39,7 +39,6 @@ void Engine::Scene::render(Engine::Window& window)
 			}
 		}
 }
-
 
 
 void Engine::Scene::moveSphere(vec3 direction)
@@ -62,20 +61,6 @@ void Engine::Scene::setSpherePosition(vec3 position)
 }
 
 
-float Engine::Scene::hitSphere(const ray& r, const sphere& s)
-{
-	vec3 oc = r.origin - s.position;
-	float a = dot(r.direction, r.direction);
-	float b = 2 * dot(oc, r.direction);
-	float c = dot(oc, oc) - s.radius * s.radius;
-
-	float d = b * b - 4 * a * c;
-
-	if (d < 0)
-		return -1;
-
-	return (-b - sqrtf(d)) / (2 * a);
-}
 
 uint32_t Engine::Scene::PerPixel(vec2 coord)
 {
