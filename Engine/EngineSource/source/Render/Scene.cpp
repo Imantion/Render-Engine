@@ -68,7 +68,7 @@ uint32_t Engine::Scene::PerPixel(vec2 coord)
 
 	hitInfo hInfo;
 
-	if (sphr.hit(r, 0.0f, FLT_MAX, hInfo))
+	if (hitSphere(sphr,r, 0.0f, FLT_MAX, hInfo))
 	{
 		vec3 color = (hInfo.normal + 1) * 0.5;
 

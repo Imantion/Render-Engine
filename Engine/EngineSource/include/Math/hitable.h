@@ -10,9 +10,4 @@ namespace Engine
 		vec3 normal;
 	};
 
-	class hitable
-	{
-	public:
-		virtual bool hit(const ray& r, float t_min, float t_max, hitInfo& hInfo) const = 0;
-	};
 }
