@@ -1,0 +1,65 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Include">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Source">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Include\Math">
+      <UniqueIdentifier>{269e9f6f-728d-4a97-b0bc-1362bb3c9393}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Include\Window">
+      <UniqueIdentifier>{b58ef35d-8c60-4600-9c9c-c5819eca3dc3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Include\Utils">
+      <UniqueIdentifier>{45f52474-fd03-419c-b897-5ad521e7779e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Math">
+      <UniqueIdentifier>{ca700654-c00a-4ba2-a8e6-23d5fbc2418d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Render">
+      <UniqueIdentifier>{dd34ee2b-6a89-432e-95fc-d20631f5e642}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Window">
+      <UniqueIdentifier>{1b625845-0f5e-4bd6-95fe-36bab31b09f2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Include\Redner">
+      <UniqueIdentifier>{04d3fc8d-4e25-4526-b6bb-128a69dd4a60}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="EngineSource\source\Math\vec.cpp">
+      <Filter>Source\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="EngineSource\source\Render\Scene.cpp">
+      <Filter>Source\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="EngineSource\source\Window\Windows.cpp">
+      <Filter>Source\Window</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="EngineSource\include\Render\Scene.h">
+      <Filter>Include\Redner</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineSource\include\Math\math.h">
+      <Filter>Include\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineSource\include\Math\vec.h">
+      <Filter>Include\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineSource\include\Window\Window.h">
+      <Filter>Include\Window</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineSource\include\Utils\Timer.h">
+      <Filter>Include\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineSource\include\Math\hitable.h">
+      <Filter>Include\Math</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

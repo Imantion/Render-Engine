@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Application">
+      <UniqueIdentifier>{c04e4156-57fb-498d-9774-6d6493f222b8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Application\App">
+      <UniqueIdentifier>{272a0d8d-761e-4c27-a28a-fb77023cc581}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Application\Input">
+      <UniqueIdentifier>{2687b57c-8216-444a-af94-15bb879b8905}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Application\App\Application.cpp">
+      <Filter>Application\App</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\Input\Input.cpp">
+      <Filter>Application\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Application\App\Application.h">
+      <Filter>Application\App</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\Input\Input.h">
+      <Filter>Application\Input</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
