@@ -139,12 +139,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="EngineSource\source\Math\matrix.cpp" />
+    <ClCompile Include="EngineSource\source\Math\quaternion.cpp" />
+    <ClCompile Include="EngineSource\source\Render\Camera.cpp" />
     <ClCompile Include="EngineSource\source\Render\Scene.cpp" />
     <ClCompile Include="EngineSource\source\Math\vec.cpp" />
     <ClCompile Include="EngineSource\source\Window\Windows.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="EngineSource\include\Math\matrix.h" />
     <ClInclude Include="EngineSource\include\Math\math.h" />
+    <ClInclude Include="EngineSource\include\Math\quaternion.h" />
+    <ClInclude Include="EngineSource\include\Render\Camera.h" />
     <ClInclude Include="EngineSource\include\Render\Scene.h" />
     <ClInclude Include="EngineSource\include\Math\vec.h" />
     <ClInclude Include="EngineSource\include\Utils\Timer.h" />

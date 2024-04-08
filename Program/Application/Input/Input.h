@@ -30,8 +30,8 @@ public:
 	enum MouseButtons
 	{
 		LEFT,
-		MIDLE,
 		RIGHT,
+		MIDLE,
 	};
 
 	enum KeyboardButtons
@@ -39,14 +39,18 @@ public:
 		W,
 		A,
 		S,
-		D
+		D,
+		CTRL,
+		SPACE,
+		Q,
+		E
 	};
 
 
 
 
 private:
-	static std::array<KeyState, 4> keyboard;
+	static std::array<KeyState, 8> keyboard;
 	static std::array<KeyState, 3> mouse;
 	static Engine::vec2 mousePosition;
 };

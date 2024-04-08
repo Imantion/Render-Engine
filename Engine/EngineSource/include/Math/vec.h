@@ -12,10 +12,35 @@ namespace Engine
 
         vec2 operator+(float t) const { return vec2(x + t, y + t); }
         vec2 operator+(const vec2& v) const { return vec2(x + v.x, y + v.y); }
+        vec2 operator-(const vec2& v) const { return vec2(x - v.x, y - v.y); }
         vec2 operator-(float t) const { return vec2(x - t, y - t); }
         vec2 operator*(float t) const { return vec2(x * t, y * t); }
         bool operator!=(const vec2& v) { return !((x == v.x) && (y == v.y)); }
 
+    };
+
+    struct vec3;
+
+    struct vec4
+    {
+        float x, y, z, w;
+
+        vec4() : x(0), y(0), z(0), w(0) {}
+        vec4(float t) : x(t), y(t), z(t), w(t) {}
+        vec4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
+        vec4(const vec3& v, float w);
+
+        float length() const;
+
+        float length_squared() const;
+        vec4 normalized() const;
+
+        vec4 operator+(const vec4& v) const;
+        vec4 operator-(const vec4& v) const;
+        vec4 operator*(const vec4& v) const;
+        vec4 operator*(float t) const;
+        vec4 operator/(float t) const;
+        vec4 operator-() const;
     };
 
     struct vec3 {
@@ -28,14 +53,14 @@ namespace Engine
         vec3(float t) : x(t), y(t), z(t) {}
         vec3(float x, float y, float z) : x(x), y(y), z(z) {}
         vec3(const vec3& v) : x(v.x), y(v.y), z(v.z) {}
+        vec3(const vec4& v) : x(v.x), y(v.y), z(v.z) {}
 
-        // Method declarations
         float length() const;
        
         float length_squared() const;
         vec3 normalized() const;
 
-        // Overloaded operators
+        vec3& operator=(const vec4& v);
         vec3 operator+(const vec3& v) const;
         vec3& operator+=(const vec3& v);
         vec3 operator-(const vec3& v) const;
@@ -46,4 +71,6 @@ namespace Engine
         vec3 operator/(float t) const;
         vec3 operator-() const;
     };
+
+    
 }

@@ -40,7 +40,6 @@ Window::Window(int wWidth, int wHeight, WindowProcPtr WindowProc)
 
 	device_context = GetDC(w_handle);
 	
-
 	ShowWindow(w_handle, SW_SHOW);
 	UpdateWindow(w_handle);
 

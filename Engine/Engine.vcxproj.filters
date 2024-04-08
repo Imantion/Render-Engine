@@ -41,6 +41,15 @@
     <ClCompile Include="EngineSource\source\Window\Windows.cpp">
       <Filter>Source\Window</Filter>
     </ClCompile>
+    <ClCompile Include="EngineSource\source\Math\quaternion.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="EngineSource\source\Math\matrix.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="EngineSource\source\Render\Camera.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EngineSource\include\Render\Scene.h">
@@ -60,6 +69,15 @@
     </ClInclude>
     <ClInclude Include="EngineSource\include\Math\hitable.h">
       <Filter>Include\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineSource\include\Math\quaternion.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineSource\include\Math\matrix.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineSource\include\Render\Camera.h">
+      <Filter>Include</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

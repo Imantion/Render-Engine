@@ -5,8 +5,10 @@
 #include "App/Application.h"
 #include "Input/Input.h"
 #include "Utils/Timer.h"
+#include "Math/matrix.h"
 
 #define FRAME_RATE 60
+Engine::vec2 prevMouse{400,200};
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -43,6 +45,12 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_LBUTTONDOWN:
 	case WM_LBUTTONUP:
 		Input::processMouseInput(wParam, lParam);
+	case WM_RBUTTONUP:
+		Input::processMouseInput(wParam, lParam);
+		break;
+	case WM_RBUTTONDOWN:
+		Input::processMouseInput(wParam, lParam);
+		
 		break;
 	case WM_MOUSEMOVE:
 		Input::updateMousePosition(lParam);
@@ -70,8 +78,12 @@ int main(int argc, char* argv[])
 
 	MSG msg = { 0 };
 
+	Engine::mat4 Result(0.0f);
+
+
 	while (app.isOpen())
 	{
+		
 		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 		{
 			TranslateMessage(&msg);
@@ -81,14 +93,14 @@ int main(int argc, char* argv[])
 				break;
 	
 		}
-		
+
 		if (timer.timeElapsed(FRAME_RATE))
 		{
 			app.update(timer.getDeltatime());
-			std::cout << timer.getDeltatime() << std::endl;
 		}
 
 		std::this_thread::yield();
+		
 	}
 	return 0;
 }

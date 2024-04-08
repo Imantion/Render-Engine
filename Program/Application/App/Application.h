@@ -3,11 +3,13 @@
 #include <array>
 #include <Windows.h>
 #include <memory>
+#include "Math/vec.h"
 
 namespace Engine
 {
 	class Scene;
 	class Window;
+	class Camera;
 	struct vec2;
 }
 
@@ -17,39 +19,23 @@ class Application
 {
 public:
 
-	struct KeyState {
-		bool wasDown;
-		bool isDown;
-	};
-
-	enum MouseButtons
-	{
-		LEFT,
-		MIDLE,
-		RIGHT,
-	};
-
-	enum KeyboardButtons
-	{
-		W,
-		A,
-		S,
-		D
-	};
-
 	void update(float deltaTime);
 	bool isOpen();
 
 	Application(int windowSize, int windowHeight, WinProc);
 	~Application();
 
+	
+
 private:
 
 	Engine::vec2 WindowCoordinatesToBufferCoordinates(Engine::vec2 coordinates);
+	
 
-
+	Engine::vec2 previousMousePosition;
 	std::shared_ptr<Engine::Window> window;
 	std::shared_ptr < Engine::Scene> scene;
+	std::shared_ptr < Engine::Camera> camera;
 
 };
 

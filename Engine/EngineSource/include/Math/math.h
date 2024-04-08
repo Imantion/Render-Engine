@@ -1,6 +1,8 @@
 #pragma once
 #include "Math/vec.h"
+#include "Math/matrix.h"
 #include "hitable.h"
+#include <math.h>
 
 namespace Engine
 {
@@ -71,4 +73,80 @@ namespace Engine
 		return false;
 	}
 
+	inline mat4 projectionMatrix(float verticalFov, float nearClip, float farClip, int viewportWidth, int viewportHeight)
+	{
+		mat4 projMat;
+		float halfFov = verticalFov * 0.5;
+		float ctg = cos(halfFov) / sin(halfFov);
+
+		/*projMat[0][0] = (float)viewportHeight / (float)viewportWidth * ctg;
+		projMat[1][1] = ctg;
+		projMat[2][2] = nearClip / (nearClip - farClip);
+		projMat[2][3] = 1;
+		projMat[3][2] = -farClip * nearClip / (nearClip - farClip);*/
+
+
+		projMat[0][0] = (float)viewportHeight / (float)viewportWidth * ctg;
+		projMat[1][1] = ctg;
+		projMat[2][2] = (farClip + nearClip) / (nearClip - farClip);
+		projMat[2][3] = 1;
+		projMat[3][2] = -2 * farClip * nearClip / (nearClip - farClip);
+
+		return projMat;
+	}
+
+	inline mat4 transformMatrix(vec3 eye, vec3 center, vec3 upVector)
+	{
+		vec3 f((center - eye).normalized());
+		vec3 rightVector(cross(upVector, f).normalized());
+		vec3 u(cross(f, rightVector));
+
+		mat4 matrix;
+
+		matrix[0][0] = rightVector.x;
+		matrix[0][1] = rightVector.y;
+		matrix[0][2] = rightVector.z;
+
+		matrix[1][0] = u.x;
+		matrix[1][1] = u.y;
+		matrix[1][2] = u.z;
+
+		matrix[2][0] = f.x;
+		matrix[2][1] = f.y;
+		matrix[2][2] = f.z;
+
+		matrix[3][0] = eye.x;
+		matrix[3][1] = eye.y;
+		matrix[3][2] = eye.z;
+		matrix[3][3] = 1;
+
+		return matrix;
+	}
+
+	inline mat4 inverseTransformMatrix(vec3 eye, vec3 center, vec3 upVector)
+	{
+		vec3 f((center - eye).normalized());
+		vec3 rightVector(cross(upVector, f).normalized());
+		vec3 u(cross(f, rightVector));
+		mat4 matrix;
+
+		matrix[0][0] = rightVector.x;
+		matrix[0][1] = upVector.x;
+		matrix[0][2] = f.x;
+
+		matrix[1][0] = rightVector.y;
+		matrix[1][1] = upVector.y;
+		matrix[1][2] = f.y;
+
+		matrix[2][0] = rightVector.z;
+		matrix[2][1] = upVector.z;
+		matrix[2][2] = f.z;
+
+		matrix[3][0] = -dot(rightVector, eye);
+		matrix[3][1] = -dot(upVector, eye);
+		matrix[3][2] = -dot(f, eye);
+		matrix[3][3] = 1;
+
+		return matrix;
+	}
 }
