@@ -67,12 +67,12 @@ uint32_t Engine::Scene::PerPixel(int x, int y)
 	vec3 rayDirection = s_camera->getRayDirection(BR * x + TL * y);
 	vec3 rayOrigin = s_camera->getPosition();
 	ray r = ray(rayOrigin, rayDirection);
-
 	hitInfo hInfo;
-
+	
+	
 	if (hitSphere(sphr,r, 0.0f, FLT_MAX, hInfo))
 	{
-		vec3 lightDir = { 1,-1, 0.5};
+		vec3 lightDir = { 1,-1, 0.5 };
 		/*vec3 color = (hInfo.normal + 1) * 0.5;*/
 		float d = dot(-lightDir, hInfo.normal);
 		d = d >= 0 ? d : 0.0001;
@@ -80,6 +80,10 @@ uint32_t Engine::Scene::PerPixel(int x, int y)
 
 		return RGB(255 * 0, 255 * 0, 255 * d);
 	}
+
+	
+	if (hitPlane(vec3(0, -1, 0), r, vec3(0,-5,0)))
+		return RGB(255, 153, 0);
 
 	return RGB(128, 128, 128); // Gray color
 }

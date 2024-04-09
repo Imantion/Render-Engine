@@ -73,6 +73,18 @@ namespace Engine
 		return false;
 	}
 
+	inline bool hitPlane(const vec3& normal, const ray& ray, const vec3& point = vec3(0,0,0))
+	{
+		float denom = dot(normal, ray.direction);
+		if (denom > 1e-6)
+		{
+			float t = dot(point - ray.origin, normal) / denom;
+
+			return t >= 0;
+		}
+		return false;
+	}
+
 	inline mat4 projectionMatrix(float verticalFov, float nearClip, float farClip, int viewportWidth, int viewportHeight)
 	{
 		mat4 projMat;
