@@ -139,6 +139,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="EngineSource\include\Math\BVH.h" />
     <ClCompile Include="EngineSource\source\Math\matrix.cpp" />
     <ClCompile Include="EngineSource\source\Math\quaternion.cpp" />
     <ClCompile Include="EngineSource\source\Render\Camera.cpp" />

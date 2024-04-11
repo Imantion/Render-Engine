@@ -65,8 +65,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		}
 		else {
 			SetCursor(LoadCursor(NULL, IDC_ARROW));
-		}
+		}break;
+	case WM_MOUSEWHEEL:
+		std::cout << GET_WHEEL_DELTA_WPARAM(wParam) << std::endl;
 	}
+
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 

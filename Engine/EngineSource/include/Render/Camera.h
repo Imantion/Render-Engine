@@ -45,6 +45,6 @@ namespace Engine
 			LeftDown,
 			RightDown
 		};
-		vec3 rayDirections[800 * 400]; // 4 corners of frustrum
+		vec3 rayDirections[4]; // 4 corners of frustrum
 	};
 }

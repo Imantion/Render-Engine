@@ -2,12 +2,14 @@
 #include "Math/vec.h"
 #include "Math/matrix.h"
 #include "hitable.h"
+#include "triangle.h"
 #include <math.h>
 
 namespace Engine
 {
 	struct sphere
 	{
+		sphere() : position(0.0f), radius(0.0f) {}
 		sphere(vec3 pos, float r) : position(pos), radius(r) {}
 		sphere(const sphere& s) : position(s.position), radius(s.radius) {}
 
@@ -85,10 +87,10 @@ namespace Engine
 		return false;
 	}
 	
-	inline bool hitTriangle(const vec3& A, const vec3& B, const vec3& C, const ray& r)
+	inline bool hitTriangle(const triangle& tr, const ray& r)
 	{
-		vec3 E1 = C - A;
-		vec3 E2 = B - A;
+		vec3 E1 = tr.C - tr.A;
+		vec3 E2 = tr.B - tr.A;
 		vec3 P = cross(r.direction, E2);
 		
 
@@ -97,7 +99,7 @@ namespace Engine
 		if (determinant < 1e-6)
 			return false;
 
-		vec3 T = r.origin - A;
+		vec3 T = r.origin - tr.A;
 		vec3 Q = cross(T, E1);
 
 		float invDeterminant = 1.0f / determinant;

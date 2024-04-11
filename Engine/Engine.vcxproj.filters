@@ -50,6 +50,9 @@
     <ClCompile Include="EngineSource\source\Render\Camera.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="EngineSource\include\Math\BVH.h">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EngineSource\include\Render\Scene.h">

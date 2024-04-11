@@ -60,6 +60,7 @@ namespace Engine
         float length_squared() const;
         vec3 normalized() const;
 
+        const float& operator [] (size_t i) const { return (&x)[i]; }
         vec3& operator=(const vec4& v);
         vec3 operator+(const vec3& v) const;
         vec3& operator+=(const vec3& v);

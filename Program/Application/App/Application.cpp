@@ -62,9 +62,9 @@ void Application::update(float deltaTime)
 	if (Input::keyIsDown(Input::KeyboardButtons::SPACE))
 		cameraMoveDirection += camera->getUp() * deltaTime;
 	if (Input::keyIsDown(Input::KeyboardButtons::E))
-		roll += 0.2;
+		roll -= 0.02;
 	if (Input::keyIsDown(Input::KeyboardButtons::Q))
-		roll -= 0.2;
+		roll += 0.02;
 
 	/*if (Input::mouseIsDown(Input::MouseButtons::LEFT))
 	{

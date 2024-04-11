@@ -3,13 +3,26 @@
 #include "Window/Window.h"
 #include "Render/Camera.h"
 
-Engine::Scene::Scene():
-	sphr(vec3(0, 0, 5), 0.5), redrawScene(true)
-{
-	c.position = vec3(2, 3, 5);
-	c.invTransformeMatrix = inverseTransformMatrix(c.position, c.position + vec3(0, 0, 1), vec3(0, 1, 0));
+std::unique_ptr<Engine::Mesh> Engine::Scene::cube::cubeMesh;
 
-	cubeMesh.reset(Mesh::UniteCube());
+Engine::Scene::Scene() :
+	redrawScene(true), cubes(2), spheres(2)
+{
+	cubes[0].position = vec3(0, 0, 2);
+	cubes[0].invTransformeMatrix = inverseTransformMatrix(cubes[0].position, cubes[0].position + vec3(0, 0, 1), vec3(0, 1, 0));
+
+	cubes[1].position = vec3(0, 3, 2);
+	cubes[1].invTransformeMatrix = inverseTransformMatrix(cubes[1].position, cubes[1].position + vec3(0, 0, 1), vec3(0, 1, 0));
+
+	
+
+	spheres[0].position = vec3(2, 2, 4);
+	spheres[0].radius = 0.5;
+
+	spheres[1].position = vec3(0, 2, 2);
+	spheres[1].radius = 0.5;
+
+	cube::cubeMesh.reset(Mesh::UniteCube());
 }
 
 void Engine::Scene::render(Engine::Window& window, Engine::Camera& camera)
@@ -24,6 +37,8 @@ void Engine::Scene::render(Engine::Window& window, Engine::Camera& camera)
 		BR = vec2(1.0 / window.getBufferWidth(), 0);
 		TL = vec2(0, 1.0 / window.getBufferHeight());
 		s_camera->calculateProjectionMatrix(window.getBufferWidth(), window.getBufferHeight());
+		s_camera->calculateViewMatrix();
+		s_camera->calculateRayDirections();
 
 		redrawScene = true;
 	}
@@ -47,21 +62,21 @@ void Engine::Scene::render(Engine::Window& window, Engine::Camera& camera)
 
 void Engine::Scene::moveSphere(vec3 direction)
 {
-	if (direction.length_squared() != 0)
+	/*if (direction.length_squared() != 0)
 	{
 		redrawScene = true;
 		sphr.position += direction;
-	}
+	}*/
 	
 }
 
 void Engine::Scene::setSpherePosition(vec3 position)
 {
-	if (sphr.position != position)
+	/*if (sphr.position != position)
 	{
 		redrawScene = true;
 		sphr.position = position;
-	}
+	}*/
 }
 
 
@@ -73,29 +88,30 @@ uint32_t Engine::Scene::PerPixel(int x, int y)
 	ray r = ray(rayOrigin, rayDirection);
 	hitInfo hInfo;
 	
-	
-	//if (hitSphere(sphr,r, 0.0f, FLT_MAX, hInfo))
-	//{
-	//	vec3 lightDir = { 1,-1, 0.5 };
-	//	/*vec3 color = (hInfo.normal + 1) * 0.5;*/
-	//	float d = dot(-lightDir, hInfo.normal);
-	//	d = d >= 0 ? d : 0.0001;
-	//	d = d >= 1 ? 1 : d;
-
-	//	return RGB(255 * 0, 255 * 0, 255 * d);
-	//}
-	vec3 color;
-	/*if (simpleHitTriangle(vec3(0, 0, 5), vec3(5, 0, 5), vec3(0, 5, 5), r,color))
-		return RGB(255 * color.y, 255 * color.x, 255 * color.z);*/
-	r.origin = vec3(vec4(r.origin, 1) * c.invTransformeMatrix);
-	for (size_t i = 0; i < cubeMesh->trianglesAmount(); i++)
+	for (sphere s : spheres)
 	{
-		triangle tr = cubeMesh->getTriangle(i);
-		if (hitTriangle(tr.A, tr.B, tr.C, r))
+		if (hitSphere(s, r, 0.0f, FLT_MAX, hInfo))
 		{
-			return RGB(0, 255, 0);
+			vec3 lightDir = { 1,-1, 0.5 };
+			float d = dot(-lightDir, hInfo.normal);
+			d = d >= 0 ? d : 0.0001;
+			d = d >= 1 ? 1 : d;
+
+			return RGB(255 * 0, 255 * 0, 255 * d);
 		}
 	}
+	for (const cube& c : cubes)
+	{
+		r.origin = vec3(vec4(r.origin, 1) * c.invTransformeMatrix);
+		for (size_t i = 0; i < cube::cubeMesh->trianglesAmount(); i++)
+		{
+			if (hitTriangle(cube::cubeMesh->getTriangle(i), r))
+			{
+				return RGB(0, 255, 0);
+			}
+		}
+	}
+	
 	
 
 	
