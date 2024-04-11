@@ -1,11 +1,14 @@
 #pragma once
 #include <stdint.h>
+#include <memory>
 #include "Math/math.h"
+#include "Math/Mesh.h"
 
 namespace Engine
 {
 	class Window;
 	class Camera;
+	class Mesh;
 
 	class Scene
 	{
@@ -31,6 +34,15 @@ namespace Engine
 		sphere sphr;
 		vec2 TL, BR;
 
+		struct cube
+		{
+			mat4 transformeMatrix;
+			mat4 invTransformeMatrix;
+			vec3 position;
+		};
+
 		Camera* s_camera;
+		std::unique_ptr<Mesh> cubeMesh;
+		cube c;
 	};
 }

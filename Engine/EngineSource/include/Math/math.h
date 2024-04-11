@@ -84,6 +84,92 @@ namespace Engine
 		}
 		return false;
 	}
+	
+	inline bool hitTriangle(const vec3& A, const vec3& B, const vec3& C, const ray& r)
+	{
+		vec3 E1 = C - A;
+		vec3 E2 = B - A;
+		vec3 P = cross(r.direction, E2);
+		
+
+		float determinant = dot(P, E1);
+
+		if (determinant < 1e-6)
+			return false;
+
+		vec3 T = r.origin - A;
+		vec3 Q = cross(T, E1);
+
+		float invDeterminant = 1.0f / determinant;
+
+		float t = dot(Q, E2) * invDeterminant;
+
+		if (t < 0)
+			return false;
+
+		float u = dot(P, T) * invDeterminant;
+
+		if (u > 1.0f || u < 0.0f)
+			return false;
+
+		float v = dot(Q, r.direction) * invDeterminant;
+
+		if (v > 1.0f || v < 0.0f || u + v > 1.0f)
+			return false;
+
+		
+
+		return true;
+
+	}
+	inline bool simpleHitTriangle(const vec3& v0, const vec3& v1, const vec3& v2, const ray& r, vec3& color)
+	{
+		auto A = v1 - v0;
+		auto B = v2 - v0;
+
+		auto normal = cross(A, B);
+
+		auto denominator = dot(normal, r.direction);
+		if (abs(denominator) < 1e-6)
+			return false;
+
+		float D = -(dot(normal, v0));
+		float t = -(dot(normal, r.origin) + D) / denominator;
+
+		if (t <= 0)
+			return false;
+
+		auto point = r.point_at_parameter(t);
+
+		vec3 C;
+
+		auto edge1 = v1 - v0;
+		auto vp1 = point - v0;
+		C = cross(edge1, vp1);
+
+		if ((color.y = dot(C, normal)) < 0)
+			return false;
+
+		auto edge2 = v2 - v1;
+		auto vp2 = point - v1;
+		C = cross(edge2, vp2);
+
+		if (dot(C, normal) < 0)
+			return false;
+
+		auto edge3 = v0 - v2;
+		auto vp3 = point - v2;
+		C = cross(edge3, vp3);
+
+		if ((color.z = dot(C, normal)) < 0)
+			return false;
+
+		color.y /= normal.length_squared();
+		color.z /= normal.length_squared();
+		color.x = 1 - color.y - color.z;
+
+		return true;
+	}
 
 	inline mat4 projectionMatrix(float verticalFov, float nearClip, float farClip, int viewportWidth, int viewportHeight)
 	{

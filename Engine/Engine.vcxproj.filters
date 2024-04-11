@@ -79,5 +79,11 @@
     <ClInclude Include="EngineSource\include\Render\Camera.h">
       <Filter>Include</Filter>
     </ClInclude>
+    <ClInclude Include="EngineSource\include\Math\triangle.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineSource\include\Math\Mesh.h">
+      <Filter>Include</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
