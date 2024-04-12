@@ -15,11 +15,14 @@ public:
 
 	static void processKeyboardInput(uint32_t keycode, bool isDown);
 	static void processMouseInput(WPARAM wParam, LPARAM lParam);
+	static void proccesMouseScrolling(WPARAM wParam, LPARAM lParam);
 	static void updateMousePosition(LPARAM lParam);
 
 	static bool keyIsDown(KeyboardButtons key);
 	static bool mouseIsDown(MouseButtons button);
 	static Engine::vec2 getMousePosition();
+	static int scrollAmount() { return scrolledDistance / 120; }
+	static void resetScroll();
 
 	
 
@@ -43,15 +46,17 @@ public:
 		CTRL,
 		SPACE,
 		Q,
-		E
+		E,
+		SHIFT
 	};
 
 
 
 
 private:
-	static std::array<KeyState, 8> keyboard;
+	static std::array<KeyState, 9> keyboard;
 	static std::array<KeyState, 3> mouse;
+	static int scrolledDistance;
 	static Engine::vec2 mousePosition;
 };
 

@@ -2,8 +2,9 @@
 #include "Math/vec.h"
 #include <windowsx.h>
 
-std::array<Input::KeyState, 8> Input::keyboard;
+std::array<Input::KeyState, 9> Input::keyboard;
 std::array<Input::KeyState, 3> Input::mouse;
+int Input::scrolledDistance = 0;
 
 Engine::vec2 Input::mousePosition;
 
@@ -35,6 +36,8 @@ void Input::processKeyboardInput(uint32_t keycode, bool isDown)
 	case VK_SPACE:
 		keyboard[Input::KeyboardButtons::SPACE].isDown = isDown;
 		break;
+	case VK_SHIFT:
+		keyboard[Input::KeyboardButtons::SHIFT].isDown = isDown;
 	default:
 		break;
 	}
@@ -48,6 +51,11 @@ void Input::processMouseInput(WPARAM wParam, LPARAM lParam)
 		mouse[button].isDown = (((int)button + 1) & wParam) == i + 1; // button starts count from 0. wParam defines RMB,MMB,LMB counting from 1
 		// That's why adding 1 to resolv this 
 	}
+}
+
+void Input::proccesMouseScrolling(WPARAM wParam, LPARAM lParam)
+{
+	scrolledDistance += GET_WHEEL_DELTA_WPARAM(wParam);
 }
 
 void Input::updateMousePosition(LPARAM lParam)
@@ -69,4 +77,9 @@ bool Input::mouseIsDown(MouseButtons button)
 Engine::vec2 Input::getMousePosition()
 {
 	return mousePosition;
+}
+
+void Input::resetScroll()
+{
+	scrolledDistance = 0;
 }

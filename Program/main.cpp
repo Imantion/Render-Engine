@@ -67,7 +67,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			SetCursor(LoadCursor(NULL, IDC_ARROW));
 		}break;
 	case WM_MOUSEWHEEL:
-		std::cout << GET_WHEEL_DELTA_WPARAM(wParam) << std::endl;
+		Input::proccesMouseScrolling(wParam, lParam);
 	}
 
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
@@ -100,6 +100,7 @@ int main(int argc, char* argv[])
 		if (timer.timeElapsed(FRAME_RATE))
 		{
 			app.update(timer.getDeltatime());
+			Input::resetScroll();
 		}
 
 		std::this_thread::yield();

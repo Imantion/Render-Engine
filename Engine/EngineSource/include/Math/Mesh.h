@@ -24,7 +24,7 @@ namespace Engine
 			return buffer.size();
 		}
 
-		bool intersect(const ray& r, float& tNear) const;
+		bool intersect(const ray& r, hitInfo& hInfo) const;
 
 		int getSize() const { return buffer.size(); }
 

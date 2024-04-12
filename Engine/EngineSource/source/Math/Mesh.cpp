@@ -21,20 +21,21 @@ const Engine::triangle& Engine::Mesh::getTriangle(uint8_t index) const
 	return triangle(vertex[buffer[index].a], vertex[buffer[index].b], vertex[buffer[index].c]);
 }
 
-bool Engine::Mesh::intersect(const ray& r, float& tNear) const
+bool Engine::Mesh::intersect(const ray& r, hitInfo& hInfo) const
 {
 	uint32_t intersectedTriIndex;
 	bool intersected = false;
-	float t;
+	hitInfo hit;
+	hInfo.t = FLT_MAX;
 	for (uint32_t i = 0; i < buffer.size(); ++i) {
-		if (hitTriangle(getTriangle(i), r, t) && t < tNear)
+		if (hitTriangle(getTriangle(i), r, hit) && hit.t < hInfo.t)
 		{
-			tNear = t;
+			hInfo = hit;
 			intersectedTriIndex = i;
 			intersected = true;
 		}
 	}
-
+	
 	return intersected;
 }
 

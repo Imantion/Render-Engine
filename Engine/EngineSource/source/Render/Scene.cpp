@@ -87,18 +87,16 @@ uint32_t Engine::Scene::PerPixel(int x, int y)
 	vec3 rayDirection = s_camera->getRayDirection(BR * x + TL * y).normalized();
 	vec3 rayOrigin = s_camera->getPosition();
 	ray r = ray(rayOrigin, rayDirection);
-	hitInfo hInfo;
-	
+	hitInfo hInfo; hInfo.t = FLT_MAX;
+	hitInfo hitedObjectInfo; hitedObjectInfo.t = FLT_MAX;
+
+	vec3 lightDir = { 2,-1, 0.5 };
+
 	for (sphere s : spheres)
 	{
-		if (hitSphere(s, r, 0.0f, FLT_MAX, hInfo))
+		if (hitSphere(s, r, 0.0f, FLT_MAX, hInfo) && hInfo.t < hitedObjectInfo.t)
 		{
-			vec3 lightDir = { 1,-1, 0.5 };
-			float d = dot(-lightDir, hInfo.normal);
-			d = d >= 0 ? d : 0.0001;
-			d = d >= 1 ? 1 : d;
-
-			return RGB(255 * 0, 255 * 0, 255 * d);
+			hitedObjectInfo = hInfo;
 		}
 	}
 
@@ -112,9 +110,9 @@ uint32_t Engine::Scene::PerPixel(int x, int y)
 		if(c.bvh->intersect(cubeR,hInfo))
 			for (size_t i = 0; i < cube::mesh->trianglesAmount(); i++)
 			{
-				if (hitTriangle(c.mesh->getTriangle(i), cubeR))
+				if (hitTriangle(c.mesh->getTriangle(i), cubeR, hInfo) && hInfo.t < hitedObjectInfo.t)
 				{
-					return RGB(0, 255, 0);
+					hitedObjectInfo = hInfo;
 				}
 			}
 	}
@@ -122,8 +120,18 @@ uint32_t Engine::Scene::PerPixel(int x, int y)
 	
 
 	
-	if (hitPlane(vec3(0, -1, 0), r, vec3(0,-5,0)))
-		return RGB(255, 153, 0);
+	if (hitPlane(vec3(0, -1, 0), r, hInfo, vec3(0, -5, 0)) && hInfo.t < hitedObjectInfo.t)
+		hitedObjectInfo = hInfo;
+
+	if (hitedObjectInfo.t < FLT_MAX)
+	{
+		float d = dot(-lightDir, hitedObjectInfo.normal);
+		d = d >= 0 ? d : 0.0001;
+		d = d >= 1 ? 1 : d;
+
+		return RGB(255 * d, 0, 0);
+	}
+	
 
 	return RGB(128, 128, 128); // Gray color
 }

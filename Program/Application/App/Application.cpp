@@ -8,7 +8,7 @@
 #include <windowsx.h>
 #include <iostream>
 
-
+float cameraSpeed = 1.0f;
 
 Application::Application(int windowSize, int windowHeight, WinProc func)
 {
@@ -50,22 +50,29 @@ void Application::update(float deltaTime)
 
 	Engine::vec3 cameraMoveDirection = (0, 0, 0);
 	if (Input::keyIsDown(Input::KeyboardButtons::W))
-		cameraMoveDirection += camera->getForward() * deltaTime;
+		cameraMoveDirection += camera->getForward() * cameraSpeed * deltaTime;
 	if (Input::keyIsDown(Input::KeyboardButtons::A))
-		cameraMoveDirection += camera->getRight() * -deltaTime;
+		cameraMoveDirection += camera->getRight() * cameraSpeed * -deltaTime;
 	if (Input::keyIsDown(Input::KeyboardButtons::S))
-		cameraMoveDirection += camera->getForward() * -deltaTime;
+		cameraMoveDirection += camera->getForward() * cameraSpeed * -deltaTime;
 	if (Input::keyIsDown(Input::KeyboardButtons::D))
-		cameraMoveDirection += camera->getRight() * deltaTime;
+		cameraMoveDirection += camera->getRight() * cameraSpeed * deltaTime;
 	if (Input::keyIsDown(Input::KeyboardButtons::CTRL))
-		cameraMoveDirection += camera->getUp() * -deltaTime;
+		cameraMoveDirection += camera->getUp() * cameraSpeed * -deltaTime;
 	if (Input::keyIsDown(Input::KeyboardButtons::SPACE))
-		cameraMoveDirection += camera->getUp() * deltaTime;
+		cameraMoveDirection += camera->getUp() * cameraSpeed * deltaTime;
+	if (Input::keyIsDown(Input::KeyboardButtons::SHIFT))
+		cameraMoveDirection *= 5;
 	if (Input::keyIsDown(Input::KeyboardButtons::E))
 		roll -= 0.02;
 	if (Input::keyIsDown(Input::KeyboardButtons::Q))
 		roll += 0.02;
 
+	int scrolls = Input::scrollAmount();
+	if (scrolls > 0)
+		cameraSpeed += cameraSpeed * 0.05 * scrolls;
+	else if(scrolls < 0)
+		cameraSpeed += cameraSpeed * 0.05 * scrolls;
 	/*if (Input::mouseIsDown(Input::MouseButtons::LEFT))
 	{
 		Engine::vec2 position = WindowCoordinatesToBufferCoordinates(Input::getMousePosition());

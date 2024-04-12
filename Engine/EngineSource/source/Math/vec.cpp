@@ -63,6 +63,15 @@ vec3 vec3::operator*(float t) const {
     return vec3(x * t, y * t, z * t);
 }
 
+vec3& Engine::vec3::operator*=(float t)
+{
+    x *= t;
+    y *= t;
+    z *= t;
+
+    return *this;
+}
+
 vec3 vec3::operator/(float t) const {
     return vec3(x / t, y / t, z / t);
 }
