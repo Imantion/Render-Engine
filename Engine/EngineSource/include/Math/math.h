@@ -124,7 +124,44 @@ namespace Engine
 		return true;
 
 	}
-	inline bool simpleHitTriangle(const vec3& v0, const vec3& v1, const vec3& v2, const ray& r, vec3& color)
+	inline bool hitTriangle(const triangle& tr, const ray& r, float& t)
+	{
+		vec3 E1 = tr.C - tr.A;
+		vec3 E2 = tr.B - tr.A;
+		vec3 P = cross(r.direction, E2);
+
+
+		float determinant = dot(P, E1);
+
+		if (determinant < 1e-6)
+			return false;
+
+		vec3 T = r.origin - tr.A;
+		vec3 Q = cross(T, E1);
+
+		float invDeterminant = 1.0f / determinant;
+
+		t = dot(Q, E2) * invDeterminant;
+
+		if (t < 0)
+			return false;
+
+		float u = dot(P, T) * invDeterminant;
+
+		if (u > 1.0f || u < 0.0f)
+			return false;
+
+		float v = dot(Q, r.direction) * invDeterminant;
+
+		if (v > 1.0f || v < 0.0f || u + v > 1.0f)
+			return false;
+
+
+
+		return true;
+
+	}
+	/*inline bool simpleHitTriangle(const vec3& v0, const vec3& v1, const vec3& v2, const ray& r, vec3& color)
 	{
 		auto A = v1 - v0;
 		auto B = v2 - v0;
@@ -171,7 +208,7 @@ namespace Engine
 		color.x = 1 - color.y - color.z;
 
 		return true;
-	}
+	}*/
 
 	inline mat4 projectionMatrix(float verticalFov, float nearClip, float farClip, int viewportWidth, int viewportHeight)
 	{

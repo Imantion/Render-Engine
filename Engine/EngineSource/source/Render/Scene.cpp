@@ -3,7 +3,7 @@
 #include "Window/Window.h"
 #include "Render/Camera.h"
 
-std::unique_ptr<Engine::Mesh> Engine::Scene::cube::cubeMesh;
+std::unique_ptr<Engine::Mesh> Engine::Scene::cube::mesh;
 
 Engine::Scene::Scene() :
 	redrawScene(true), cubes(2), spheres(2)
@@ -14,7 +14,6 @@ Engine::Scene::Scene() :
 	cubes[1].position = vec3(0, 3, 2);
 	cubes[1].invTransformeMatrix = inverseTransformMatrix(cubes[1].position, cubes[1].position + vec3(0, 0, 1), vec3(0, 1, 0));
 
-	
 
 	spheres[0].position = vec3(2, 2, 4);
 	spheres[0].radius = 0.5;
@@ -22,7 +21,9 @@ Engine::Scene::Scene() :
 	spheres[1].position = vec3(0, 2, 2);
 	spheres[1].radius = 0.5;
 
-	cube::cubeMesh.reset(Mesh::UniteCube());
+	cube::mesh.reset(Mesh::UniteCube());
+	cubes[0].bvh = std::make_shared<BVH>(cube::mesh.get());
+	cubes[1].bvh = cubes[0].bvh;
 }
 
 void Engine::Scene::render(Engine::Window& window, Engine::Camera& camera)
@@ -100,16 +101,22 @@ uint32_t Engine::Scene::PerPixel(int x, int y)
 			return RGB(255 * 0, 255 * 0, 255 * d);
 		}
 	}
+
+	ray cubeR(r);
+	const cube* cubeToRender;
+	float t_min;
 	for (const cube& c : cubes)
 	{
-		r.origin = vec3(vec4(r.origin, 1) * c.invTransformeMatrix);
-		for (size_t i = 0; i < cube::cubeMesh->trianglesAmount(); i++)
-		{
-			if (hitTriangle(cube::cubeMesh->getTriangle(i), r))
+		cubeR.origin = vec3(vec4(r.origin, 1) * c.invTransformeMatrix);
+		
+		if(c.bvh->intersect(cubeR,hInfo))
+			for (size_t i = 0; i < cube::mesh->trianglesAmount(); i++)
 			{
-				return RGB(0, 255, 0);
+				if (hitTriangle(c.mesh->getTriangle(i), cubeR))
+				{
+					return RGB(0, 255, 0);
+				}
 			}
-		}
 	}
 	
 	

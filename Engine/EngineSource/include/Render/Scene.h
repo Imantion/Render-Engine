@@ -7,6 +7,7 @@
 
 namespace Engine
 {
+	class BVH;
 	class Window;
 	class Camera;
 	class Mesh;
@@ -32,19 +33,12 @@ namespace Engine
 		bool redrawScene;
 		vec2 TL, BR;
 
-		struct cube
-		{
-			cube() : position(0.0f) {}
-			cube(const vec3& position) : position(position) {}
-			mat4 transformeMatrix;
-			mat4 invTransformeMatrix;
-			vec3 position;
-
-			static std::unique_ptr<Mesh> cubeMesh;
-		};
+		struct cube : primitive{};
 
 		std::vector<sphere> spheres;
 		std::vector<cube> cubes;
+		
+		
 		Camera* s_camera;
 	};
 }

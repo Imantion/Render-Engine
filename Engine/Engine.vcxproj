@@ -139,8 +139,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="EngineSource\include\Math\BVH.h" />
+    <ClCompile Include="EngineSource\source\Math\BVH.cpp" />
     <ClCompile Include="EngineSource\source\Math\matrix.cpp" />
+    <ClCompile Include="EngineSource\source\Math\Mesh.cpp" />
     <ClCompile Include="EngineSource\source\Math\quaternion.cpp" />
     <ClCompile Include="EngineSource\source\Render\Camera.cpp" />
     <ClCompile Include="EngineSource\source\Render\Scene.cpp" />
@@ -148,6 +149,7 @@
     <ClCompile Include="EngineSource\source\Window\Windows.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="EngineSource\include\Math\BVH.h" />
     <ClInclude Include="EngineSource\include\Math\matrix.h" />
     <ClInclude Include="EngineSource\include\Math\math.h" />
     <ClInclude Include="EngineSource\include\Math\Mesh.h" />

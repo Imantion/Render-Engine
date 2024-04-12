@@ -50,7 +50,10 @@
     <ClCompile Include="EngineSource\source\Render\Camera.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="EngineSource\include\Math\BVH.h">
+    <ClCompile Include="EngineSource\source\Math\Mesh.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="EngineSource\source\Math\BVH.cpp">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>
@@ -86,6 +89,9 @@
       <Filter>Include</Filter>
     </ClInclude>
     <ClInclude Include="EngineSource\include\Math\Mesh.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineSource\include\Math\BVH.h">
       <Filter>Include</Filter>
     </ClInclude>
   </ItemGroup>
