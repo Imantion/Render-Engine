@@ -11,6 +11,7 @@ namespace Engine
 	class Window;
 	class Camera;
 	class Mesh;
+	struct Material;
 
 	class Scene
 	{
@@ -19,7 +20,6 @@ namespace Engine
 		Scene();
 
 		void render(Window& window, Camera& camera);
-		uint32_t PerPixel(int x, int y);
 
 		void moveSphere(vec3 direction);
 		void setSpherePosition(vec3 position);
@@ -29,6 +29,9 @@ namespace Engine
 		vec2 getTL() const { return TL; }
 
 	private:
+
+		uint32_t PerPixel(int x, int y);
+		Material CheckIntersection(const ray& r, hitInfo& hInfo);
 
 		bool redrawScene;
 		vec2 TL, BR;

@@ -1,8 +1,9 @@
 #pragma once
 #include "Math/vec.h"
 #include "Math/matrix.h"
-#include "hitable.h"
-#include "triangle.h"
+#include "Math/hitable.h"
+#include "Math/triangle.h"
+#include "Render/Material.h"
 #include <math.h>
 
 namespace Engine
@@ -11,9 +12,10 @@ namespace Engine
 	{
 		sphere() : position(0.0f), radius(0.0f) {}
 		sphere(vec3 pos, float r) : position(pos), radius(r) {}
+		sphere(vec3 pos, float r, Material m) : position(pos), radius(r), material(m) {}
 		sphere(const sphere& s) : position(s.position), radius(s.radius) {}
 
-
+		Material material;
 		vec3 position;
 		float radius;
 	};
@@ -57,7 +59,7 @@ namespace Engine
 			{
 				hInfo.t = t;
 				hInfo.p = r.point_at_parameter(t);
-				hInfo.normal = (hInfo.p - s.position) / s.radius;
+				hInfo.normal = (hInfo.p - s.position).normalized();
 				return true;
 			}
 
@@ -67,7 +69,7 @@ namespace Engine
 			{
 				hInfo.t = t;
 				hInfo.p = r.point_at_parameter(t);
-				hInfo.normal = (hInfo.p - s.position) / s.radius;
+				hInfo.normal = (hInfo.p - s.position).normalized();
 				return true;
 			}
 		}
@@ -77,10 +79,10 @@ namespace Engine
 
 	inline bool hitPlane(const vec3& normal, const ray& ray, hitInfo& hInfo, const vec3& point = vec3(0,0,0))
 	{
-		float denom = dot(normal, ray.direction);
+		float denom = dot(-normal, ray.direction);
 		if (denom > 1e-6)
 		{
-			float t = dot(point - ray.origin, normal) / denom;
+			float t = dot(point - ray.origin, -normal) / denom;
 
 			if (t > 0)
 			{
@@ -125,62 +127,34 @@ namespace Engine
 		if (v > 1.0f || v < 0.0f || u + v > 1.0f)
 			return false;
 
-		hInfo.p = vec3(u, v, 1 - u - v);
+		hInfo.p = r.point_at_parameter(t);
 		hInfo.t = t;
-		hInfo.normal = cross(E1,E2);
+		hInfo.normal = cross(E1,E2).normalized();
 
 		return true;
 
 	}
-	
-	/*inline bool simpleHitTriangle(const vec3& v0, const vec3& v1, const vec3& v2, const ray& r, vec3& color)
+
+	inline vec3 clampVec(const vec3& v, float value)
 	{
-		auto A = v1 - v0;
-		auto B = v2 - v0;
+		vec3 clampedVector;
 
-		auto normal = cross(A, B);
+		clampedVector.x = v.x > value ? value : v.x;
+		clampedVector.y = v.y > value ? value : v.y;
+		clampedVector.z = v.z > value ? value : v.z;
 
-		auto denominator = dot(normal, r.direction);
-		if (abs(denominator) < 1e-6)
-			return false;
+		return clampedVector;
+	}
+	
+	inline uint32_t ConvertToRGB(const vec3& color)
+	{
+		vec3 clampedColor = clampVec(color, 1.0f);
+		uint8_t r = (uint8_t)(clampedColor.r * 255);
+		uint8_t g = (uint8_t)(clampedColor.g * 255);
+		uint8_t b = (uint8_t)(clampedColor.b * 255);
 
-		float D = -(dot(normal, v0));
-		float t = -(dot(normal, r.origin) + D) / denominator;
-
-		if (t <= 0)
-			return false;
-
-		auto point = r.point_at_parameter(t);
-
-		vec3 C;
-
-		auto edge1 = v1 - v0;
-		auto vp1 = point - v0;
-		C = cross(edge1, vp1);
-
-		if ((color.y = dot(C, normal)) < 0)
-			return false;
-
-		auto edge2 = v2 - v1;
-		auto vp2 = point - v1;
-		C = cross(edge2, vp2);
-
-		if (dot(C, normal) < 0)
-			return false;
-
-		auto edge3 = v0 - v2;
-		auto vp3 = point - v2;
-		C = cross(edge3, vp3);
-
-		if ((color.z = dot(C, normal)) < 0)
-			return false;
-
-		color.y /= normal.length_squared();
-		color.z /= normal.length_squared();
-		color.x = 1 - color.y - color.z;
-
-		return true;
-	}*/
+		return 0x00000000 | (r << 16) | (g << 8) | b; // Shifting so uint32_t represent RGB
+	}
 
 	inline mat4 projectionMatrix(float verticalFov, float nearClip, float farClip, int viewportWidth, int viewportHeight)
 	{
@@ -188,18 +162,18 @@ namespace Engine
 		float halfFov = verticalFov * 0.5;
 		float ctg = cos(halfFov) / sin(halfFov);
 
-		/*projMat[0][0] = (float)viewportHeight / (float)viewportWidth * ctg;
+		projMat[0][0] = (float)viewportHeight / (float)viewportWidth * ctg;
 		projMat[1][1] = ctg;
 		projMat[2][2] = nearClip / (nearClip - farClip);
 		projMat[2][3] = 1;
-		projMat[3][2] = -farClip * nearClip / (nearClip - farClip);*/
+		projMat[3][2] = -farClip * nearClip / (nearClip - farClip);
 
 
-		projMat[0][0] = (float)viewportHeight / (float)viewportWidth * ctg;
+	/*	projMat[0][0] = (float)viewportHeight / (float)viewportWidth * ctg;
 		projMat[1][1] = ctg;
 		projMat[2][2] = (farClip + nearClip) / (nearClip - farClip);
 		projMat[2][3] = 1;
-		projMat[3][2] = -2 * farClip * nearClip / (nearClip - farClip);
+		projMat[3][2] = -2 * farClip * nearClip / (nearClip - farClip);*/
 
 		return projMat;
 	}

@@ -2,6 +2,7 @@
 #include "Math/matrix.h"
 #include "Math/vec.h"
 #include "Math/BVH.h"
+#include "Render/Material.h"
 #include <vector>
 #include <memory>
 
@@ -16,7 +17,7 @@ namespace Engine
 		static Mesh* UniteCube();
 		
 
-		const triangle& getTriangle(uint8_t index) const;
+		const triangle getTriangle(uint8_t index) const;
 		
 
 		int trianglesAmount()
@@ -51,6 +52,7 @@ namespace Engine
 		mat4 transformeMatrix;
 		mat4 invTransformeMatrix;
 		vec3 position;
+		Material material;
 
 		static std::unique_ptr<Mesh> mesh;
 		std::shared_ptr<BVH> bvh;

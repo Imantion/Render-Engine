@@ -94,5 +94,8 @@
     <ClInclude Include="EngineSource\include\Math\BVH.h">
       <Filter>Include</Filter>
     </ClInclude>
+    <ClInclude Include="EngineSource\include\Render\Material.h">
+      <Filter>Include</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

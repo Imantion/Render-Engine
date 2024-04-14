@@ -16,7 +16,7 @@ Engine::Mesh* Engine::Mesh::UniteCube()
 	return cube;
 }
 
-const Engine::triangle& Engine::Mesh::getTriangle(uint8_t index) const
+const Engine::triangle Engine::Mesh::getTriangle(uint8_t index) const
 {
 	return triangle(vertex[buffer[index].a], vertex[buffer[index].b], vertex[buffer[index].c]);
 }

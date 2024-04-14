@@ -156,6 +156,7 @@
     <ClInclude Include="EngineSource\include\Math\quaternion.h" />
     <ClInclude Include="EngineSource\include\Math\triangle.h" />
     <ClInclude Include="EngineSource\include\Render\Camera.h" />
+    <ClInclude Include="EngineSource\include\Render\Material.h" />
     <ClInclude Include="EngineSource\include\Render\Scene.h" />
     <ClInclude Include="EngineSource\include\Math\vec.h" />
     <ClInclude Include="EngineSource\include\Utils\Timer.h" />
