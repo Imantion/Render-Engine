@@ -90,12 +90,41 @@ void Application::update(float deltaTime)
 
 	if (Input::mouseIsDown(Input::MouseButtons::RIGHT))
 	{
+		/*if (delta.x != 0)
+		{
+			cameraRotated = true;
+
+			Engine::quaternion r = Engine::quaternion::angleAxis(delta.x, camera->getUp()).normalize();
+			Engine::quaternion rotation = r * Engine::quaternion(0, camera->getForward()) * r.conjugate();
+			camera->setForward(Engine::vec3(rotation.im.normalized()));
+			camera->setRight(Engine::cross(camera->getUp(), camera->getForward()));
+		}
+
+		if (delta.y != 0)
+		{
+			cameraRotated = true;
+
+			Engine::quaternion r = Engine::quaternion::angleAxis(delta.y, camera->getRight()).normalize();
+			Engine::quaternion rotation = r * Engine::quaternion(0, camera->getForward()) * r.conjugate();
+			camera->setForward(Engine::vec3(rotation.im.normalized()));
+			camera->setUp(Engine::cross(camera->getForward(), camera->getRight()));
+		}
+
+		if (roll != 0.0f)
+		{
+			cameraRotated = true;
+			Engine::quaternion r = Engine::quaternion::angleAxis(roll, camera->getForward()).normalize();
+			Engine::quaternion rotation = r * Engine::quaternion(0, camera->getUp()) * r.conjugate();
+			camera->setUp(Engine::vec3(rotation.im.normalized()));
+			camera->setRight(Engine::cross(camera->getUp(), camera->getForward()));
+		}*/
+
 		if (delta.x != 0 || delta.y != 0)
 		{
 			cameraRotated = true;
 
 			Engine::quaternion rotation = (Engine::quaternion::angleAxis(delta.x, camera->getUp()) * Engine::quaternion::angleAxis(delta.y, camera->getRight())).normalize();
-			camera->setForward(Engine::quaternion::rotate(rotation,camera->getForward()));
+			camera->setForward(Engine::quaternion::rotate(rotation, camera->getForward()));
 		}
 
 		if (roll != 0.0f)

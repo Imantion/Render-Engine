@@ -18,10 +18,11 @@ Engine::BVH::BVH()
 
 Engine::BVH::BVH(const Mesh* mesh) : extents()
 {
-    for (size_t j = 0; j < kNumPlaneSetNormals; j++)
-    {
-        mesh->computeBounds(planeSetNormals[j], extents.d[j][0], extents.d[j][1]);
-    }
+    computeBounds(mesh);
+}
+
+Engine::BVH::BVH(const BVH& bvh): extents(bvh.extents)
+{
 }
 
 const bool Engine::BVH::intersect(const ray& ray, hitInfo& isectData) const
@@ -42,6 +43,14 @@ const bool Engine::BVH::intersect(const ray& ray, hitInfo& isectData) const
         return true;
     }
     return false;
+}
+
+void Engine::BVH::computeBounds(const Mesh* mesh)
+{
+    for (size_t j = 0; j < kNumPlaneSetNormals; j++)
+    {
+        mesh->computeBounds(planeSetNormals[j], extents.d[j][0], extents.d[j][1]);
+    }
 }
 
 Engine::BVH::~BVH()

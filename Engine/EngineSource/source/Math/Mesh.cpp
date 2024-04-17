@@ -12,7 +12,7 @@ Engine::Mesh* Engine::Mesh::UniteCube()
 	cube->buffer = { vertexBuffer(0,1,2), vertexBuffer(4,2,1), vertexBuffer(3,6,5),vertexBuffer(7,5,6),vertexBuffer(1,5,4), vertexBuffer(7,4,5),vertexBuffer(0,2,3),
 	vertexBuffer(6,3,2),vertexBuffer(2,4,6),vertexBuffer(7,6,4),vertexBuffer(0,3,1),vertexBuffer(5,1,3) };
 
-
+	cube->bvh.computeBounds(cube);
 	return cube;
 }
 

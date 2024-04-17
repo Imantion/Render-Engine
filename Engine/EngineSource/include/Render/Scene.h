@@ -4,6 +4,7 @@
 #include <memory>
 #include "Math/math.h"
 #include "Math/Mesh.h"
+#include "Render/Light/Light.h"
 
 namespace Engine
 {
@@ -33,15 +34,24 @@ namespace Engine
 		uint32_t PerPixel(int x, int y);
 		Material CheckIntersection(const ray& r, hitInfo& hInfo);
 
+
 		bool redrawScene;
 		vec2 TL, BR;
 
-		struct cube : primitive{};
+		struct cube : primitive{
+			static std::unique_ptr<Mesh> mesh;
+		};
 
 		std::vector<sphere> spheres;
 		std::vector<cube> cubes;
+
+		PointLight pointLight;
+		SpotLight spotLight;
 		
 		
 		Camera* s_camera;
+
+		std::vector<uint32_t> verticalIterator;
+		std::vector<uint32_t> horizontalIterator;
 	};
 }

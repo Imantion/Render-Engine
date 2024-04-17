@@ -11,8 +11,8 @@ Engine::Camera::Camera(float verticalFov, float nearPlane, float farPlane)
 
 Engine::vec3 Engine::Camera::getRayDirection(vec2 point)
 {
-	vec3 upInterpolation = rayDirections[LeftUp] * (1 - point.x)  + rayDirections[RightUp] * point.x;
-	vec3 downInterpolation = rayDirections[LeftDown] * (1 - point.x)  + rayDirections[RightDown] * point.x;
+	vec3 upInterpolation = rayDirections[LeftUp] * (1 - point.x) + rayDirections[RightUp] * point.x;
+	vec3 downInterpolation = rayDirections[LeftDown] * (1 - point.x) + rayDirections[RightDown] * point.x;
 
 	return downInterpolation * (1 - point.y) + upInterpolation * point.y;
 }
@@ -25,7 +25,12 @@ void Engine::Camera::calculateProjectionMatrix(int viewportWidth, int viewportHe
 
 void Engine::Camera::calculateViewMatrix()
 {
-	inverseView = transformMatrix(position, position + forwardDirection, upDirection);
+	//view = viewMatrix(position, forwardDirection, rightDirection, upDirection);
+	//inverseView = mat4::Inverse(view);
+
+	inverseView = InverseLookAt(position, position + forwardDirection, upDirection);
+
+
 }
 
 void Engine::Camera::calculateRayDirections()
@@ -57,17 +62,14 @@ void Engine::Camera::calculateRayDirections()
 void Engine::Camera::setForward(vec3 f)
 {
 	forwardDirection = f;
-	rightDirection = cross(upDirection, forwardDirection);
 }
 
 void Engine::Camera::setUp(vec3 u)
 {
 	upDirection = u;
-	rightDirection = cross(upDirection, forwardDirection);
 }
 
 void Engine::Camera::setRight(vec3 r)
 {
 	rightDirection = r;
-	forwardDirection = cross(rightDirection, upDirection);
 }

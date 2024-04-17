@@ -97,5 +97,8 @@
     <ClInclude Include="EngineSource\include\Render\Material.h">
       <Filter>Include</Filter>
     </ClInclude>
+    <ClInclude Include="EngineSource\include\Render\Light\Light.h">
+      <Filter>Include</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

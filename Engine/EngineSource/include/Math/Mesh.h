@@ -41,21 +41,20 @@ namespace Engine
 
 		std::vector<vertexBuffer> buffer;
 		std::vector<vec3> vertex;
+		BVH bvh;
 		
 		
 	};
 
 	struct primitive
 	{
-		primitive() : position(0.0f), bvh(nullptr) {}
+		primitive() : position(0.0f) {}
 		primitive(const vec3& position) : position(position) {}
 		mat4 transformeMatrix;
 		mat4 invTransformeMatrix;
 		vec3 position;
 		Material material;
 
-		static std::unique_ptr<Mesh> mesh;
-		std::shared_ptr<BVH> bvh;
 	};
 }
 
