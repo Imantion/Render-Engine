@@ -1,6 +1,6 @@
 #pragma once
 #include "Math/matrix.h"
-#include "Math/vec.h"
+#include "Math/math.h"
 #include "Math/BVH.h"
 #include "Render/Material.h"
 #include <vector>
@@ -20,7 +20,7 @@ namespace Engine
 		const triangle getTriangle(uint8_t index) const;
 		
 
-		int trianglesAmount()
+		int trianglesAmount() const
 		{
 			return buffer.size();
 		}
@@ -50,11 +50,24 @@ namespace Engine
 	{
 		primitive() : position(0.0f) {}
 		primitive(const vec3& position) : position(position) {}
+
+		void setPosition(const vec3& pos)
+		{
+			position = pos;
+
+			transformeMatrix = transformMatrix(position, vec3(0, 0, 1), vec3(1, 0, 0), vec3(0, 1, 0));
+			invTransformeMatrix = mat4::Inverse(transformeMatrix);
+		}
+
+		vec3 getPosition() { return position; }
+		virtual const Mesh* getMesh() = 0;
+
 		mat4 transformeMatrix;
 		mat4 invTransformeMatrix;
-		vec3 position;
 		Material material;
 
+	private:
+		vec3 position;
 	};
 }
 

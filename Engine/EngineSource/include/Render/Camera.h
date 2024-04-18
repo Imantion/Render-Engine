@@ -27,6 +27,8 @@ namespace Engine
 		void setUp(vec3 u);
 		void setRight(vec3 r);
 
+		
+
 	private:
 		mat4 projection, inverseProjection;
 		mat4 view, inverseView;

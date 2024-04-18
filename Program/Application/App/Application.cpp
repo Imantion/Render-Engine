@@ -73,24 +73,55 @@ void Application::update(float deltaTime)
 		cameraSpeed += cameraSpeed * 0.05 * scrolls;
 	else if(scrolls < 0)
 		cameraSpeed += cameraSpeed * 0.05 * scrolls;
-	/*if (Input::mouseIsDown(Input::MouseButtons::LEFT))
+
+
+	if (Input::mouseIsDown(Input::MouseButtons::LEFT))
 	{
-		Engine::vec2 position = WindowCoordinatesToBufferCoordinates(Input::getMousePosition());
+		if (!draggable)
+		{
+			Engine::ray r;
+			r.direction = camera->getRayDirection(scene->getTL() * (window->getBufferHeight() - Input::getMousePosition().y) + scene->getBR() * Input::getMousePosition().x);
+			r.origin = camera->getPosition();
 
-		position = scene->getBR() * position.x + scene->getTL() * position.y;
-		position = position * 2 - 1;
+			Engine::hitInfo hitedSphere;
+			Engine::sphere* sph = scene->intersectSpheres(r, hitedSphere);
 
-		Engine::ray r(Engine::vec3(0.0f), Engine::vec3(position.x, position.y, 1));
-		auto point = r.point_at_parameter(scene->getSphere().position.z);
-		scene->setSpherePosition(Engine::vec3(point.x, -point.y, point.z));
-	}*/
+			Engine::hitInfo hitedPrim;
+			Engine::primitive* prm = scene->intersectPrimitive(r, hitedPrim);
+
+			if (hitedSphere.t <= hitedPrim.t && sph)
+			{
+				draggable = std::make_unique<Engine::ISphereDragger>(sph, hitedSphere);
+			}
+			else if (prm)
+			{
+				draggable = std::make_unique<Engine::IMeshDragger>(prm, hitedPrim);
+			}
+			
+		}
+
+		if (draggable && (delta.x != 0 || delta.y != 0 || cameraMoveDirection != 0.0f))
+		{
+			Engine::ray r;
+			r.direction = camera->getRayDirection(scene->getTL() * (window->getBufferHeight() - Input::getMousePosition().y) + scene->getBR() * Input::getMousePosition().x);
+			r.origin = camera->getPosition();
+
+			draggable->drag(r, camera->getForward(), cameraMoveDirection);
+
+			scene->redraw(true);
+		}
+	}
+	else
+	{
+		draggable.release();
+	}
 	camera->moveCamera(cameraMoveDirection);
 
 	bool cameraRotated = false;
 
 	if (Input::mouseIsDown(Input::MouseButtons::RIGHT))
 	{
-		/*if (delta.x != 0)
+		if (delta.x != 0)
 		{
 			cameraRotated = true;
 
@@ -107,7 +138,7 @@ void Application::update(float deltaTime)
 			Engine::quaternion r = Engine::quaternion::angleAxis(delta.y, camera->getRight()).normalize();
 			Engine::quaternion rotation = r * Engine::quaternion(0, camera->getForward()) * r.conjugate();
 			camera->setForward(Engine::vec3(rotation.im.normalized()));
-			camera->setUp(Engine::cross(camera->getForward(), camera->getRight()));
+			
 		}
 
 		if (roll != 0.0f)
@@ -117,9 +148,9 @@ void Application::update(float deltaTime)
 			Engine::quaternion rotation = r * Engine::quaternion(0, camera->getUp()) * r.conjugate();
 			camera->setUp(Engine::vec3(rotation.im.normalized()));
 			camera->setRight(Engine::cross(camera->getUp(), camera->getForward()));
-		}*/
+		}
 
-		if (delta.x != 0 || delta.y != 0)
+		/*if (delta.x != 0 || delta.y != 0)
 		{
 			cameraRotated = true;
 
@@ -133,7 +164,7 @@ void Application::update(float deltaTime)
 			Engine::quaternion r = Engine::quaternion::angleAxis(roll, camera->getForward()).normalize();
 			Engine::quaternion rotation = r * Engine::quaternion(0, camera->getUp()) * r.conjugate();
 			camera->setUp(Engine::vec3(rotation.im));
-		}
+		}*/
 	}
 
 	if (cameraMoveDirection != Engine::vec3(0.0f) || cameraRotated)

@@ -68,7 +68,9 @@ namespace Engine
         vec3 operator-(const vec3& v) const;
         vec3& operator=(const vec3& v);
         bool operator==(const vec3& v) const;
+        bool operator==(float v) const;
         bool operator!=(const vec3& v) const;
+        bool operator!=(float v) const;
         vec3 operator*(float t) const;
         vec3& operator*=(float t);
         vec3 operator/(float t) const;

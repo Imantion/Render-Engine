@@ -15,15 +15,11 @@ Engine::Scene::Scene() :
 	redrawScene(true), cubes(2), spheres(2), spotLight(vec3(1.0, 1.0, 0.0), vec3(0, 5.5, 2), vec3(0, -1, 0), PI * 0.25f, 5.0f), pointLight(vec3(0.2, 0.5, 1.0), vec3(2, 2, 2), 2.0f)
 {
 	// Initialize cube 0
-	cubes[0].position = vec3(0, 0, 2);
-	cubes[0].transformeMatrix = transformMatrix(cubes[0].position, vec3(0, 0, 1), vec3(1, 0, 0), vec3(0, 1, 0));
-	cubes[0].invTransformeMatrix = mat4::Inverse(cubes[0].transformeMatrix);
+	cubes[0].setPosition(vec3(0, 0, 2));
 	cubes[0].material.color = vec3(0.62, 0.05, 0.56);
 
 	// Initialize cube 1
-	cubes[1].position = vec3(0, 3, 2);
-	cubes[1].transformeMatrix = transformMatrix(cubes[1].position, vec3(0, 0, 1), vec3(1, 0, 0), vec3(0, 1, 0));
-	cubes[1].invTransformeMatrix = mat4::Inverse(cubes[1].transformeMatrix);
+	cubes[1].setPosition(vec3(0, 3, 2));
 	cubes[1].material.color = vec3(0.35, 0.4, 0.21); // Different color for cube 1
 
 	// Initialize sphere 0
@@ -122,50 +118,81 @@ void Engine::Scene::setSpherePosition(vec3 position)
 	}*/
 }
 
-Engine::Material Engine::Scene::CheckIntersection(const ray& r, hitInfo& hitedObjectInfo) // finds intersection and returns intersected object info and color
+Engine::sphere* Engine::Scene::intersectSpheres(const ray& r, hitInfo& hInfo)
 {
-	hitInfo hInfo; hInfo.t = FLT_MAX;
-	hitedObjectInfo.t = FLT_MAX;
-	Material mat(vec3(0.5f));
-
-	for (const sphere& s : spheres)
+	sphere* sph = nullptr;
+	hitInfo hitedSphere;
+	for(sphere& s : spheres)
 	{
-		if (hitSphere(s, r, 0.0f, FLT_MAX, hInfo) && hInfo.t < hitedObjectInfo.t)
+		if (hitSphere(s, r, 0.0f, FLT_MAX, hitedSphere) && hInfo.t > hitedSphere.t)
 		{
-			hitedObjectInfo = hInfo;
-			mat = s.material;
+			hInfo = hitedSphere;
+			sph = &s;
 		}
 	}
 
+	
+	return sph;
+}
+
+Engine::primitive* Engine::Scene::intersectPrimitive(const ray& r, hitInfo& hInfo) // calling primitives because in future there may be another shapes. Not Only Cube
+{
+	if (cubes.empty())
+		return nullptr;
+
+	primitive* intersected = nullptr;
+	hitInfo hitedCube;
+	const Mesh* cubeMesh = cubes[0].getMesh();
+
 	ray cubeR(r);
-	const cube* cubeToRender;
-	float t_min;
-	for (const cube& c : cubes)
+	for(primitive& p : cubes)
 	{
-		cubeR.origin = vec3(vec4(r.origin, 1) * c.invTransformeMatrix);
-
-		if (c.mesh->bvh.intersect(cubeR, hInfo))
-			for (size_t i = 0; i < cube::mesh->trianglesAmount(); i++)
+		cubeR.origin = vec3(vec4(r.origin, 1) * p.invTransformeMatrix);
+		if (cubeMesh->bvh.intersect(cubeR, hitedCube))
+		{
+			for (size_t j = 0; j < cubeMesh->trianglesAmount(); j++)
 			{
-				if (hitTriangle(c.mesh->getTriangle(i), cubeR, hInfo) )
+				if (hitTriangle(cubeMesh->getTriangle(j), cubeR, hitedCube))
 				{
-					
-					hInfo.p = vec4(hInfo.p, 1) * c.transformeMatrix;
-					hInfo.t = r.parameter_at_point(hInfo.p);
-
-					if (hInfo.t < hitedObjectInfo.t)
+					hitedCube.p = vec4(hitedCube.p, 1) * p.transformeMatrix;
+					hitedCube.t = r.parameter_at_point(hitedCube.p);
+					if(hInfo.t > hitedCube.t)
 					{
-						hitedObjectInfo = hInfo;
-						mat = c.material;
+						hInfo = hitedCube;
+						intersected = &p;
 					}
-					
 				}
 			}
+		}
+	}
+
+	return intersected;
+}
+
+Engine::Material Engine::Scene::CheckIntersection(const ray& r, hitInfo& hitedObjectInfo) // finds intersection and returns intersected object info and color
+{
+	hitedObjectInfo.t = FLT_MAX;
+	Material mat(vec3(0.5f));
+	hitInfo hInfo;
+	hitInfo hitedSphere;
+	sphere* s = intersectSpheres(r, hitedSphere);
+
+	hitInfo hitedPrimitive;
+	primitive* p = intersectPrimitive(r, hitedPrimitive);
+
+	if (hitedSphere.t <= hitedPrimitive.t && s)
+	{
+		mat = s->material;
+		hitedObjectInfo = hitedSphere;
+	}
+	else if (p)
+	{
+		mat = p->material;
+		hitedObjectInfo = hitedPrimitive;
 	}
 
 
-
-
+	
 	if (hitPlane(vec3(0, 1, 0), r, hInfo, vec3(0, -5, 0)) && hInfo.t < hitedObjectInfo.t)
 	{
 		hitedObjectInfo = hInfo;

@@ -25,6 +25,7 @@ namespace Engine
 		vec3 origin;
 		vec3 direction;
 
+		ray() : origin(0.0), direction(0.0f) {}
 		ray(vec3 pos, vec3 dir) : origin(pos), direction(dir) {}
 
 		vec3 point_at_parameter(float t) const

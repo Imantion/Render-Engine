@@ -4,6 +4,7 @@
 #include <Windows.h>
 #include <memory>
 #include "Math/vec.h"
+#include "Utils/IRayDraggable.h"
 
 namespace Engine
 {
@@ -30,7 +31,7 @@ public:
 private:
 
 	Engine::vec2 WindowCoordinatesToBufferCoordinates(Engine::vec2 coordinates);
-	
+	std::unique_ptr<Engine::IRayDraggable> draggable;
 
 	Engine::vec2 previousMousePosition;
 	std::shared_ptr<Engine::Window> window;

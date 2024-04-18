@@ -147,6 +147,7 @@
     <ClCompile Include="EngineSource\source\Render\Scene.cpp" />
     <ClCompile Include="EngineSource\source\Math\vec.cpp" />
     <ClCompile Include="EngineSource\source\Window\Windows.cpp" />
+    <ClCompile Include="EngineSource\source\Utils\IRayDraggable.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EngineSource\include\Math\BVH.h" />
@@ -163,6 +164,7 @@
     <ClInclude Include="EngineSource\include\Utils\Timer.h" />
     <ClInclude Include="EngineSource\include\Window\Window.h" />
     <ClInclude Include="EngineSource\include\Math\hitable.h" />
+    <ClInclude Include="EngineSource\include\Utils\IRayDraggable.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

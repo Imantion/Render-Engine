@@ -59,9 +59,19 @@ bool Engine::vec3::operator==(const vec3& v) const
     return (x == v.x) && (y == v.y) && (z == v.z);
 }
 
+bool Engine::vec3::operator==(float v) const
+{
+    return (x == v) && (y == v) && (z == v);
+}
+
 bool Engine::vec3::operator!=(const vec3& v) const
 {
     return !((x == v.x) && (y == v.y) && (z == v.z));
+}
+
+bool Engine::vec3::operator!=(float v) const
+{
+    return !((x == v) && (y == v) && (z == v));
 }
 
 vec3 vec3::operator*(float t) const {

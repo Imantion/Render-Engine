@@ -18,6 +18,15 @@ namespace Engine
 	{
 	public:
 
+		struct cube : primitive {
+			static std::unique_ptr<Mesh> mesh;
+
+			virtual const Mesh* getMesh() override
+			{
+				return mesh.get();
+			}
+		};
+
 		Scene();
 
 		void render(Window& window, Camera& camera);
@@ -29,6 +38,29 @@ namespace Engine
 		vec2 getBR() const { return BR; }
 		vec2 getTL() const { return TL; }
 
+		sphere* intersectSpheres(const ray& r, hitInfo& hInfo);
+		primitive* intersectPrimitive(const ray& r, hitInfo& hInfo);
+
+		int getSphereAmount()
+		{
+			return spheres.size();
+		}
+
+		sphere& getSphere(int index)
+		{
+			return spheres[index];
+		}
+
+		int getPrimitivesAmount()
+		{
+			return cubes.size();
+		}
+
+		primitive& getPrimitive(int index)
+		{
+			return cubes[index];
+		}
+
 	private:
 
 		uint32_t PerPixel(int x, int y);
@@ -38,10 +70,7 @@ namespace Engine
 		bool redrawScene;
 		vec2 TL, BR;
 
-		struct cube : primitive{
-			static std::unique_ptr<Mesh> mesh;
-		};
-
+		
 		std::vector<sphere> spheres;
 		std::vector<cube> cubes;
 
