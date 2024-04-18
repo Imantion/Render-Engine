@@ -29,7 +29,7 @@ void Engine::Camera::calculateViewMatrix()
 	//inverseView = mat4::Inverse(view);
 	/*inverseView = InverseLookAt(position, position + forwardDirection, upDirection);*/
 
-	inverseView = viewMatrix(position, forwardDirection, rightDirection, upDirection);
+	inverseView = transformMatrix(position, forwardDirection, rightDirection, upDirection);
 
 
 }
