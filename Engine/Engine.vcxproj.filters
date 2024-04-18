@@ -60,7 +60,7 @@
       <Filter>Source\Math</Filter>
     </ClCompile>
     <ClCompile Include="EngineSource\source\Utils\IRayDraggable.cpp">
-      <Filter>Source</Filter>
+      <Filter>Source\Utils</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -107,7 +107,7 @@
       <Filter>Include\Math</Filter>
     </ClInclude>
     <ClInclude Include="EngineSource\include\Utils\IRayDraggable.h">
-      <Filter>Include</Filter>
+      <Filter>Include\Utils</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -8,7 +8,11 @@
 #include <windowsx.h>
 #include <iostream>
 
+#define PI 3.141592653590f
+
 float cameraSpeed = 1.0f;
+bool holdCursorPosition = true;
+
 
 Application::Application(int windowSize, int windowHeight, WinProc func)
 {
@@ -43,9 +47,15 @@ void Application::update(float deltaTime)
 {
 	scene->render(*window, *camera);
 
+
+	if (Input::mouseIsDown(Input::RIGHT) && holdCursorPosition)
+	{
+		previousMousePosition = Input::getMousePosition();
+		holdCursorPosition = false;
+	}
+
 	Engine::vec2 mousePosition = Input::getMousePosition();
-	Engine::vec2 delta = (mousePosition - previousMousePosition) * 0.002;
-	previousMousePosition = mousePosition;
+	Engine::vec2 delta = (mousePosition - previousMousePosition);
 	float roll = 0.0f;
 
 	Engine::vec3 cameraMoveDirection = (0, 0, 0);
@@ -64,9 +74,11 @@ void Application::update(float deltaTime)
 	if (Input::keyIsDown(Input::KeyboardButtons::SHIFT))
 		cameraMoveDirection *= 5;
 	if (Input::keyIsDown(Input::KeyboardButtons::E))
-		roll -= 0.02;
+		roll -= 1.0f * deltaTime;
 	if (Input::keyIsDown(Input::KeyboardButtons::Q))
-		roll += 0.02;
+		roll += 1.0f * deltaTime;
+
+
 
 	int scrolls = Input::scrollAmount();
 	if (scrolls > 0)
@@ -121,23 +133,28 @@ void Application::update(float deltaTime)
 
 	if (Input::mouseIsDown(Input::MouseButtons::RIGHT))
 	{
-		if (delta.x != 0)
+		float multiplier = PI * deltaTime;
+		Engine::vec2 rotationSpeed((float)delta.x / (float)window->getBufferWidth() * multiplier, (float)delta.y / (float)window->getBufferHeight() * multiplier);
+
+
+		if (rotationSpeed.x != 0.0f)
 		{
 			cameraRotated = true;
 
-			Engine::quaternion r = Engine::quaternion::angleAxis(delta.x, camera->getUp()).normalize();
+			Engine::quaternion r = Engine::quaternion::angleAxis(rotationSpeed.x, camera->getUp()).normalize();
 			Engine::quaternion rotation = r * Engine::quaternion(0, camera->getForward()) * r.conjugate();
 			camera->setForward(Engine::vec3(rotation.im.normalized()));
 			camera->setRight(Engine::cross(camera->getUp(), camera->getForward()));
 		}
 
-		if (delta.y != 0)
+		if (rotationSpeed.y != 0.0f)
 		{
 			cameraRotated = true;
 
-			Engine::quaternion r = Engine::quaternion::angleAxis(delta.y, camera->getRight()).normalize();
+			Engine::quaternion r = Engine::quaternion::angleAxis(rotationSpeed.y, camera->getRight()).normalize();
 			Engine::quaternion rotation = r * Engine::quaternion(0, camera->getForward()) * r.conjugate();
 			camera->setForward(Engine::vec3(rotation.im.normalized()));
+			camera->setUp(Engine::cross(camera->getForward(), camera->getRight()));
 			
 		}
 
@@ -149,22 +166,10 @@ void Application::update(float deltaTime)
 			camera->setUp(Engine::vec3(rotation.im.normalized()));
 			camera->setRight(Engine::cross(camera->getUp(), camera->getForward()));
 		}
-
-		/*if (delta.x != 0 || delta.y != 0)
-		{
-			cameraRotated = true;
-
-			Engine::quaternion rotation = (Engine::quaternion::angleAxis(delta.x, camera->getUp()) * Engine::quaternion::angleAxis(delta.y, camera->getRight())).normalize();
-			camera->setForward(Engine::quaternion::rotate(rotation, camera->getForward()));
-		}
-
-		if (roll != 0.0f)
-		{
-			cameraRotated = true;
-			Engine::quaternion r = Engine::quaternion::angleAxis(roll, camera->getForward()).normalize();
-			Engine::quaternion rotation = r * Engine::quaternion(0, camera->getUp()) * r.conjugate();
-			camera->setUp(Engine::vec3(rotation.im));
-		}*/
+	}
+	else
+	{
+		holdCursorPosition = true;
 	}
 
 	if (cameraMoveDirection != Engine::vec3(0.0f) || cameraRotated)
