@@ -217,7 +217,7 @@ namespace Engine
 		return matrix;
 	}
 
-	inline mat4 viewMatrix(vec3 eye, vec3 center, vec3 upVector)
+	inline mat4 viewMatrix(vec3 eye, vec3 center, vec3 upVector) // View matrix for camera like in shooter games
 	{
 		vec3 f((center - eye).normalized());
 		vec3 rightVector(cross(upVector, f).normalized());
