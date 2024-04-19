@@ -48,7 +48,7 @@ void Application::update(float deltaTime)
 	scene->render(*window, *camera);
 
 
-	if (Input::mouseIsDown(Input::RIGHT) && holdCursorPosition)
+	if (Input::mouseIsDown(Input::LEFT) && holdCursorPosition)
 	{
 		previousMousePosition = Input::getMousePosition();
 		holdCursorPosition = false;
@@ -87,7 +87,7 @@ void Application::update(float deltaTime)
 		cameraSpeed += cameraSpeed * 0.05 * scrolls;
 
 
-	if (Input::mouseIsDown(Input::MouseButtons::LEFT))
+	if (Input::mouseIsDown(Input::MouseButtons::RIGHT))
 	{
 		if (!draggable)
 		{
@@ -118,7 +118,7 @@ void Application::update(float deltaTime)
 			r.direction = camera->getRayDirection(scene->getTL() * (window->getBufferHeight() - Input::getMousePosition().y) + scene->getBR() * Input::getMousePosition().x);
 			r.origin = camera->getPosition();
 
-			draggable->drag(r, camera->getForward(), cameraMoveDirection);
+			draggable->drag(r);
 
 			scene->redraw(true);
 		}
@@ -131,7 +131,7 @@ void Application::update(float deltaTime)
 
 	bool cameraRotated = false;
 
-	if (Input::mouseIsDown(Input::MouseButtons::RIGHT))
+	if (Input::mouseIsDown(Input::MouseButtons::LEFT))
 	{
 		float multiplier = PI * deltaTime;
 		Engine::vec2 rotationSpeed((float)delta.x / (float)window->getBufferWidth() * multiplier, (float)delta.y / (float)window->getBufferHeight() * multiplier);
@@ -143,7 +143,7 @@ void Application::update(float deltaTime)
 
 			Engine::quaternion r = Engine::quaternion::angleAxis(rotationSpeed.x, camera->getUp()).normalize();
 			Engine::quaternion rotation = r * Engine::quaternion(0, camera->getForward()) * r.conjugate();
-			camera->setForward(Engine::vec3(rotation.im));
+			camera->setForward(Engine::vec3(rotation.im).normalized());
 			camera->setRight(Engine::cross(camera->getUp(), camera->getForward()));
 		}
 
@@ -153,23 +153,23 @@ void Application::update(float deltaTime)
 
 			Engine::quaternion r = Engine::quaternion::angleAxis(rotationSpeed.y, camera->getRight()).normalize();
 			Engine::quaternion rotation = r * Engine::quaternion(0, camera->getForward()) * r.conjugate();
-			camera->setForward(Engine::vec3(rotation.im));
+			camera->setForward(Engine::vec3(rotation.im).normalized());
 			camera->setUp(Engine::cross(camera->getForward(), camera->getRight()));
 			
-		}
-
-		if (roll != 0.0f)
-		{
-			cameraRotated = true;
-			Engine::quaternion r = Engine::quaternion::angleAxis(roll, camera->getForward()).normalize();
-			Engine::quaternion rotation = r * Engine::quaternion(0, camera->getUp()) * r.conjugate();
-			camera->setUp(Engine::vec3(rotation.im));
-			camera->setRight(Engine::cross(camera->getUp(), camera->getForward()));
-		}
+		}	
 	}
 	else
 	{
 		holdCursorPosition = true;
+	}
+
+	if (roll != 0.0f)
+	{
+		cameraRotated = true;
+		Engine::quaternion r = Engine::quaternion::angleAxis(roll, camera->getForward()).normalize();
+		Engine::quaternion rotation = r * Engine::quaternion(0, camera->getUp()) * r.conjugate();
+		camera->setUp(Engine::vec3(rotation.im).normalized());
+		camera->setRight(Engine::cross(camera->getUp(), camera->getForward()));
 	}
 
 	if (cameraMoveDirection != Engine::vec3(0.0f) || cameraRotated)

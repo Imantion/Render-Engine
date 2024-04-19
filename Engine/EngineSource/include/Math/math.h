@@ -76,7 +76,7 @@ namespace Engine
 				return true;
 			}
 
-			t = (-b - root_d) / (2 * a);
+			t = (-b + root_d) / (2 * a);
 
 			if (t < t_max && t > t_min)
 			{

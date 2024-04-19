@@ -8,15 +8,9 @@ Engine::ISphereDragger::ISphereDragger(sphere* s, const hitInfo& hInfo)
 	grabbedVector = s->position - hInfo.p;
 }
 
-void Engine::ISphereDragger::drag(const ray& r, const vec3& cameraForward, const vec3& cameraMoveDirection)
+void Engine::ISphereDragger::drag(const ray& r)
 {
-	Engine::hitInfo planeInfo;
-
-	if (Engine::hitPlane(-cameraForward, r, planeInfo, grabbedInfo.p))
-	{
-		grabbedInfo.p = planeInfo.p + cameraMoveDirection;
-		grabbedSphere->position = grabbedInfo.p + grabbedVector;
-	}
+	grabbedSphere->position = r.point_at_parameter(grabbedInfo.t) + grabbedVector;
 }
 
 Engine::IMeshDragger::IMeshDragger(primitive* primitiveToDrag, const hitInfo& hInfo)
@@ -26,13 +20,7 @@ Engine::IMeshDragger::IMeshDragger(primitive* primitiveToDrag, const hitInfo& hI
 	grabbedVector = primitiveToDrag->getPosition() - hInfo.p;
 }
 
-void Engine::IMeshDragger::drag(const ray& r, const vec3& cameraForward, const vec3& cameraMoveDirection)
+void Engine::IMeshDragger::drag(const ray& r)
 {
-	Engine::hitInfo planeInfo;
-
-	if (Engine::hitPlane(-cameraForward, r, planeInfo, grabbedInfo.p))
-	{
-		grabbedInfo.p = planeInfo.p + cameraMoveDirection;
-		grabbedPrim->setPosition(grabbedInfo.p + grabbedVector);
-	}
+	grabbedPrim->setPosition(r.point_at_parameter(grabbedInfo.t) + grabbedVector);
 }

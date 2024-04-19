@@ -11,7 +11,7 @@ namespace Engine
 	{
 	public:
 
-		virtual void drag(const ray& r, const vec3& cameraForward, const vec3& cameraMoveDirection) = 0;
+		virtual void drag(const ray& r) = 0;
 	};
 
 	class ISphereDragger : public IRayDraggable
@@ -19,7 +19,7 @@ namespace Engine
 	public:
 
 		ISphereDragger(sphere* s, const hitInfo& hInfo);
-		virtual void drag(const ray& r, const vec3& cameraForward, const vec3& cameraMoveDirection = vec3(0.0f)) override;
+		virtual void drag(const ray& r) override;
 	private:
 		sphere* grabbedSphere;
 		hitInfo grabbedInfo;
@@ -30,7 +30,7 @@ namespace Engine
 	{
 	public:
 		IMeshDragger(primitive* primitiveToDrag, const hitInfo& hInfo);
-		virtual void drag(const ray& r, const vec3& cameraForward, const vec3& cameraMoveDirection = vec3(0.0f)) override;
+		virtual void drag(const ray& r) override;
 	private:
 		primitive* grabbedPrim;
 		hitInfo grabbedInfo;
