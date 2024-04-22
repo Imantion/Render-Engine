@@ -33,12 +33,13 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 		WORD keyFlags = HIWORD(lParam);
 		if ((keyFlags & KF_REPEAT) == 0)
-			Input::processKeyboardInput(wParam, true);
+			Input::processKeyboardInput(wParam, true, (keyFlags & KF_REPEAT) == KF_REPEAT);
 	} break;
 	case WM_SYSKEYUP:
 	case WM_KEYUP:
 	{
-		Input::processKeyboardInput(wParam, false);
+		WORD keyFlags = HIWORD(lParam);
+		Input::processKeyboardInput(wParam, false, (keyFlags & KF_UP) == KF_UP);
 
 	} break;
 

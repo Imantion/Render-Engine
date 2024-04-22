@@ -45,6 +45,15 @@ Engine::vec2 Application::WindowCoordinatesToBufferCoordinates(Engine::vec2 coor
 
 void Application::update(float deltaTime)
 {
+	for (size_t i = Input::KeyboardButtons::ONE; i <= Input::KeyboardButtons::FOUR; i++)
+	{
+		if (Input::keyPresseed((Input::KeyboardButtons)i))
+		{
+			float coeff = 1 / sqrtf(i); // calculating dividing coeffitient as square root of divisioner because if not area divided by (1 / i)^2
+			window->Resize(window->getWindowWidth()  * coeff, window->getWindowHeight() * coeff);
+		}
+	}
+
 	scene->render(*window, *camera);
 
 

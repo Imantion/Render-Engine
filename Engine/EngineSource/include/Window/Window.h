@@ -15,6 +15,7 @@ namespace Engine
 
 		void onDestroy();
 		void onResize();
+		void Resize(int wWidth, int wHeight);
 		void ResizeFrameBuffer(int wWidth, int wHeight);
 		bool isClosed() const;
 

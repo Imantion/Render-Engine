@@ -2,13 +2,13 @@
 #include "Math/vec.h"
 #include <windowsx.h>
 
-std::array<Input::KeyState, 9> Input::keyboard;
+std::array<Input::KeyState, 13> Input::keyboard;
 std::array<Input::KeyState, 3> Input::mouse;
 int Input::scrolledDistance = 0;
 
 Engine::vec2 Input::mousePosition;
 
-void Input::processKeyboardInput(uint32_t keycode, bool isDown)
+void Input::processKeyboardInput(uint32_t keycode, bool isDown, bool wasKeyDown)
 {
 	switch (keycode)
 	{
@@ -38,6 +38,22 @@ void Input::processKeyboardInput(uint32_t keycode, bool isDown)
 		break;
 	case VK_SHIFT:
 		keyboard[Input::KeyboardButtons::SHIFT].isDown = isDown;
+	case 0x31: // keycodes for 1,2,3,4
+		keyboard[Input::KeyboardButtons::ONE].isDown = isDown;
+		keyboard[Input::KeyboardButtons::ONE].wasDown = wasKeyDown;
+		break;
+	case 0x32:
+		keyboard[Input::KeyboardButtons::TWO].isDown = isDown;
+		keyboard[Input::KeyboardButtons::TWO].wasDown = wasKeyDown;
+		break;
+	case 0x33:
+		keyboard[Input::KeyboardButtons::THREE].isDown = isDown;
+		keyboard[Input::KeyboardButtons::THREE].wasDown = wasKeyDown;
+		break;
+	case 0x34:
+		keyboard[Input::KeyboardButtons::FOUR].isDown = isDown;
+		keyboard[Input::KeyboardButtons::FOUR].wasDown = wasKeyDown;
+		break;
 	default:
 		break;
 	}
@@ -62,6 +78,16 @@ void Input::updateMousePosition(LPARAM lParam)
 {
 	mousePosition.x = GET_X_LPARAM(lParam);
 	mousePosition.y = GET_Y_LPARAM(lParam);
+}
+
+bool Input::keyPresseed(KeyboardButtons key)
+{
+	bool pressed = keyboard[key].isDown && !keyboard[key].wasDown;
+
+	if (!keyboard[key].wasDown)
+		keyboard[key].wasDown = true;
+
+	return pressed;
 }
 
 bool Input::keyIsDown(KeyboardButtons key)
