@@ -29,7 +29,7 @@ Application::~Application()
 {
 }
 
-Engine::vec2 Application::WindowCoordinatesToBufferCoordinates(Engine::vec2 coordinates)
+Engine::vec2 Application::WindowCoordinatesToBufferCoordinates(const Engine::vec2& coordinates)
 {
 	uint32_t bufferW = window->getBufferWidth();
 	uint32_t windowW = window->getWindowWidth();
@@ -49,8 +49,8 @@ void Application::update(float deltaTime)
 	{
 		if (Input::keyPresseed((Input::KeyboardButtons)i))
 		{
-			float coeff = 1 / sqrtf(i); // calculating dividing coeffitient as square root of divisioner because if not area divided by (1 / i)^2
-			window->Resize(window->getWindowWidth()  * coeff, window->getWindowHeight() * coeff);
+			float coeff = 1 / sqrtf((float)i); // calculating dividing coeffitient as square root of divisioner because if not area divided by (1 / i)^2
+			window->Resize(window->getBufferWidth()  * coeff, window->getBufferHeight() * coeff);
 		}
 	}
 
@@ -67,7 +67,7 @@ void Application::update(float deltaTime)
 	Engine::vec2 delta = (mousePosition - previousMousePosition);
 	float roll = 0.0f;
 
-	Engine::vec3 cameraMoveDirection = (0, 0, 0);
+	Engine::vec3 cameraMoveDirection = (0.0f, 0.0f, 0.0f);
 	if (Input::keyIsDown(Input::KeyboardButtons::W))
 		cameraMoveDirection += camera->getForward() * cameraSpeed * deltaTime;
 	if (Input::keyIsDown(Input::KeyboardButtons::A))
@@ -91,9 +91,9 @@ void Application::update(float deltaTime)
 
 	int scrolls = Input::scrollAmount();
 	if (scrolls > 0)
-		cameraSpeed += cameraSpeed * 0.05 * scrolls;
+		cameraSpeed += cameraSpeed * 0.05f * scrolls;
 	else if(scrolls < 0)
-		cameraSpeed += cameraSpeed * 0.05 * scrolls;
+		cameraSpeed += cameraSpeed * 0.05f * scrolls;
 
 
 	if (Input::mouseIsDown(Input::MouseButtons::RIGHT))
@@ -101,7 +101,7 @@ void Application::update(float deltaTime)
 		if (!draggable)
 		{
 			Engine::ray r;
-			r.direction = camera->getRayDirection(scene->getTL() * (window->getBufferHeight() - Input::getMousePosition().y) + scene->getBR() * Input::getMousePosition().x);
+			r.direction = camera->getRayDirection(WindowCoordinatesToBufferCoordinates(scene->getTL() * (window->getWindowHeight() - Input::getMousePosition().y) + scene->getBR() * Input::getMousePosition().x));
 			r.origin = camera->getPosition();
 
 			Engine::hitInfo hitedSphere;
@@ -124,7 +124,7 @@ void Application::update(float deltaTime)
 		if (draggable && (delta.x != 0 || delta.y != 0 || cameraMoveDirection != 0.0f))
 		{
 			Engine::ray r;
-			r.direction = camera->getRayDirection(scene->getTL() * (window->getBufferHeight() - Input::getMousePosition().y) + scene->getBR() * Input::getMousePosition().x);
+			r.direction = camera->getRayDirection(WindowCoordinatesToBufferCoordinates(scene->getTL() * (window->getWindowHeight() - Input::getMousePosition().y) + scene->getBR() * Input::getMousePosition().x));
 			r.origin = camera->getPosition();
 
 			draggable->drag(r);
@@ -143,7 +143,7 @@ void Application::update(float deltaTime)
 	if (Input::mouseIsDown(Input::MouseButtons::LEFT))
 	{
 		float multiplier = PI * deltaTime;
-		Engine::vec2 rotationSpeed((float)delta.x / (float)window->getBufferWidth() * multiplier, (float)delta.y / (float)window->getBufferHeight() * multiplier);
+		Engine::vec2 rotationSpeed((float)delta.x / (float)window->getWindowWidth() * multiplier, (float)delta.y / (float)window->getWindowHeight() * multiplier);
 
 
 		if (rotationSpeed.x != 0.0f)

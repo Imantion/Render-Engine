@@ -23,12 +23,12 @@ namespace Engine
 		void clearScreen();
 		void setPixel(int x, int y);
 		
-		float getAspectRation() { return aspectRatio; }
-		void* getMemoryBuffer() { return buffer.memory.get(); }
-		int getWindowHeight() { return height; }
-		int getWindowWidth() { return width; }
-		int getBufferHeight() { return buffer.height; }
-		int getBufferWidth() { return buffer.width; }
+		float getAspectRation() const { return aspectRatio; }
+		void* getMemoryBuffer() const { return buffer.memory.get(); }
+		int getWindowHeight() const { return height; }
+		int getWindowWidth() const { return width; }
+		int getBufferHeight() const { return buffer.height; }
+		int getBufferWidth() const { return buffer.width; }
 
 		bool wasWindowResized();
 	private:

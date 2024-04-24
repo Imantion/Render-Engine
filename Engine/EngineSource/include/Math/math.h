@@ -92,6 +92,7 @@ namespace Engine
 
 	inline bool hitPlane(const vec3& normal, const ray& ray, hitInfo& hInfo, const vec3& point = vec3(0, 0, 0))
 	{
+		hInfo.reset_parameter_t();
 		float denom = dot(-normal, ray.direction);
 		if (denom > 1e-6)
 		{
@@ -173,8 +174,8 @@ namespace Engine
 	inline mat4 projectionMatrix(float verticalFov, float nearClip, float farClip, int viewportWidth, int viewportHeight)
 	{
 		mat4 projMat;
-		float halfFov = verticalFov * 0.5;
-		float ctg = cos(halfFov) / sin(halfFov);
+		float halfFov = verticalFov * 0.5f;
+		float ctg = cosf(halfFov) / sinf(halfFov);
 
 		projMat[0][0] = (float)viewportHeight / (float)viewportWidth * ctg;
 		projMat[1][1] = ctg;

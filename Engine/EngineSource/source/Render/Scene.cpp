@@ -5,32 +5,33 @@
 #include "Render/Material.h"
 #include <algorithm>
 
-#define PI 3.14159265359
+#define PI 3.14159265359f
 
 std::unique_ptr<Engine::Mesh> Engine::Scene::cube::mesh;
-Engine::vec3 lightDir = Engine::vec3(2, -1, 0.5).normalized();
-Engine::vec3 lightColor(0.5, 0.7, 1.0);
+Engine::vec3 lightDir = Engine::vec3(2.0f, -1.0f, 0.5f).normalized();
+Engine::vec3 lightColor(0.5f, 0.7f, 1.0f);
 
 Engine::Scene::Scene() :
-	redrawScene(true), cubes(2), spheres(2), spotLight(vec3(1.0, 1.0, 0.0), vec3(0, 5.5, 2), vec3(0, -1, 0), PI * 0.25f, 5.0f), pointLight(vec3(0.2, 0.5, 1.0), vec3(2, 2, 2), 2.0f)
+	s_camera(nullptr), redrawScene(true), cubes(2), spheres(2), spotLight(vec3(1.0f, 1.0f, 0.0f), vec3(0.0f, 5.5f, 2.0f), vec3(0.0f, -1.0f, 0.0f), PI * 0.25f, 5.0f),
+	pointLight(vec3(0.2f, 0.5f, 1.0f), vec3(2.0f, 2.0f, 2.0f), 2.0f), sunlight(lightDir, vec3(1.0f))
 {
 	// Initialize cube 0
-	cubes[0].setPosition(vec3(0, 0, 2));
-	cubes[0].material.color = vec3(0.62, 0.05, 0.56);
+	cubes[0].setPosition(vec3(0.0f, 0.0f, 2.0f));
+	cubes[0].material.color = vec3(0.62f, 0.05f, 0.56f);
 
 	// Initialize cube 1
-	cubes[1].setPosition(vec3(0, 3, 2));
-	cubes[1].material.color = vec3(0.35, 0.4, 0.21); // Different color for cube 1
+	cubes[1].setPosition(vec3(0.0f, 3.0f, 2.0f));
+	cubes[1].material.color = vec3(0.35f, 0.4f, 0.21f); // Different color for cube 1
 
 	// Initialize sphere 0
-	spheres[0].position = vec3(2, 2, 4);
-	spheres[0].radius = 0.5;
-	spheres[0].material.color = vec3(0.1, 0.3, 0.9); // Color for sphere 0
+	spheres[0].position = vec3(2.0f, 2.0f, 4.0f);
+	spheres[0].radius = 0.5f;
+	spheres[0].material.color = vec3(0.1f, 0.3f, 0.9f); // Color for sphere 0
 
 	// Initialize sphere 1
-	spheres[1].position = vec3(0, 2, 2);
-	spheres[1].radius = 0.5;
-	spheres[1].material.color = vec3(0.8, 0.4, 0.6); // Different color for sphere 1
+	spheres[1].position = vec3(0.0f, 2.0f, 2.0f);
+	spheres[1].radius = 0.5f;
+	spheres[1].material.color = vec3(0.8f, 0.4f, 0.6f); // Different color for sphere 1
 
 
 	cube::mesh.reset(Mesh::UniteCube());
@@ -44,8 +45,8 @@ void Engine::Scene::render(Engine::Window& window, Engine::Camera& camera)
 
 	if (window.wasWindowResized())
 	{
-		BR = vec2(1.0 / window.getBufferWidth(), 0);
-		TL = vec2(0, 1.0 / window.getBufferHeight());
+		BR = vec2(1.0f / window.getBufferWidth(), 0.0f);
+		TL = vec2(0.0f, 1.0f / window.getBufferHeight());
 		s_camera->calculateProjectionMatrix(window.getBufferWidth(), window.getBufferHeight());
 		s_camera->calculateViewMatrix();
 		s_camera->calculateRayDirections();
@@ -53,10 +54,10 @@ void Engine::Scene::render(Engine::Window& window, Engine::Camera& camera)
 		verticalIterator.resize(window.getBufferHeight());
 		horizontalIterator.resize(window.getBufferWidth());
 
-		for (size_t i = 0; i < window.getBufferHeight(); i++)
+		for (uint32_t i = 0; i < window.getBufferHeight(); i++)
 			verticalIterator[i] = i;
 
-		for (size_t i = 0; i < window.getBufferWidth(); i++)
+		for (uint32_t i = 0; i < window.getBufferWidth(); i++)
 			horizontalIterator[i] = i;
 
 		redrawScene = true;
@@ -120,6 +121,7 @@ void Engine::Scene::setSpherePosition(vec3 position)
 
 Engine::sphere* Engine::Scene::intersectSpheres(const ray& r, hitInfo& hInfo)
 {
+	hInfo.reset_parameter_t();
 	sphere* sph = nullptr;
 	hitInfo hitedSphere;
 	for(sphere& s : spheres)
@@ -137,6 +139,7 @@ Engine::sphere* Engine::Scene::intersectSpheres(const ray& r, hitInfo& hInfo)
 
 Engine::primitive* Engine::Scene::intersectPrimitive(const ray& r, hitInfo& hInfo) // calling primitives because in future there may be another shapes. Not Only Cube
 {
+	hInfo.reset_parameter_t();
 	if (cubes.empty())
 		return nullptr;
 
@@ -150,7 +153,7 @@ Engine::primitive* Engine::Scene::intersectPrimitive(const ray& r, hitInfo& hInf
 		cubeR.origin = vec3(vec4(r.origin, 1) * p.invTransformeMatrix);
 		if (cubeMesh->bvh.intersect(cubeR, hitedCube))
 		{
-			for (size_t j = 0; j < cubeMesh->trianglesAmount(); j++)
+			for (uint8_t j = 0; j < cubeMesh->trianglesAmount(); j++)
 			{
 				if (hitTriangle(cubeMesh->getTriangle(j), cubeR, hitedCube))
 				{
@@ -171,9 +174,9 @@ Engine::primitive* Engine::Scene::intersectPrimitive(const ray& r, hitInfo& hInf
 
 Engine::Material Engine::Scene::CheckIntersection(const ray& r, hitInfo& hitedObjectInfo) // finds intersection and returns intersected object info and color
 {
-	hitedObjectInfo.t = FLT_MAX;
+	hitedObjectInfo.reset_parameter_t();
 	Material mat(vec3(0.5f));
-	hitInfo hInfo;
+	
 	hitInfo hitedSphere;
 	sphere* s = intersectSpheres(r, hitedSphere);
 
@@ -192,7 +195,7 @@ Engine::Material Engine::Scene::CheckIntersection(const ray& r, hitInfo& hitedOb
 	}
 
 
-	
+	hitInfo hInfo; hInfo.reset_parameter_t();
 	if (hitPlane(vec3(0, 1, 0), r, hInfo, vec3(0, -5, 0)) && hInfo.t < hitedObjectInfo.t)
 	{
 		hitedObjectInfo = hInfo;
@@ -223,7 +226,7 @@ uint32_t Engine::Scene::PerPixel(int x, int y) // for every pixel of screen call
 
 	s.position = pointLight.position;
 
-	if (hitSphere(s, r, 0.0f, FLT_MAX, hitedObjectInfo)) // spot light sphere
+	if (hitSphere(s, r, 0.0f, FLT_MAX, hitedObjectInfo)) // point light sphere
 		return RGB(255, 0, 0);
 
 	Material hitetObjectMaterial = CheckIntersection(r, hitedObjectInfo);
@@ -236,48 +239,46 @@ uint32_t Engine::Scene::PerPixel(int x, int y) // for every pixel of screen call
 
 		// sky light
 		r.direction = -lightDir;
-		r.origin = hitedObjectInfo.p + r.direction * 0.01;
+		r.origin = hitedObjectInfo.p + r.direction * 0.01f;
 
-		float d = max(dot(-lightDir, hitedObjectInfo.normal), 0.001f);
+		
 		vec3 viewVector = (s_camera->getPosition() - hitedObjectInfo.p).normalized();
-		vec3 halfwayVector = (viewVector - lightDir).normalized();
-		float specAmount = pow(max(dot(halfwayVector, hitedObjectInfo.normal), 0.001), 32);
-		specAmount *= 0.5f;
-		pixelColor = hitetObjectMaterial.color * (d + specAmount);
+		
+		pixelColor = LightContribution(sunlight, hitedObjectInfo, hitetObjectMaterial, viewVector);
 
 		hitInfo potenionalObject;
 		CheckIntersection(r, potenionalObject);
 		if (potenionalObject.t < FLT_MAX)
-			pixelColor = pixelColor * 0.65;
+			pixelColor = pixelColor * 0.65f;
 
 		// spot light
 		r.direction = (spotLight.position - hitedObjectInfo.p).normalized();
-		r.origin = hitedObjectInfo.p + r.direction * 0.001;
+		r.origin = hitedObjectInfo.p + r.direction * 0.001f;
 
 		float distanceSquared = (spotLight.position - hitedObjectInfo.p).length_squared();
 		viewVector = (s_camera->getPosition() - hitedObjectInfo.p).normalized();
-		halfwayVector = (viewVector - lightDir).normalized();
+
 		vec3 contribution = LightContribution(spotLight, hitedObjectInfo, hitetObjectMaterial, viewVector);
 
 		CheckIntersection(r, potenionalObject);
 		if (potenionalObject.t < FLT_MAX && potenionalObject.t * potenionalObject.t < distanceSquared)
-			contribution *= 0.65;
+			contribution *= 0.65f;
 
 		pixelColor += contribution;
 
 
 		// point light
 		r.direction = (pointLight.position - hitedObjectInfo.p).normalized();
-		r.origin = hitedObjectInfo.p + r.direction * 0.001;
+		r.origin = hitedObjectInfo.p + r.direction * 0.001f;
 
 		distanceSquared = (pointLight.position - hitedObjectInfo.p).length_squared();
 		viewVector = (s_camera->getPosition() - hitedObjectInfo.p).normalized();
-		halfwayVector = (viewVector - lightDir).normalized();
+
 		contribution = LightContribution(pointLight, hitedObjectInfo, hitetObjectMaterial, viewVector);
 
 		CheckIntersection(r, potenionalObject);
 		if (potenionalObject.t < FLT_MAX && potenionalObject.t * potenionalObject.t < distanceSquared)
-			contribution *= 0.65;
+			contribution *= 0.65f;
 
 		pixelColor += contribution;
 
@@ -286,5 +287,5 @@ uint32_t Engine::Scene::PerPixel(int x, int y) // for every pixel of screen call
 	}
 
 	float a = TL.y * y;
-	return  ConvertToRGB(vec3(1.0f) * (1.0f - a) + vec3(0.5, 0.7, 1.0) * a); // Sky color
+	return  ConvertToRGB(vec3(1.0f) * (1.0f - a) + vec3(0.5f, 0.7f, 1.0f) * a); // Sky color
 }

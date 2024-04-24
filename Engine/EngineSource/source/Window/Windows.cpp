@@ -75,12 +75,8 @@ void Window::onResize()
 
 void Engine::Window::Resize(int wWidth, int wHeight)
 {
-	RECT rc = { 0, 0, wWidth, wHeight };
-	AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW | WS_SIZEBOX, false);
-
-	SetWindowPos((HWND)m_handle, HWND_TOP, 0, 0, rc.right - rc.left, rc.bottom - rc.top, SWP_NOMOVE);
-
-	onResize();
+	ResizeFrameBuffer(wWidth, wHeight);
+	wasResized = true;
 }
 
 void Engine::Window::ResizeFrameBuffer(int bWidth, int bHeight)

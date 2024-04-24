@@ -1,6 +1,7 @@
 #include "Math/BVH.h"
 #include "Math/vec.h"
 #include "Math/Mesh.h"
+#include <limits>
 #include "Math/math.h"
 
 const Engine::vec3 Engine::BVH::planeSetNormals[Engine::BVH::kNumPlaneSetNormals] = {
@@ -27,14 +28,14 @@ Engine::BVH::BVH(const BVH& bvh): extents(bvh.extents)
 
 const bool Engine::BVH::intersect(const ray& ray, hitInfo& isectData) const
 {
-    float tClosest = FLT_MAX;
+    float tClosest = std::numeric_limits<float>::max();
     float precomputedNumerator[BVH::kNumPlaneSetNormals], precomputeDenominator[BVH::kNumPlaneSetNormals];
     for (uint8_t i = 0; i < kNumPlaneSetNormals; ++i) {
         precomputedNumerator[i] = dot(planeSetNormals[i], ray.origin);
         precomputeDenominator[i] = dot(planeSetNormals[i], ray.direction);
     }
 
-    float tNear = -FLT_MAX, tFar = FLT_MAX;
+    float tNear = -std::numeric_limits<float>::max(), tFar = std::numeric_limits<float>::max();
     uint8_t planeIndex;
 
     if (extents.intersect(ray, precomputedNumerator, precomputeDenominator, tNear, tFar, planeIndex)) {
@@ -42,6 +43,8 @@ const bool Engine::BVH::intersect(const ray& ray, hitInfo& isectData) const
         isectData.t = tNear;
         return true;
     }
+
+    isectData.t = std::numeric_limits<float>::max();;
     return false;
 }
 
@@ -59,7 +62,7 @@ Engine::BVH::~BVH()
 
 bool Engine::BVH::Extents::intersect(const ray& r, float* precomputedNumerator, float* precomputeDenominator, float& tNear, float& tFar, uint8_t& planeIndex) const
 {
-    for (size_t i = 0; i < kNumPlaneSetNormals; i++)
+    for (uint8_t i = 0; i < kNumPlaneSetNormals; i++)
     {
         float tn = (d[i][0] - precomputedNumerator[i]) / precomputeDenominator[i];
         float tf = (d[i][1] - precomputedNumerator[i]) / precomputeDenominator[i];

@@ -1,6 +1,6 @@
 #include "Render/Camera.h"
 #include "Math/math.h"
-# define PI 3.14159265358979323846
+# define PI 3.14159265358979323846f
 
 Engine::Camera::Camera(float verticalFov, float nearPlane, float farPlane)
 {

@@ -1,5 +1,5 @@
 #pragma once
-#include "Math/math.h"
+#include <limits>
 
 namespace Engine
 {
@@ -9,7 +9,8 @@ namespace Engine
 		vec3 p;
 		vec3 normal;
 
-		hitInfo() : t(FLT_MAX) {}
+		
+
 		hitInfo& operator=(const hitInfo& other) {
 			t = other.t;
 			p = other.p;
@@ -17,6 +18,8 @@ namespace Engine
 
 			return *this;
 		}
+		#undef max
+		void reset_parameter_t() { this->t = std::numeric_limits<float>::max(); }
 	};
 
 }

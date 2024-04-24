@@ -30,7 +30,7 @@ public:
 
 private:
 
-	Engine::vec2 WindowCoordinatesToBufferCoordinates(Engine::vec2 coordinates);
+	Engine::vec2 WindowCoordinatesToBufferCoordinates(const Engine::vec2& coordinates);
 	std::unique_ptr<Engine::IRayDraggable> draggable;
 
 	Engine::vec2 previousMousePosition;

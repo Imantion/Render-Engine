@@ -1,6 +1,6 @@
 #pragma once
 #include <stdint.h>
-
+#include <limits>
 namespace Engine
 {
     class Mesh;
@@ -18,7 +18,7 @@ namespace Engine
             Extents()
             {
                 for (uint8_t i = 0; i < kNumPlaneSetNormals; ++i)
-                    d[i][0] = INT16_MAX, d[i][1] = -INT16_MAX;
+                    d[i][0] = std::numeric_limits<float>::max(), d[i][1] = -std::numeric_limits<float>::max();
             }
             Extents(const Extents& other)
             {

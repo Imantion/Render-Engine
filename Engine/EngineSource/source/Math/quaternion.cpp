@@ -21,7 +21,7 @@ Engine::quaternion Engine::quaternion::normalize() const
 Engine::quaternion Engine::quaternion::angleAxis(float angle, vec3 axis)
 {
 	float half_angle = angle * 0.5f;
-	return quaternion(cos(half_angle), axis * sin(half_angle));
+	return quaternion(cosf(half_angle), axis * sinf(half_angle));
 }
 
 Engine::quaternion Engine::quaternion::operator+(const quaternion& q) const

@@ -12,7 +12,6 @@ namespace Engine
 	class Window;
 	class Camera;
 	class Mesh;
-	struct Material;
 
 	class Scene
 	{
@@ -41,7 +40,7 @@ namespace Engine
 		sphere* intersectSpheres(const ray& r, hitInfo& hInfo);
 		primitive* intersectPrimitive(const ray& r, hitInfo& hInfo);
 
-		int getSphereAmount()
+		size_t getSphereAmount()
 		{
 			return spheres.size();
 		}
@@ -51,7 +50,7 @@ namespace Engine
 			return spheres[index];
 		}
 
-		int getPrimitivesAmount()
+		size_t getPrimitivesAmount()
 		{
 			return cubes.size();
 		}
@@ -76,7 +75,7 @@ namespace Engine
 
 		PointLight pointLight;
 		SpotLight spotLight;
-		
+		DirectionalLight sunlight;
 		
 		Camera* s_camera;
 

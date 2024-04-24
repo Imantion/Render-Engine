@@ -20,14 +20,14 @@ namespace Engine
 		const triangle getTriangle(uint8_t index) const;
 		
 
-		int trianglesAmount() const
+		size_t trianglesAmount() const
 		{
 			return buffer.size();
 		}
 
 		bool intersect(const ray& r, hitInfo& hInfo) const;
 
-		int getSize() const { return buffer.size(); }
+		size_t getSize() const { return buffer.size(); }
 
 		void computeBounds(const vec3& normal, float& near, float& far) const;
 
