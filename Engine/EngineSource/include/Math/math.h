@@ -33,17 +33,6 @@ namespace Engine
 			return origin + (direction * t);
 		}
 
-		float parameter_at_point(vec3 point) const
-		{
-			if (direction.x != 0)
-				return (point.x - origin.x) / direction.x;
-			else if (direction.y != 0)
-				return (point.y - origin.y) / direction.y;
-			else if (direction.z != 0)
-				return (point.z - origin.z) / direction.z;
-
-			return 0.0f;
-		}
 	};
 
 	inline float dot(const vec3& a, const vec3& b)

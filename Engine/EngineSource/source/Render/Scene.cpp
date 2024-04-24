@@ -158,7 +158,7 @@ Engine::primitive* Engine::Scene::intersectPrimitive(const ray& r, hitInfo& hInf
 				if (hitTriangle(cubeMesh->getTriangle(j), cubeR, hitedCube))
 				{
 					hitedCube.p = vec4(hitedCube.p, 1) * p.transformeMatrix;
-					hitedCube.t = r.parameter_at_point(hitedCube.p);
+					
 					if(hInfo.t > hitedCube.t)
 					{
 						hInfo = hitedCube;

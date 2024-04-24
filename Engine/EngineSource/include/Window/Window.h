@@ -29,6 +29,7 @@ namespace Engine
 		int getWindowWidth() const { return width; }
 		int getBufferHeight() const { return buffer.height; }
 		int getBufferWidth() const { return buffer.width; }
+		HWND getHWND() { return (HWND)m_handle; }
 
 		bool wasWindowResized();
 	private:
