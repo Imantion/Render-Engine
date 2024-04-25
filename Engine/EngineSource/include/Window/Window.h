@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "Windows.h" // Хіба треба інклюдити WinApi, щоб typedef створити, і це сумно
+#include "Windows.h"
 #include "memory"
 
 namespace Engine

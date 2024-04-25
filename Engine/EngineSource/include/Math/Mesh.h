@@ -46,10 +46,10 @@ namespace Engine
 		
 	};
 
-	struct primitive
+	struct mathPrimitive
 	{
-		primitive() : position(0.0f) {}
-		primitive(const vec3& position) : position(position) {}
+		mathPrimitive() : position(0.0f) {}
+		mathPrimitive(const vec3& position) : position(position) {}
 
 		void setPosition(const vec3& pos)
 		{
@@ -64,10 +64,19 @@ namespace Engine
 
 		mat4 transformeMatrix;
 		mat4 invTransformeMatrix;
-		Material material;
 
 	private:
 		vec3 position;
+	};
+
+	struct primitive : public mathPrimitive
+	{
+		primitive() : mathPrimitive() {}
+		primitive(const vec3& pos) : mathPrimitive(pos) {}
+
+		virtual const Mesh* getMesh() = 0;
+
+		Material material;
 	};
 }
 

@@ -49,8 +49,8 @@ void Application::update(float deltaTime)
 	{
 		if (Input::keyPresseed((Input::KeyboardButtons)i))
 		{
-			float coeff = 1 / sqrtf((float)i); // calculating dividing coeffitient as square root of divisioner because if not area divided by (1 / i)^2
-			window->Resize(window->getBufferWidth()  * coeff, window->getBufferHeight() * coeff);
+			float coeff = 1.0f / (float)i; // calculating dividing coeffitient as square root of divisioner because if not area divided by (1 / i)^2
+			window->Resize(window->getWindowWidth()  * coeff, window->getWindowHeight() * coeff);
 		}
 	}
 
@@ -104,20 +104,20 @@ void Application::update(float deltaTime)
 			r.direction = camera->getRayDirection(WindowCoordinatesToBufferCoordinates(scene->getTL() * (window->getWindowHeight() - Input::getMousePosition().y) + scene->getBR() * Input::getMousePosition().x));
 			r.origin = camera->getPosition();
 
-			Engine::hitInfo hitedSphere;
-			Engine::sphere* sph = scene->intersectSpheres(r, hitedSphere);
+			Engine::hitInfo hitedObject; hitedObject.reset_parameter_t();
+			Engine::sphere* sph = scene->intersectSpheres(r, hitedObject);
 
-			Engine::hitInfo hitedPrim;
-			Engine::primitive* prm = scene->intersectPrimitive(r, hitedPrim);
+			Engine::primitive* prm = scene->intersectPrimitive(r, hitedObject);
 
-			if (hitedSphere.t <= hitedPrim.t && sph)
+			if (prm)
 			{
-				draggable = std::make_unique<Engine::ISphereDragger>(sph, hitedSphere);
+				draggable = std::make_unique<Engine::IMeshDragger>(prm, hitedObject);
 			}
-			else if (prm)
+			else if (sph)
 			{
-				draggable = std::make_unique<Engine::IMeshDragger>(prm, hitedPrim);
+				draggable = std::make_unique<Engine::ISphereDragger>(sph, hitedObject);
 			}
+			
 			
 		}
 

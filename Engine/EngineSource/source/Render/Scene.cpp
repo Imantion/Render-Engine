@@ -121,49 +121,38 @@ void Engine::Scene::setSpherePosition(vec3 position)
 
 Engine::sphere* Engine::Scene::intersectSpheres(const ray& r, hitInfo& hInfo)
 {
-	hInfo.reset_parameter_t();
 	sphere* sph = nullptr;
-	hitInfo hitedSphere;
 	for(sphere& s : spheres)
 	{
-		if (hitSphere(s, r, 0.0f, FLT_MAX, hitedSphere) && hInfo.t > hitedSphere.t)
+		if (hitSphere(s, r, 0.0f, FLT_MAX, hInfo))
 		{
-			hInfo = hitedSphere;
 			sph = &s;
 		}
 	}
-
-	
 	return sph;
 }
 
 Engine::primitive* Engine::Scene::intersectPrimitive(const ray& r, hitInfo& hInfo) // calling primitives because in future there may be another shapes. Not Only Cube
 {
-	hInfo.reset_parameter_t();
 	if (cubes.empty())
 		return nullptr;
 
 	primitive* intersected = nullptr;
-	hitInfo hitedCube;
 	const Mesh* cubeMesh = cubes[0].getMesh();
 
 	ray cubeR(r);
 	for(primitive& p : cubes)
 	{
 		cubeR.origin = vec3(vec4(r.origin, 1) * p.invTransformeMatrix);
-		if (cubeMesh->bvh.intersect(cubeR, hitedCube))
+		hitInfo meshIntersectInfo;
+		if (cubeMesh->bvh.intersect(cubeR, meshIntersectInfo))
 		{
 			for (uint8_t j = 0; j < cubeMesh->trianglesAmount(); j++)
 			{
-				if (hitTriangle(cubeMesh->getTriangle(j), cubeR, hitedCube))
+				if (hitTriangle(cubeMesh->getTriangle(j), cubeR, hInfo))
 				{
-					hitedCube.p = vec4(hitedCube.p, 1) * p.transformeMatrix;
-					
-					if(hInfo.t > hitedCube.t)
-					{
-						hInfo = hitedCube;
-						intersected = &p;
-					}
+					intersected = &p;
+					hInfo.p = vec4(hInfo.p, 1) * p.transformeMatrix;
 				}
 			}
 		}
@@ -177,28 +166,21 @@ Engine::Material Engine::Scene::CheckIntersection(const ray& r, hitInfo& hitedOb
 	hitedObjectInfo.reset_parameter_t();
 	Material mat(vec3(0.5f));
 	
-	hitInfo hitedSphere;
-	sphere* s = intersectSpheres(r, hitedSphere);
+	sphere* s = intersectSpheres(r, hitedObjectInfo);
 
-	hitInfo hitedPrimitive;
-	primitive* p = intersectPrimitive(r, hitedPrimitive);
+	primitive* p = intersectPrimitive(r, hitedObjectInfo);
 
-	if (hitedSphere.t <= hitedPrimitive.t && s)
-	{
-		mat = s->material;
-		hitedObjectInfo = hitedSphere;
-	}
-	else if (p)
+	if (p)
 	{
 		mat = p->material;
-		hitedObjectInfo = hitedPrimitive;
+	}
+	else if (s)
+	{
+		mat = s->material;
 	}
 
-
-	hitInfo hInfo; hInfo.reset_parameter_t();
-	if (hitPlane(vec3(0, 1, 0), r, hInfo, vec3(0, -5, 0)) && hInfo.t < hitedObjectInfo.t)
+	if (hitPlane(vec3(0, 1, 0), r, hitedObjectInfo, vec3(0, -5, 0)))
 	{
-		hitedObjectInfo = hInfo;
 		mat = vec3(0.514f, 0.322f, 0.365f);
 	}
 
@@ -220,6 +202,7 @@ uint32_t Engine::Scene::PerPixel(int x, int y) // for every pixel of screen call
 	ray r = ray(rayOrigin, rayDirection);
 
 	hitInfo hitedObjectInfo;
+	hitedObjectInfo.reset_parameter_t();
 
 	if (hitSphere(s, r, 0.0f, FLT_MAX, hitedObjectInfo)) // spot light sphere
 		return RGB(0, 0, 255);

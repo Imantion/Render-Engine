@@ -8,7 +8,6 @@
 #include "Math/matrix.h"
 
 #define FRAME_RATE 60
-Engine::vec2 prevMouse{400,200};
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -81,9 +80,6 @@ int main(int argc, char* argv[])
 	Engine::Timer timer;
 
 	MSG msg = { 0 };
-
-	Engine::mat4 Result(0.0f);
-
 
 	while (app.isOpen())
 	{

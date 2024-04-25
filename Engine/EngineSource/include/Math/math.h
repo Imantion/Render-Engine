@@ -8,16 +8,24 @@
 
 namespace Engine
 {
-	struct sphere
+	struct mathSphere
 	{
-		sphere() : position(0.0f), radius(0.0f) {}
-		sphere(vec3 pos, float r) : position(pos), radius(r) {}
-		sphere(vec3 pos, float r, Material m) : position(pos), radius(r), material(m) {}
-		sphere(const sphere& s) : position(s.position), radius(s.radius) {}
+		mathSphere() : position(0.0f), radius(0.0f) {}
+		mathSphere(vec3 pos, float r) : position(pos), radius(r) {}
+		mathSphere(const mathSphere& s) : position(s.position), radius(s.radius) {}
 
-		Material material;
 		vec3 position;
 		float radius;
+	};
+
+	struct sphere : public mathSphere
+	{
+		sphere() {}
+		sphere(vec3 pos, float r) : mathSphere(pos,r) {}
+		sphere(vec3 pos, float r, Material m) : mathSphere(pos,r), material(m) {}
+		sphere(const sphere& s) : mathSphere(s), material(s.material) {}
+
+		Material material;
 	};
 
 	struct ray
@@ -57,7 +65,7 @@ namespace Engine
 		{
 			float root_d = sqrtf(d);
 			float t = (-b - root_d) / (2 * a);
-			if (t < t_max && t > t_min)
+			if (t < t_max && t > t_min && t < hInfo.t)
 			{
 				hInfo.t = t;
 				hInfo.p = r.point_at_parameter(t);
@@ -67,7 +75,7 @@ namespace Engine
 
 			t = (-b + root_d) / (2 * a);
 
-			if (t < t_max && t > t_min)
+			if (t < t_max && t > t_min && t < hInfo.t)
 			{
 				hInfo.t = t;
 				hInfo.p = r.point_at_parameter(t);
@@ -81,13 +89,13 @@ namespace Engine
 
 	inline bool hitPlane(const vec3& normal, const ray& ray, hitInfo& hInfo, const vec3& point = vec3(0, 0, 0))
 	{
-		hInfo.reset_parameter_t();
+		
 		float denom = dot(-normal, ray.direction);
 		if (denom > 1e-6)
 		{
 			float t = dot(point - ray.origin, -normal) / denom;
 
-			if (t > 0)
+			if (t > 0 && t < hInfo.t)
 			{
 				hInfo.normal = normal;
 				hInfo.p = ray.point_at_parameter(t);
@@ -117,7 +125,7 @@ namespace Engine
 
 		float t = dot(Q, E2) * invDeterminant;
 
-		if (t < 0)
+		if (t < 0 || t > hInfo.t)
 			return false;
 
 		float u = dot(P, T) * invDeterminant;

@@ -38,6 +38,7 @@ void Input::processKeyboardInput(uint32_t keycode, bool isDown, bool wasKeyDown)
 		break;
 	case VK_SHIFT:
 		keyboard[Input::KeyboardButtons::SHIFT].isDown = isDown;
+		break;
 	case 0x31: // keycodes for 1,2,3,4
 		keyboard[Input::KeyboardButtons::ONE].isDown = isDown;
 		keyboard[Input::KeyboardButtons::ONE].wasDown = wasKeyDown;
