@@ -36,6 +36,7 @@ namespace Engine
 
 		sphere* intersectSpheres(const ray& r, hitInfo& hInfo);
 		primitive* intersectPrimitive(const ray& r, hitInfo& hInfo);
+		Material CheckIntersection(const ray& r, hitInfo& hInfo, objectRef& object);
 
 		size_t getSphereAmount()
 		{
@@ -60,7 +61,6 @@ namespace Engine
 	private:
 
 		uint32_t PerPixel(int x, int y);
-		Material CheckIntersection(const ray& r, hitInfo& hInfo);
 
 
 		bool redrawScene;
@@ -69,6 +69,7 @@ namespace Engine
 		
 		std::vector<sphere> spheres;
 		std::vector<cube> cubes;
+		plane infinitePlane;
 
 		PointLight pointLight;
 		SpotLight spotLight;

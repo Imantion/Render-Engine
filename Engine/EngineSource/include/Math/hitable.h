@@ -1,5 +1,6 @@
 #pragma once
 #include <limits>
+#include <cmath>
 
 namespace Engine
 {
@@ -10,7 +11,16 @@ namespace Engine
 		vec3 normal;
 
 		
-		void reset_parameter_t() { this->t = (std::numeric_limits<float>::max)(); }
+		void reset_parameter_t() { this->t = (std::numeric_limits<float>::infinity)(); }
+		bool is_t_finite() { return std::isfinite(t); }
+	};
+
+	enum class IntersectedType { sphere, primitive, plane, pointLight, spotLight };
+
+	struct objectRef
+	{
+		void* pObject;
+		IntersectedType pObjectType;
 	};
 
 }

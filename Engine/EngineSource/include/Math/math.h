@@ -28,6 +28,23 @@ namespace Engine
 		Material material;
 	};
 
+	struct mathPlane
+	{
+		mathPlane() {}
+		mathPlane(const vec3& point, const vec3& normal) : point(point), normal(normal) {}
+
+		vec3 point;
+		vec3 normal;
+	};
+
+	struct plane : public mathPlane
+	{
+		plane() {}
+		plane(const vec3& point, const vec3& normal) : mathPlane(point, normal) {}
+		plane(const vec3& point, const vec3& normal, const Material& mat) : plane(point, normal) { material = mat; }
+		Material material;
+	};
+
 	struct ray
 	{
 		vec3 origin;
@@ -87,17 +104,17 @@ namespace Engine
 		return false;
 	}
 
-	inline bool hitPlane(const vec3& normal, const ray& ray, hitInfo& hInfo, const vec3& point = vec3(0, 0, 0))
+	inline bool hitPlane(const plane& pln, const ray& ray, hitInfo& hInfo)
 	{
 		
-		float denom = dot(-normal, ray.direction);
+		float denom = dot(-pln.normal, ray.direction);
 		if (denom > 1e-6)
 		{
-			float t = dot(point - ray.origin, -normal) / denom;
+			float t = dot(pln.point - ray.origin, -pln.normal) / denom;
 
 			if (t > 0 && t < hInfo.t)
 			{
-				hInfo.normal = normal;
+				hInfo.normal = pln.normal;
 				hInfo.p = ray.point_at_parameter(t);
 				hInfo.t = t;
 				return true;

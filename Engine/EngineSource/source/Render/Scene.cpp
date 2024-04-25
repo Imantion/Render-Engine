@@ -13,7 +13,7 @@ Engine::vec3 lightColor(0.5f, 0.7f, 1.0f);
 
 Engine::Scene::Scene() :
 	s_camera(nullptr), redrawScene(true), cubes(2), spheres(2), spotLight(vec3(1.0f, 1.0f, 0.0f), vec3(0.0f, 5.5f, 2.0f), vec3(0.0f, -1.0f, 0.0f), PI * 0.25f, 5.0f),
-	pointLight(vec3(0.2f, 0.5f, 1.0f), vec3(2.0f, 2.0f, 2.0f), 2.0f), sunlight(lightDir, vec3(1.0f))
+	pointLight(vec3(0.2f, 0.5f, 1.0f), vec3(2.0f, 2.0f, 2.0f), 2.0f), sunlight(lightDir, vec3(1.0f)), infinitePlane(vec3(0, -5, 0), vec3(0, 1, 0), Material(vec3(0.514f, 0.322f, 0.365f)))
 {
 	// Initialize cube 0
 	cubes[0].setPosition(vec3(0.0f, 0.0f, 2.0f));
@@ -141,27 +141,33 @@ Engine::primitive* Engine::Scene::intersectPrimitive(const ray& r, hitInfo& hInf
 	return intersected;
 }
 
-Engine::Material Engine::Scene::CheckIntersection(const ray& r, hitInfo& hitedObjectInfo) // finds intersection and returns intersected object info and color
+Engine::Material Engine::Scene::CheckIntersection(const ray& r, hitInfo& hitedObjectInfo, objectRef& isectObject) // finds intersection and returns intersected object info and color
 {
 	hitedObjectInfo.reset_parameter_t();
 	Material mat(vec3(0.5f));
 	
 	sphere* s = intersectSpheres(r, hitedObjectInfo);
-
 	primitive* p = intersectPrimitive(r, hitedObjectInfo);
 
 	if (p)
 	{
 		mat = p->material;
+		isectObject.pObject = p;
+		isectObject.pObjectType = IntersectedType::plane;
 	}
 	else if (s)
 	{
 		mat = s->material;
+		isectObject.pObject = s;
+		isectObject.pObjectType = IntersectedType::sphere;
+		
 	}
 
-	if (hitPlane(vec3(0, 1, 0), r, hitedObjectInfo, vec3(0, -5, 0)))
+	if (hitPlane(infinitePlane, r, hitedObjectInfo))
 	{
-		mat = vec3(0.514f, 0.322f, 0.365f);
+		mat = infinitePlane.material;
+		isectObject.pObject = &infinitePlane;
+		isectObject.pObjectType = IntersectedType::plane;
 	}
 
 
@@ -175,10 +181,10 @@ uint32_t Engine::Scene::PerPixel(int x, int y) // for every pixel of screen call
 	vec3 rayOrigin = s_camera->getPosition();
 	ray r = ray(rayOrigin, rayDirection);
 
-	hitInfo hitedObjectInfo;
-	hitedObjectInfo.reset_parameter_t();
-
-	Material hitetObjectMaterial = CheckIntersection(r, hitedObjectInfo);
+	hitInfo hitedObjectInfo; hitedObjectInfo.reset_parameter_t();
+	objectRef isectedObject;
+	
+	Material hitetObjectMaterial = CheckIntersection(r, hitedObjectInfo, isectedObject);
 	vec3 pixelColor(0.0f);
 
 	sphere s;
@@ -196,7 +202,7 @@ uint32_t Engine::Scene::PerPixel(int x, int y) // for every pixel of screen call
 	
 
 
-	if (hitedObjectInfo.t < FLT_MAX)
+	if (hitedObjectInfo.is_t_finite())
 	{
 		float ambientLight = 0.05f;
 
@@ -209,9 +215,10 @@ uint32_t Engine::Scene::PerPixel(int x, int y) // for every pixel of screen call
 		
 		pixelColor = LightContribution(sunlight, hitedObjectInfo, hitetObjectMaterial, viewVector);
 
-		hitInfo potenionalObject;
-		CheckIntersection(r, potenionalObject);
-		if (potenionalObject.t < FLT_MAX)
+		hitInfo potenionalObjectInfo;
+		objectRef potenionalIsecteObject;
+		CheckIntersection(r, potenionalObjectInfo, potenionalIsecteObject);
+		if (potenionalObjectInfo.is_t_finite())
 			pixelColor = pixelColor * 0.65f;
 
 		// spot light
@@ -223,8 +230,8 @@ uint32_t Engine::Scene::PerPixel(int x, int y) // for every pixel of screen call
 
 		vec3 contribution = LightContribution(spotLight, hitedObjectInfo, hitetObjectMaterial, viewVector);
 
-		CheckIntersection(r, potenionalObject);
-		if (potenionalObject.t < FLT_MAX && potenionalObject.t * potenionalObject.t < distanceSquared)
+		CheckIntersection(r, potenionalObjectInfo, potenionalIsecteObject);
+		if (potenionalObjectInfo.is_t_finite() && potenionalObjectInfo.t * potenionalObjectInfo.t < distanceSquared)
 			contribution *= 0.65f;
 
 		pixelColor += contribution;
@@ -239,8 +246,8 @@ uint32_t Engine::Scene::PerPixel(int x, int y) // for every pixel of screen call
 
 		contribution = LightContribution(pointLight, hitedObjectInfo, hitetObjectMaterial, viewVector);
 
-		CheckIntersection(r, potenionalObject);
-		if (potenionalObject.t < FLT_MAX && potenionalObject.t * potenionalObject.t < distanceSquared)
+		CheckIntersection(r, potenionalObjectInfo, potenionalIsecteObject);
+		if (potenionalObjectInfo.is_t_finite() && potenionalObjectInfo.t * potenionalObjectInfo.t < distanceSquared)
 			contribution *= 0.65f;
 
 		pixelColor += contribution;

@@ -109,18 +109,21 @@ void Application::updateInput(float deltaTime)
 			r.direction = camera->getRayDirection(WindowCoordinatesToBufferCoordinates(scene->getTL() * (window->getWindowHeight() - Input::getMousePosition().y) + scene->getBR() * Input::getMousePosition().x));
 			r.origin = camera->getPosition();
 
-			Engine::hitInfo hitedObject; hitedObject.reset_parameter_t();
-			Engine::sphere* sph = scene->intersectSpheres(r, hitedObject);
+			Engine::hitInfo hitedObject;
+			Engine::objectRef isectedObject;
+			scene->CheckIntersection(r, hitedObject, isectedObject);
 
-			Engine::primitive* prm = scene->intersectPrimitive(r, hitedObject);
-
-			if (prm)
+			if (hitedObject.is_t_finite())
 			{
-				draggable = std::make_unique<Engine::IMeshDragger>(prm, hitedObject);
-			}
-			else if (sph)
-			{
-				draggable = std::make_unique<Engine::ISphereDragger>(sph, hitedObject);
+				switch (isectedObject.pObjectType)
+				{
+				case Engine::IntersectedType::sphere:
+					draggable = std::make_unique<Engine::ISphereDragger>(Engine::ISphereDragger(static_cast<Engine::sphere*>(isectedObject.pObject), hitedObject));
+					break;
+				case Engine::IntersectedType::primitive:
+					draggable = std::make_unique<Engine::IMeshDragger>(Engine::IMeshDragger(static_cast<Engine::primitive*>(isectedObject.pObject), hitedObject));
+					break;
+				}
 			}
 
 
