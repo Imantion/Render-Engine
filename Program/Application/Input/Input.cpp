@@ -77,8 +77,8 @@ void Input::proccesMouseScrolling(WPARAM wParam, LPARAM lParam)
 
 void Input::updateMousePosition(LPARAM lParam)
 {
-	mousePosition.x = GET_X_LPARAM(lParam);
-	mousePosition.y = GET_Y_LPARAM(lParam);
+	mousePosition.x = (float)GET_X_LPARAM(lParam);
+	mousePosition.y = (float)GET_Y_LPARAM(lParam);
 }
 
 bool Input::keyPresseed(KeyboardButtons key)

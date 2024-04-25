@@ -9,7 +9,7 @@ Engine::Camera::Camera(float verticalFov, float nearPlane, float farPlane)
 	farClip = farPlane;
 }
 
-Engine::vec3 Engine::Camera::getRayDirection(vec2 point)
+Engine::vec3 Engine::Camera::getRayDirection(const vec2& point)
 {
 	vec3 upInterpolation = rayDirections[LeftUp] * (1 - point.x) + rayDirections[RightUp] * point.x;
 	vec3 downInterpolation = rayDirections[LeftDown] * (1 - point.x) + rayDirections[RightDown] * point.x;

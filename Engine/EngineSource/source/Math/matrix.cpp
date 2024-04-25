@@ -23,9 +23,9 @@ Engine::mat4::mat4(vec4 x, vec4 y, vec4 z, vec4 w)
 
 Engine::mat4::mat4(const mat4& other)
 {
-	for (size_t i = 0; i < 4; i++)
+	for (int i = 0; i < 4; i++)
 	{
-		for (size_t j = 0; j < 4; j++)
+		for (int j = 0; j < 4; j++)
 		{
 			mat[i][j] = other[i][j];
 		}
@@ -79,9 +79,9 @@ Engine::mat4 Engine::mat4::Inverse(const mat4& m)
 
 Engine::mat4& Engine::mat4::operator=(const mat4& other)
 {
-	for (size_t i = 0; i < 4; i++)
+	for (int i = 0; i < 4; i++)
 	{
-		for (size_t j = 0; j < 4; j++)
+		for (int j = 0; j < 4; j++)
 		{
 			mat[i][j] = other[i][j];
 		}
@@ -93,9 +93,9 @@ Engine::mat4& Engine::mat4::operator=(const mat4& other)
 Engine::mat4 Engine::mat4::operator*(float t)
 {
 	mat4 ret;
-	for (size_t i = 0; i < 4; i++)
+	for (int i = 0; i < 4; i++)
 	{
-		for (size_t j = 0; j < 4; j++)
+		for (int j = 0; j < 4; j++)
 		{
 			ret[i][j] = mat[i][j] * t;
 		}

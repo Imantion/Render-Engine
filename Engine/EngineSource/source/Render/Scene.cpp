@@ -54,11 +54,11 @@ void Engine::Scene::render(Engine::Window& window, Engine::Camera& camera)
 		verticalIterator.resize(window.getBufferHeight());
 		horizontalIterator.resize(window.getBufferWidth());
 
-		for (uint32_t i = 0; i < window.getBufferHeight(); i++)
-			verticalIterator[i] = i;
+		for (int i = 0; i < window.getBufferHeight(); i++)
+			verticalIterator[i] = (uint32_t)i;
 
-		for (uint32_t i = 0; i < window.getBufferWidth(); i++)
-			horizontalIterator[i] = i;
+		for (int i = 0; i < window.getBufferWidth(); i++)
+			horizontalIterator[i] = (uint32_t)i;
 
 		redrawScene = true;
 	}
@@ -97,26 +97,6 @@ void Engine::Scene::render(Engine::Window& window, Engine::Camera& camera)
 		redrawScene = false;
 	}
 
-}
-
-
-void Engine::Scene::moveSphere(vec3 direction)
-{
-	/*if (direction.length_squared() != 0)
-	{
-		redrawScene = true;
-		sphr.position += direction;
-	}*/
-
-}
-
-void Engine::Scene::setSpherePosition(vec3 position)
-{
-	/*if (sphr.position != position)
-	{
-		redrawScene = true;
-		sphr.position = position;
-	}*/
 }
 
 Engine::sphere* Engine::Scene::intersectSpheres(const ray& r, hitInfo& hInfo)

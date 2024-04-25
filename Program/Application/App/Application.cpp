@@ -50,7 +50,7 @@ void Application::update(float deltaTime)
 		if (Input::keyPresseed((Input::KeyboardButtons)i))
 		{
 			float coeff = 1.0f / (float)i; // calculating dividing coeffitient as square root of divisioner because if not area divided by (1 / i)^2
-			window->Resize(window->getWindowWidth()  * coeff, window->getWindowHeight() * coeff);
+			window->Resize((int)(window->getWindowWidth()  * coeff), (int)(window->getWindowHeight() * coeff));
 		}
 	}
 

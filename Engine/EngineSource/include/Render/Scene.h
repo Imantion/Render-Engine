@@ -30,9 +30,6 @@ namespace Engine
 
 		void render(Window& window, Camera& camera);
 
-		void moveSphere(vec3 direction);
-		void setSpherePosition(vec3 position);
-
 		void redraw(bool redraw) { redrawScene = redraw; }
 		vec2 getBR() const { return BR; }
 		vec2 getTL() const { return TL; }
