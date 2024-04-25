@@ -21,6 +21,7 @@ class Application
 public:
 
 	void update(float deltaTime);
+	void updateInput(float deltaTime);
 	bool isOpen();
 
 	Application(int windowSize, int windowHeight, WinProc);

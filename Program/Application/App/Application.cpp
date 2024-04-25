@@ -45,16 +45,21 @@ Engine::vec2 Application::WindowCoordinatesToBufferCoordinates(const Engine::vec
 
 void Application::update(float deltaTime)
 {
+	scene->render(*window, *camera);
+
+	window->flush();
+}
+
+void Application::updateInput(float deltaTime)
+{
 	for (size_t i = Input::KeyboardButtons::ONE; i <= Input::KeyboardButtons::FOUR; i++)
 	{
 		if (Input::keyPresseed((Input::KeyboardButtons)i))
 		{
 			float coeff = 1.0f / (float)i; // calculating dividing coeffitient as square root of divisioner because if not area divided by (1 / i)^2
-			window->Resize((int)(window->getWindowWidth()  * coeff), (int)(window->getWindowHeight() * coeff));
+			window->Resize((int)(window->getWindowWidth() * coeff), (int)(window->getWindowHeight() * coeff));
 		}
 	}
-
-	scene->render(*window, *camera);
 
 
 	if (Input::mouseIsDown(Input::LEFT) && holdCursorPosition)
@@ -92,7 +97,7 @@ void Application::update(float deltaTime)
 	int scrolls = Input::scrollAmount();
 	if (scrolls > 0)
 		cameraSpeed += cameraSpeed * 0.05f * scrolls;
-	else if(scrolls < 0)
+	else if (scrolls < 0)
 		cameraSpeed += cameraSpeed * 0.05f * scrolls;
 
 
@@ -117,8 +122,8 @@ void Application::update(float deltaTime)
 			{
 				draggable = std::make_unique<Engine::ISphereDragger>(sph, hitedObject);
 			}
-			
-			
+
+
 		}
 
 		if (draggable && (delta.x != 0 || delta.y != 0 || cameraMoveDirection != 0.0f))
@@ -164,8 +169,8 @@ void Application::update(float deltaTime)
 			Engine::quaternion rotation = r * Engine::quaternion(0, camera->getForward()) * r.conjugate();
 			camera->setForward(Engine::vec3(rotation.im).normalized());
 			camera->setUp(Engine::cross(camera->getForward(), camera->getRight()));
-			
-		}	
+
+		}
 	}
 	else
 	{
@@ -187,9 +192,6 @@ void Application::update(float deltaTime)
 		camera->calculateViewMatrix();
 		camera->calculateRayDirections();
 	}
-
-	
-	window->flush();
 }
 
 bool Application::isOpen()

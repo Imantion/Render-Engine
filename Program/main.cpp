@@ -84,7 +84,7 @@ int main(int argc, char* argv[])
 	while (app.isOpen())
 	{
 		
-		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 		{
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
@@ -93,9 +93,10 @@ int main(int argc, char* argv[])
 				break;
 	
 		}
-
+		
 		if (timer.timeElapsed(FRAME_RATE))
 		{
+			app.updateInput(timer.getDeltatime());
 			app.update(timer.getDeltatime());
 			Input::resetScroll();
 		}

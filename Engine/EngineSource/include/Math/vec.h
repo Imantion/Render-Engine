@@ -15,6 +15,7 @@ namespace Engine
         vec2 operator-(const vec2& v) const { return vec2(x - v.x, y - v.y); }
         vec2 operator-(float t) const { return vec2(x - t, y - t); }
         vec2 operator*(float t) const { return vec2(x * t, y * t); }
+        vec2& operator*=(float t) { x *= t; y *= t; return *this; }
         vec2 operator*(int t) const { return vec2(x * t, y * t); }
         bool operator!=(const vec2& v) { return !((x == v.x) && (y == v.y)); }
 

@@ -171,18 +171,19 @@ Engine::Material Engine::Scene::CheckIntersection(const ray& r, hitInfo& hitedOb
 
 uint32_t Engine::Scene::PerPixel(int x, int y) // for every pixel of screen called, to define it color
 {
-	sphere s;
-	s.position = spotLight.position;
-	s.radius = 0.1f;
-
-
-
 	vec3 rayDirection = s_camera->getRayDirection(BR * x + TL * y).normalized();
 	vec3 rayOrigin = s_camera->getPosition();
 	ray r = ray(rayOrigin, rayDirection);
 
 	hitInfo hitedObjectInfo;
 	hitedObjectInfo.reset_parameter_t();
+
+	Material hitetObjectMaterial = CheckIntersection(r, hitedObjectInfo);
+	vec3 pixelColor(0.0f);
+
+	sphere s;
+	s.position = spotLight.position;
+	s.radius = 0.1f;
 
 	if (hitSphere(s, r, 0.0f, FLT_MAX, hitedObjectInfo)) // spot light sphere
 		return RGB(0, 0, 255);
@@ -192,8 +193,7 @@ uint32_t Engine::Scene::PerPixel(int x, int y) // for every pixel of screen call
 	if (hitSphere(s, r, 0.0f, FLT_MAX, hitedObjectInfo)) // point light sphere
 		return RGB(255, 0, 0);
 
-	Material hitetObjectMaterial = CheckIntersection(r, hitedObjectInfo);
-	vec3 pixelColor(0.0f);
+	
 
 
 	if (hitedObjectInfo.t < FLT_MAX)
