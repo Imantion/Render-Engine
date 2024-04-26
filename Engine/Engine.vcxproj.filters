@@ -27,7 +27,10 @@
     <Filter Include="Source\Window">
       <UniqueIdentifier>{1b625845-0f5e-4bd6-95fe-36bab31b09f2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Include\Redner">
+    <Filter Include="Source\Utils">
+      <UniqueIdentifier>{dd320dde-b0d5-4a75-a393-245f8325d878}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Include\Render">
       <UniqueIdentifier>{04d3fc8d-4e25-4526-b6bb-128a69dd4a60}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -41,10 +44,28 @@
     <ClCompile Include="EngineSource\source\Window\Windows.cpp">
       <Filter>Source\Window</Filter>
     </ClCompile>
+    <ClCompile Include="EngineSource\source\Math\BVH.cpp">
+      <Filter>Source\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="EngineSource\source\Render\Camera.cpp">
+      <Filter>Source\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="EngineSource\source\Math\quaternion.cpp">
+      <Filter>Source\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="EngineSource\source\Math\Mesh.cpp">
+      <Filter>Source\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="EngineSource\source\Math\matrix.cpp">
+      <Filter>Source\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="EngineSource\source\Utils\IRayDraggable.cpp">
+      <Filter>Source\Utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EngineSource\include\Render\Scene.h">
-      <Filter>Include\Redner</Filter>
+      <Filter>Include\Render</Filter>
     </ClInclude>
     <ClInclude Include="EngineSource\include\Math\math.h">
       <Filter>Include\Math</Filter>
@@ -60,6 +81,33 @@
     </ClInclude>
     <ClInclude Include="EngineSource\include\Math\hitable.h">
       <Filter>Include\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineSource\include\Render\Light\Light.h">
+      <Filter>Include\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineSource\include\Math\BVH.h">
+      <Filter>Include\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineSource\include\Math\Mesh.h">
+      <Filter>Include\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineSource\include\Render\Material.h">
+      <Filter>Include\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineSource\include\Render\Camera.h">
+      <Filter>Include\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineSource\include\Math\matrix.h">
+      <Filter>Include\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineSource\include\Math\quaternion.h">
+      <Filter>Include\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineSource\include\Math\triangle.h">
+      <Filter>Include\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineSource\include\Utils\IRayDraggable.h">
+      <Filter>Include\Utils</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

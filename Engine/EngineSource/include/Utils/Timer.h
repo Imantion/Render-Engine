@@ -9,6 +9,7 @@ namespace Engine
 
     public:
         Timer() {
+            deltatime = 0.0f;
             m_startTime = clock::now();
         }
         bool timeElapsed(int frameRate)
@@ -30,7 +31,7 @@ namespace Engine
         {
             time_point currentTime = clock::now();
             std::chrono::duration<float, std::milli> elapsedTime = currentTime - m_startTime;
-            deltatime = elapsedTime.count() * 0.001;
+            deltatime = elapsedTime.count() * 0.001f;
         }
 
     private:

@@ -5,6 +5,7 @@
 #include "App/Application.h"
 #include "Input/Input.h"
 #include "Utils/Timer.h"
+#include "Math/matrix.h"
 
 #define FRAME_RATE 60
 
@@ -31,18 +32,26 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 		WORD keyFlags = HIWORD(lParam);
 		if ((keyFlags & KF_REPEAT) == 0)
-			Input::processKeyboardInput(wParam, true);
+			Input::processKeyboardInput((uint32_t)wParam, true, (keyFlags & KF_REPEAT) == KF_REPEAT);
 	} break;
 	case WM_SYSKEYUP:
 	case WM_KEYUP:
 	{
-		Input::processKeyboardInput(wParam, false);
+		WORD keyFlags = HIWORD(lParam);
+		Input::processKeyboardInput((uint32_t)wParam, false, (keyFlags & KF_UP) == KF_UP);
 
 	} break;
 
 	case WM_LBUTTONDOWN:
 	case WM_LBUTTONUP:
 		Input::processMouseInput(wParam, lParam);
+		
+	case WM_RBUTTONUP:
+		Input::processMouseInput(wParam, lParam);
+		break;
+	case WM_RBUTTONDOWN:
+		Input::processMouseInput(wParam, lParam);
+		
 		break;
 	case WM_MOUSEMOVE:
 		Input::updateMousePosition(lParam);
@@ -57,8 +66,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		}
 		else {
 			SetCursor(LoadCursor(NULL, IDC_ARROW));
-		}
+		}break;
+	case WM_MOUSEWHEEL:
+		Input::proccesMouseScrolling(wParam, lParam);
 	}
+
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 
@@ -72,7 +84,8 @@ int main(int argc, char* argv[])
 
 	while (app.isOpen())
 	{
-		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+		
+		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 		{
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
@@ -84,11 +97,14 @@ int main(int argc, char* argv[])
 		
 		if (timer.timeElapsed(FRAME_RATE))
 		{
+			app.updateInput(timer.getDeltatime());
 			app.update(timer.getDeltatime());
-			std::cout << timer.getDeltatime() << std::endl;
+			Input::resetScroll();
+			Input::resetMousePressed();
 		}
 
 		std::this_thread::yield();
+		
 	}
 	return 0;
 }

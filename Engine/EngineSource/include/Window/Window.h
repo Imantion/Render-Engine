@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "Windows.h" // Хіба треба інклюдити WinApi, щоб typedef створити, і це сумно
+#include "Windows.h"
 #include "memory"
 
 namespace Engine
@@ -15,6 +15,7 @@ namespace Engine
 
 		void onDestroy();
 		void onResize();
+		void Resize(int wWidth, int wHeight);
 		void ResizeFrameBuffer(int wWidth, int wHeight);
 		bool isClosed() const;
 
@@ -22,12 +23,13 @@ namespace Engine
 		void clearScreen();
 		void setPixel(int x, int y);
 		
-		float getAspectRation() { return aspectRatio; }
-		void* getMemoryBuffer() { return buffer.memory.get(); }
-		int getWindowHeight() { return height; }
-		int getWindowWidth() { return width; }
-		int getBufferHeight() { return buffer.height; }
-		int getBufferWidth() { return buffer.width; }
+		float getAspectRation() const { return aspectRatio; }
+		void* getMemoryBuffer() const { return buffer.memory.get(); }
+		int getWindowHeight() const { return height; }
+		int getWindowWidth() const { return width; }
+		int getBufferHeight() const { return buffer.height; }
+		int getBufferWidth() const { return buffer.width; }
+		HWND getHWND() { return (HWND)m_handle; }
 
 		bool wasWindowResized();
 	private:
