@@ -149,6 +149,8 @@ bool Engine::Scene::intersectPrimitive(const ray& r, hitInfo& hInfo, objectRef& 
 Engine::Material Engine::Scene::CheckIntersection(const ray& r, hitInfo& hitedObjectInfo, objectRef& isectObject) // finds intersection and returns intersected object info and color
 {
 	hitedObjectInfo.reset_parameter_t();
+	isectObject.reset();
+	
 	Material mat(vec3(0.5f));
 	
 	intersectSpheres(r, hitedObjectInfo, isectObject);
@@ -183,7 +185,7 @@ uint32_t Engine::Scene::PerPixel(int x, int y) // for every pixel of screen call
 	vec3 rayOrigin = s_camera->getPosition();
 	ray r = ray(rayOrigin, rayDirection);
 
-	hitInfo hitedObjectInfo; hitedObjectInfo.reset_parameter_t();
+	hitInfo hitedObjectInfo;
 	objectRef isectedObject;
 	
 	Material hitetObjectMaterial = CheckIntersection(r, hitedObjectInfo, isectedObject);

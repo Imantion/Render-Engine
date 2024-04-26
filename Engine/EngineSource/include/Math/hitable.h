@@ -15,12 +15,18 @@ namespace Engine
 		bool is_t_finite() { return std::isfinite(t); }
 	};
 
-	enum class IntersectedType { sphere, primitive, plane, pointLight, spotLight };
+	enum class IntersectedType { undefined, sphere, primitive, plane, pointLight, spotLight };
 
 	struct objectRef
 	{
 		void* pObject;
 		IntersectedType pObjectType;
+
+		void reset()
+		{
+			pObject = nullptr;
+			pObjectType = IntersectedType::undefined;
+		}
 	};
 
 }

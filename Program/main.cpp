@@ -45,6 +45,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_LBUTTONDOWN:
 	case WM_LBUTTONUP:
 		Input::processMouseInput(wParam, lParam);
+		
 	case WM_RBUTTONUP:
 		Input::processMouseInput(wParam, lParam);
 		break;
@@ -99,6 +100,7 @@ int main(int argc, char* argv[])
 			app.updateInput(timer.getDeltatime());
 			app.update(timer.getDeltatime());
 			Input::resetScroll();
+			Input::resetMousePressed();
 		}
 
 		std::this_thread::yield();

@@ -101,7 +101,7 @@ void Application::updateInput(float deltaTime)
 		cameraSpeed += cameraSpeed * 0.05f * scrolls;
 
 
-	if (Input::mouseIsDown(Input::MouseButtons::RIGHT))
+	if (Input::mouseWasPressed(Input::MouseButtons::RIGHT))
 	{
 		if (!draggable)
 		{
@@ -125,25 +125,24 @@ void Application::updateInput(float deltaTime)
 					break;
 				}
 			}
-
-
 		}
 
-		if (draggable && (delta.x != 0 || delta.y != 0 || cameraMoveDirection != 0.0f))
-		{
-			Engine::ray r;
-			r.direction = camera->getRayDirection(WindowCoordinatesToBufferCoordinates(scene->getTL() * (window->getWindowHeight() - Input::getMousePosition().y) + scene->getBR() * Input::getMousePosition().x));
-			r.origin = camera->getPosition();
 
-			draggable->drag(r);
-
-			scene->redraw(true);
-		}
 	}
-	else
-	{
+	else if (!Input::mouseIsDown(Input::MouseButtons::RIGHT))
 		draggable.release();
+
+	if (draggable && (delta.x != 0 || delta.y != 0 || cameraMoveDirection != 0.0f))
+	{
+		Engine::ray r;
+		r.direction = camera->getRayDirection(WindowCoordinatesToBufferCoordinates(scene->getTL() * (window->getWindowHeight() - Input::getMousePosition().y) + scene->getBR() * Input::getMousePosition().x));
+		r.origin = camera->getPosition();
+
+		draggable->drag(r);
+
+		scene->redraw(true);
 	}
+	
 	camera->moveCamera(cameraMoveDirection);
 
 	bool cameraRotated = false;

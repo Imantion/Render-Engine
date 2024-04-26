@@ -18,9 +18,11 @@ public:
 	static void proccesMouseScrolling(WPARAM wParam, LPARAM lParam);
 	static void updateMousePosition(LPARAM lParam);
 
+	static void resetMousePressed();
 	static bool keyPresseed(KeyboardButtons key);
 	static bool keyIsDown(KeyboardButtons key);
 	static bool mouseIsDown(MouseButtons button);
+	static bool mouseWasPressed(MouseButtons button);
 	static Engine::vec2 getMousePosition();
 	static int scrollAmount() { return scrolledDistance / 120; }
 	static void resetScroll();

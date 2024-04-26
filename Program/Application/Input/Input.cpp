@@ -65,6 +65,7 @@ void Input::processMouseInput(WPARAM wParam, LPARAM lParam)
 	for (size_t i = 0; i < mouse.size(); i++)
 	{
 		Input::MouseButtons button = (Input::MouseButtons)i;
+		mouse[button].wasDown = mouse[button].isDown;
 		mouse[button].isDown = (((int)button + 1) & wParam) == i + 1; // button starts count from 0. wParam defines RMB,MMB,LMB counting from 1
 		// That's why adding 1 to resolv this 
 	}
@@ -79,6 +80,15 @@ void Input::updateMousePosition(LPARAM lParam)
 {
 	mousePosition.x = (float)GET_X_LPARAM(lParam);
 	mousePosition.y = (float)GET_Y_LPARAM(lParam);
+}
+
+void Input::resetMousePressed()
+{
+	for (size_t i = 0; i < mouse.size(); i++)
+	{
+		mouse[i].wasDown = true;
+		// That's why adding 1 to resolv this 
+	}
 }
 
 bool Input::keyPresseed(KeyboardButtons key)
@@ -99,6 +109,11 @@ bool Input::keyIsDown(KeyboardButtons key)
 bool Input::mouseIsDown(MouseButtons button)
 {
 	return mouse[button].isDown; // button enum value represent button location in array
+}
+
+bool Input::mouseWasPressed(MouseButtons button)
+{
+	return mouse[button].isDown && !mouse[button].wasDown;
 }
 
 Engine::vec2 Input::getMousePosition()
