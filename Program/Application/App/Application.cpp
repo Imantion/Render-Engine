@@ -118,10 +118,10 @@ void Application::updateInput(float deltaTime)
 				switch (isectedObject.pObjectType)
 				{
 				case Engine::IntersectedType::sphere:
-					draggable = std::make_unique<Engine::ISphereDragger>(Engine::ISphereDragger(static_cast<Engine::sphere*>(isectedObject.pObject), hitedObject));
+					draggable = std::make_unique<Engine::ISphereDragger>(Engine::ISphereDragger(reinterpret_cast<Engine::sphere*>(isectedObject.pObject), hitedObject));
 					break;
 				case Engine::IntersectedType::primitive:
-					draggable = std::make_unique<Engine::IMeshDragger>(Engine::IMeshDragger(static_cast<Engine::primitive*>(isectedObject.pObject), hitedObject));
+					draggable = std::make_unique<Engine::IMeshDragger>(Engine::IMeshDragger(reinterpret_cast<Engine::primitive*>(isectedObject.pObject), hitedObject));
 					break;
 				}
 			}

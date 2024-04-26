@@ -164,10 +164,10 @@ Engine::Material Engine::Scene::CheckIntersection(const ray& r, hitInfo& hitedOb
 	switch (isectObject.pObjectType)
 	{
 	case Engine::IntersectedType::sphere:
-		mat = static_cast<sphere*>(isectObject.pObject)->material;
+		mat = reinterpret_cast<sphere*>(isectObject.pObject)->material;
 		break;
 	case Engine::IntersectedType::primitive:
-		mat = static_cast<primitive*>(isectObject.pObject)->material;
+		mat = reinterpret_cast<primitive*>(isectObject.pObject)->material;
 		break;
 	default:
 		break;
