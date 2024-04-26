@@ -99,25 +99,28 @@ void Engine::Scene::render(Engine::Window& window, Engine::Camera& camera)
 
 }
 
-Engine::sphere* Engine::Scene::intersectSpheres(const ray& r, hitInfo& hInfo)
+bool Engine::Scene::intersectSpheres(const ray& r, hitInfo& hInfo, objectRef& isectObject)
 {
-	sphere* sph = nullptr;
+	bool isHited = false;
+
 	for(sphere& s : spheres)
 	{
 		if (hitSphere(s, r, 0.0f, FLT_MAX, hInfo))
 		{
-			sph = &s;
+			isectObject.pObject = &s;
+			isectObject.pObjectType = IntersectedType::sphere;
+			isHited = true;
 		}
 	}
-	return sph;
+	return isHited;
 }
 
-Engine::primitive* Engine::Scene::intersectPrimitive(const ray& r, hitInfo& hInfo) // calling primitives because in future there may be another shapes. Not Only Cube
+bool Engine::Scene::intersectPrimitive(const ray& r, hitInfo& hInfo, objectRef& isectObject) // calling primitives because in future there may be another shapes. Not Only Cube
 {
 	if (cubes.empty())
-		return nullptr;
+		return false;
 
-	primitive* intersected = nullptr;
+	bool isHited = false;
 	const Mesh* cubeMesh = cubes[0].getMesh();
 
 	ray cubeR(r);
@@ -131,14 +134,16 @@ Engine::primitive* Engine::Scene::intersectPrimitive(const ray& r, hitInfo& hInf
 			{
 				if (hitTriangle(cubeMesh->getTriangle(j), cubeR, hInfo))
 				{
-					intersected = &p;
+					isectObject.pObject = &p;
+					isectObject.pObjectType = IntersectedType::primitive;
 					hInfo.p = vec4(hInfo.p, 1) * p.transformeMatrix;
+					isHited = true;
 				}
 			}
 		}
 	}
 
-	return intersected;
+	return isHited;
 }
 
 Engine::Material Engine::Scene::CheckIntersection(const ray& r, hitInfo& hitedObjectInfo, objectRef& isectObject) // finds intersection and returns intersected object info and color
@@ -146,22 +151,8 @@ Engine::Material Engine::Scene::CheckIntersection(const ray& r, hitInfo& hitedOb
 	hitedObjectInfo.reset_parameter_t();
 	Material mat(vec3(0.5f));
 	
-	sphere* s = intersectSpheres(r, hitedObjectInfo);
-	primitive* p = intersectPrimitive(r, hitedObjectInfo);
-
-	if (p)
-	{
-		mat = p->material;
-		isectObject.pObject = p;
-		isectObject.pObjectType = IntersectedType::plane;
-	}
-	else if (s)
-	{
-		mat = s->material;
-		isectObject.pObject = s;
-		isectObject.pObjectType = IntersectedType::sphere;
-		
-	}
+	intersectSpheres(r, hitedObjectInfo, isectObject);
+	intersectPrimitive(r, hitedObjectInfo, isectObject);
 
 	if (hitPlane(infinitePlane, r, hitedObjectInfo))
 	{
@@ -170,6 +161,17 @@ Engine::Material Engine::Scene::CheckIntersection(const ray& r, hitInfo& hitedOb
 		isectObject.pObjectType = IntersectedType::plane;
 	}
 
+	switch (isectObject.pObjectType)
+	{
+	case Engine::IntersectedType::sphere:
+		mat = static_cast<sphere*>(isectObject.pObject)->material;
+		break;
+	case Engine::IntersectedType::primitive:
+		mat = static_cast<primitive*>(isectObject.pObject)->material;
+		break;
+	default:
+		break;
+	}
 
 	return mat;
 }

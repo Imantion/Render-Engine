@@ -34,8 +34,8 @@ namespace Engine
 		vec2 getBR() const { return BR; }
 		vec2 getTL() const { return TL; }
 
-		sphere* intersectSpheres(const ray& r, hitInfo& hInfo);
-		primitive* intersectPrimitive(const ray& r, hitInfo& hInfo);
+		bool intersectSpheres(const ray& r, hitInfo& hInfo, objectRef& isectObject);
+		bool intersectPrimitive(const ray& r, hitInfo& hInfo, objectRef& isectObject);
 		Material CheckIntersection(const ray& r, hitInfo& hInfo, objectRef& object);
 
 		size_t getSphereAmount()
