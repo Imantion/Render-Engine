@@ -71,16 +71,20 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>EngineSource\include\;EngineSource\source\;$(IncludePath)</IncludePath>
+    <IncludePath>EngineSource\include\;EngineSource\source\;C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\um\;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Program Files (x86)\Windows Kits\10\Lib\10.0.22621.0\um\x64\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>EngineSource\include\;EngineSource\source\;$(IncludePath)</IncludePath>
+    <IncludePath>EngineSource\include\;EngineSource\source\;C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\um\;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Program Files (x86)\Windows Kits\10\Lib\10.0.22621.0\um\x64\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>EngineSource\include\;EngineSource\source\;$(IncludePath)</IncludePath>
+    <IncludePath>EngineSource\include\;EngineSource\source\;C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\um\;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Program Files (x86)\Windows Kits\10\Lib\10.0.22621.0\um\x64\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>EngineSource\include\;EngineSource\source\;$(IncludePath)</IncludePath>
+    <IncludePath>EngineSource\include\;EngineSource\source\;C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\um\;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Program Files (x86)\Windows Kits\10\Lib\10.0.22621.0\um\x64\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -139,6 +143,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="EngineSource\source\Graphics\D3D.cpp" />
+    <ClCompile Include="EngineSource\source\Graphics\Engine.cpp" />
     <ClCompile Include="EngineSource\source\Math\BVH.cpp" />
     <ClCompile Include="EngineSource\source\Math\matrix.cpp" />
     <ClCompile Include="EngineSource\source\Math\Mesh.cpp" />
@@ -150,6 +156,8 @@
     <ClCompile Include="EngineSource\source\Utils\IRayDraggable.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="EngineSource\include\Graphics\D3D.h" />
+    <ClInclude Include="EngineSource\include\Graphics\Engine.h" />
     <ClInclude Include="EngineSource\include\Math\BVH.h" />
     <ClInclude Include="EngineSource\include\Math\matrix.h" />
     <ClInclude Include="EngineSource\include\Math\math.h" />

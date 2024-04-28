@@ -1,6 +1,13 @@
 ﻿#pragma once
 #include "Windows.h"
 #include "memory"
+#include <dxgi1_4.h>
+#include <d3d11.h>
+#include <mutex>
+#include <wrl.h>
+
+#pragma comment (lib, "d3d11.lib")
+
 
 namespace Engine
 {
@@ -35,7 +42,7 @@ namespace Engine
 	private:
 
 		void* m_handle = nullptr;
-		HDC device_context;
+		HDC window_device_context;
 		int height;
 		int width;
 		int buffersize;
@@ -55,6 +62,12 @@ namespace Engine
 		auto get_ptr(std::size_t size) {
 			return std::unique_ptr<void, decltype(&std::free)>(std::malloc(size), std::free);
 		}
+
+		Microsoft::WRL::ComPtr<IDXGISwapChain1> swapchain;
+		public:
+		Microsoft::WRL::ComPtr <ID3D11RenderTargetView> pRenderTarget;
+		D3D11_VIEWPORT viewport;
+
 	};
 
 } // namespace Engine

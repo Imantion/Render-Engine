@@ -6,8 +6,12 @@
 #include "Input/Input.h"
 #include "Utils/Timer.h"
 #include "Math/matrix.h"
+#include "Graphics/Engine.h"
+
 
 #define FRAME_RATE 60
+#define D3DAPP
+ConstantBuffer cb = { {800.0f,400.0f,0.0f,0.0f}, 0.0f };
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -24,6 +28,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 		Engine::Window* window = (Engine::Window*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
 		window->onResize();
+
+		cb.g_resolution[0] = window->getWindowWidth();
+		cb.g_resolution[1] = window->getWindowHeight();
+		cb.g_resolution[2] = cb.g_resolution[3] = 1.0f / (cb.g_resolution[0] * cb.g_resolution[1]);
 
 		window->flush();
 	}break;
@@ -74,6 +82,73 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 
+#ifdef D3DAPP
+
+#define TRIANGLE
+int main(int argc, char* argv[])
+{
+
+	MSG msg = { 0 };
+
+
+	Engine::Timer timer;
+	Engine::Engine::Init();
+	Engine::Window win(800, 400, WindowProc);
+
+#ifdef TRIANGLE
+	Engine::Engine::PrepareTriangle();
+#else 
+	Engine::Engine::PrepareCurlesque();
+#endif // triangle
+
+
+
+	while (!win.isClosed())
+	{
+		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+		{
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+
+			if (msg.message == WM_QUIT)
+				break;
+
+		}
+
+		if (timer.timeElapsed(FRAME_RATE))
+		{
+			cb.g_time += timer.getDeltatime();
+
+
+			if (Engine::D3D* d3d = Engine::D3D::GetInstance())
+			{
+
+				const float color[] = { 0.5f, 0.5f,0.5f,1.0f };
+
+				D3D11_MAPPED_SUBRESOURCE mappedResource;
+				d3d->GetContext()->Map(d3d->pConstBuffer.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &mappedResource);
+
+				ConstantBuffer* data = (ConstantBuffer*)mappedResource.pData;
+
+				memcpy(data, &cb, sizeof(cb));
+
+				d3d->GetContext()->Unmap(d3d->pConstBuffer.Get(), 0u);
+
+				d3d->GetContext()->ClearRenderTargetView(win.pRenderTarget.Get(), color);
+				d3d->GetContext()->Draw(4u, 0u);
+				win.flush();
+			}
+			Input::resetScroll();
+		}
+
+
+		std::this_thread::yield();
+	}
+
+	Engine::Engine::Deinit();
+	return 0;
+}
+#else
 
 int main(int argc, char* argv[])
 {
@@ -109,3 +184,4 @@ int main(int argc, char* argv[])
 	return 0;
 }
 
+#endif // D3DPAPP
