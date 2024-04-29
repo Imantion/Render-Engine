@@ -37,38 +37,6 @@ Engine::D3D::D3D(UINT flags)
     assert(SUCCEEDED(hr));
 }
 
-void Engine::D3D::CreateVertexShaderAndInputLayout(const wchar_t* source,const D3D11_INPUT_ELEMENT_DESC* ied, UINT iedSize)
-{
-    Microsoft::WRL::ComPtr<ID3DBlob> VS;
-
-    HRESULT hr = D3DCompileFromFile(
-        source, NULL, NULL, "main", "vs_5_0", 0, 0, &VS, 0);
-    assert(SUCCEEDED(hr));
-    
-    hr = pDevice->CreateVertexShader(VS->GetBufferPointer(), VS->GetBufferSize(), nullptr, &pVertexShader);
-    assert(SUCCEEDED(hr));
-
-    pContext->VSSetShader(pVertexShader.Get(), nullptr, 0u);
-
-    hr = pDevice->CreateInputLayout(ied, iedSize, VS->GetBufferPointer(), VS->GetBufferSize(), &pLayout);
-    assert(SUCCEEDED(hr));
-
-    pContext->IASetInputLayout(pLayout.Get());
-}
-
-void Engine::D3D::CreatePixelShader(const wchar_t* source)
-{
-    Microsoft::WRL::ComPtr<ID3DBlob> PS;
-
-    HRESULT hr = D3DCompileFromFile(
-        source, NULL, NULL, "main", "ps_5_0", 0, 0, &PS, 0);
-    assert(SUCCEEDED(hr));
-
-    hr = pDevice->CreatePixelShader(PS->GetBufferPointer(), PS->GetBufferSize(), nullptr, &pPixelShader);
-    assert(SUCCEEDED(hr));
-
-    pContext->PSSetShader(pPixelShader.Get(), nullptr, 0u);
-}
 
 void Engine::D3D::CreateBuffer(const D3D11_BUFFER_DESC* bd, const D3D11_SUBRESOURCE_DATA* sd)
 {

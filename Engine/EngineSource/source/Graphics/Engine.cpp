@@ -1,4 +1,5 @@
 #include "Graphics/Engine.h"
+#include "Graphics/ShaderManager.h"
 #include "Window/Window.h"
 #include <assert.h>
 
@@ -16,7 +17,7 @@ void Engine::Engine::Deinit()
 	D3D::GetInstance()->Reset();
 }
 
-void Engine::Engine::PrepareTriangle()
+void Engine::Engine::PrepareTriangle(D3D_SHADER_MACRO* psMacro)
 {
 	
 
@@ -27,8 +28,18 @@ void Engine::Engine::PrepareTriangle()
 		{"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 8, D3D11_INPUT_PER_VERTEX_DATA, 0}
 		};
 
-		d3d->CreatePixelShader(L"PixelShader.hlsl");
-		d3d->CreateVertexShaderAndInputLayout(L"VertexShader.hlsl", ied, 2u);
+
+		shader* triangleShader = ShaderManager::CompileAndCreateShader("Triangle", L"Shaders/VertexShader.hlsl", L"Shaders/PixelShader.hlsl", nullptr, psMacro);
+		if (!triangleShader)
+			throw std::runtime_error("Failed to compile and create shader!");
+
+
+		d3d->GetContext()->VSSetShader(triangleShader->vertexShader.Get(), nullptr, 0u);
+
+		d3d->GetDevice()->CreateInputLayout(ied, 2u, triangleShader->vertexShaderBlob->GetBufferPointer(), triangleShader->vertexShaderBlob->GetBufferSize(), &d3d->pLayout);
+		d3d->GetContext()->IASetInputLayout(d3d->pLayout.Get());
+
+		d3d->GetContext()->PSSetShader(triangleShader->pixelShader.Get(), nullptr, 0u);
 
 		Vertex OutVertices[] =
 		{
@@ -81,8 +92,20 @@ void Engine::Engine::PrepareCurlesque()
 		{"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 8, D3D11_INPUT_PER_VERTEX_DATA, 0}
 		};
 
-		d3d->CreateVertexShaderAndInputLayout(L"VertexShader.hlsl", ied, 2u);
-		d3d->CreatePixelShader(L"PixelShader.hlsl");
+		D3D_SHADER_MACRO pm[] = { "FIRST_SHADER", "0", NULL, NULL };
+
+		shader* triangleShader = ShaderManager::CompileAndCreateShader("Curlesque", L"Shaders/VertexShader.hlsl", L"Shaders/PixelShader.hlsl", nullptr, pm);
+		if (!triangleShader)
+			throw std::runtime_error("Failed to compile and create shader!");
+
+
+		d3d->GetContext()->VSSetShader(triangleShader->vertexShader.Get(), nullptr, 0u);
+
+		d3d->GetDevice()->CreateInputLayout(ied, 2u, triangleShader->vertexShaderBlob->GetBufferPointer(), triangleShader->vertexShaderBlob->GetBufferSize(), &d3d->pLayout);
+		d3d->GetContext()->IASetInputLayout(d3d->pLayout.Get());
+
+		d3d->GetContext()->PSSetShader(triangleShader->pixelShader.Get(), nullptr, 0u);
+
 
 		Vertex OutVertices[] =
 		{

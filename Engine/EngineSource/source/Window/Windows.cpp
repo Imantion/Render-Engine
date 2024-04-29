@@ -120,8 +120,8 @@ void Window::onResize()
 
 		d3d->GetContext()->OMSetRenderTargets(1u, pRenderTarget.GetAddressOf(), nullptr);
 
-		viewport.Width = width;
-		viewport.Height = height;
+		viewport.Width = (FLOAT)width;
+		viewport.Height = (FLOAT)height;
 
 		d3d->GetContext()->RSSetViewports(1, &viewport);
 	}

@@ -18,7 +18,7 @@ namespace Engine
 		static void Init();
 		static void Deinit();
 
-		static void PrepareTriangle();
+		static void PrepareTriangle(D3D_SHADER_MACRO* psMacro);
 		static void PrepareCurlesque();
 	
 

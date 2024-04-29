@@ -29,8 +29,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		Engine::Window* window = (Engine::Window*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
 		window->onResize();
 
-		cb.g_resolution[0] = window->getWindowWidth();
-		cb.g_resolution[1] = window->getWindowHeight();
+		cb.g_resolution[0] = (float)window->getWindowWidth();
+		cb.g_resolution[1] = (float)window->getWindowHeight();
 		cb.g_resolution[2] = cb.g_resolution[3] = 1.0f / (cb.g_resolution[0] * cb.g_resolution[1]);
 
 		window->flush();
@@ -96,9 +96,12 @@ int main(int argc, char* argv[])
 	Engine::Window win(800, 400, WindowProc);
 
 #ifdef TRIANGLE
-	Engine::Engine::PrepareTriangle();
+	D3D_SHADER_MACRO psMacro[] = {"FIRST_SHADER", "1", NULL, NULL}; // 1 to draw hello triangele, 0 to draw curlesque
+	Engine::Engine::PrepareTriangle(psMacro);
+	UINT vertices = 3;
 #else 
-	Engine::Engine::PrepareCurlesque();
+	Engine::Engine::PrepareCurlesque(); // Draws fullscreen curlesque
+	UINT vertices = 4;
 #endif // triangle
 
 
@@ -135,7 +138,7 @@ int main(int argc, char* argv[])
 				d3d->GetContext()->Unmap(d3d->pConstBuffer.Get(), 0u);
 
 				d3d->GetContext()->ClearRenderTargetView(win.pRenderTarget.Get(), color);
-				d3d->GetContext()->Draw(4u, 0u);
+				d3d->GetContext()->Draw(vertices, 0u);
 				win.flush();
 			}
 			Input::resetScroll();

@@ -143,6 +143,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="EngineSource\source\Graphics\ShaderManager.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\D3D.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\Engine.cpp" />
     <ClCompile Include="EngineSource\source\Math\BVH.cpp" />
@@ -173,6 +174,7 @@
     <ClInclude Include="EngineSource\include\Window\Window.h" />
     <ClInclude Include="EngineSource\include\Math\hitable.h" />
     <ClInclude Include="EngineSource\include\Utils\IRayDraggable.h" />
+    <ClInclude Include="EngineSource\include\Graphics\ShaderManager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

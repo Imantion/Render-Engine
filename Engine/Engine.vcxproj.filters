@@ -74,6 +74,9 @@
     <ClCompile Include="EngineSource\source\Graphics\D3D.cpp">
       <Filter>Source\Engine</Filter>
     </ClCompile>
+    <ClCompile Include="EngineSource\source\Graphics\ShaderManager.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EngineSource\include\Render\Scene.h">
@@ -125,6 +128,9 @@
       <Filter>Include\Engine</Filter>
     </ClInclude>
     <ClInclude Include="EngineSource\include\Graphics\Engine.h">
+      <Filter>Include\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineSource\include\Graphics\ShaderManager.h">
       <Filter>Include\Engine</Filter>
     </ClInclude>
   </ItemGroup>

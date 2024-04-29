@@ -25,8 +25,6 @@ namespace Engine
 
 		void Reset();
 
-		void CreateVertexShaderAndInputLayout(const wchar_t* source, const D3D11_INPUT_ELEMENT_DESC* ied,UINT iedSize); // hlsl file
-		void CreatePixelShader(const wchar_t* source); // hlsl file
 		void CreateBuffer(const D3D11_BUFFER_DESC* bd, const D3D11_SUBRESOURCE_DATA* sd);
 		ID3D11Device* GetDevice() { return pDevice.Get(); }
 		ID3D11Device** GetDeviceAdress() { return pDevice.GetAddressOf(); }
@@ -40,16 +38,13 @@ namespace Engine
 		static std::mutex mutex_;
 		Microsoft::WRL::ComPtr<ID3D11Device> pDevice;
 		Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext;
-		Microsoft::WRL::ComPtr<ID3D11VertexShader> pVertexShader;
-		Microsoft::WRL::ComPtr<ID3D11PixelShader> pPixelShader;
-
-		Microsoft::WRL::ComPtr<ID3D11InputLayout> pLayout;
 		Microsoft::WRL::ComPtr<ID3D11Buffer> pBuffer;
 
 	protected:
 		D3D(UINT flags);
 	
 	public:
+		Microsoft::WRL::ComPtr<ID3D11InputLayout> pLayout;
 		Microsoft::WRL::ComPtr<ID3D11Buffer> pConstBuffer;
 		D3D(D3D& other) = delete;
 		void operator=(const D3D&) = delete;
