@@ -149,11 +149,13 @@
   <ItemGroup>
     <ClCompile Include="Application\App\Application.cpp" />
     <ClCompile Include="Application\Input\Input.cpp" />
+    <ClCompile Include="Application\D3DApp\D3DApplication.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application\App\Application.h" />
     <ClInclude Include="Application\Input\Input.h" />
+    <ClInclude Include="Application\D3DApp\D3DApplication.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Engine\Engine.vcxproj">

@@ -7,11 +7,10 @@
 #include "Utils/Timer.h"
 #include "Math/matrix.h"
 #include "Graphics/Engine.h"
-
+#include "D3DApp/D3DApplication.h"
 
 #define FRAME_RATE 60
 #define D3DAPP
-ConstantBuffer cb = { {800.0f,400.0f,0.0f,0.0f}, 0.0f };
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -28,12 +27,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 		Engine::Window* window = (Engine::Window*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
 		window->onResize();
-
-		cb.g_resolution[0] = (float)window->getWindowWidth();
-		cb.g_resolution[1] = (float)window->getWindowHeight();
-		cb.g_resolution[2] = cb.g_resolution[3] = 1.0f / (cb.g_resolution[0] * cb.g_resolution[1]);
-
-		window->flush();
 	}break;
 	case WM_SYSKEYDOWN:
 	case WM_KEYDOWN:
@@ -84,7 +77,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 #ifdef D3DAPP
 
-#define TRIANGLE
 int main(int argc, char* argv[])
 {
 
@@ -92,21 +84,13 @@ int main(int argc, char* argv[])
 
 
 	Engine::Timer timer;
+	
 	Engine::Engine::Init();
-	Engine::Window win(800, 400, WindowProc);
+	D3DApplication app(800, 400, WindowProc);
 
-#ifdef TRIANGLE
-	D3D_SHADER_MACRO psMacro[] = {"FIRST_SHADER", "1", NULL, NULL}; // 1 to draw hello triangele, 0 to draw curlesque
-	Engine::Engine::PrepareTriangle(psMacro);
-	UINT vertices = 3;
-#else 
-	Engine::Engine::PrepareCurlesque(); // Draws fullscreen curlesque
-	UINT vertices = 4;
-#endif // triangle
+	app.PrepareTriangle();
 
-
-
-	while (!win.isClosed())
+	while (true)
 	{
 		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 		{
@@ -120,27 +104,8 @@ int main(int argc, char* argv[])
 
 		if (timer.timeElapsed(FRAME_RATE))
 		{
-			cb.g_time += timer.getDeltatime();
 
-
-			if (Engine::D3D* d3d = Engine::D3D::GetInstance())
-			{
-
-				const float color[] = { 0.5f, 0.5f,0.5f,1.0f };
-
-				D3D11_MAPPED_SUBRESOURCE mappedResource;
-				d3d->GetContext()->Map(d3d->pConstBuffer.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &mappedResource);
-
-				ConstantBuffer* data = (ConstantBuffer*)mappedResource.pData;
-
-				memcpy(data, &cb, sizeof(cb));
-
-				d3d->GetContext()->Unmap(d3d->pConstBuffer.Get(), 0u);
-
-				d3d->GetContext()->ClearRenderTargetView(win.pRenderTarget.Get(), color);
-				d3d->GetContext()->Draw(vertices, 0u);
-				win.flush();
-			}
+			app.Update(timer.getDeltatime());
 			Input::resetScroll();
 		}
 
