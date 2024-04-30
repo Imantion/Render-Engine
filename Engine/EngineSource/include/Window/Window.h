@@ -6,18 +6,17 @@
 #include <mutex>
 #include <wrl.h>
 
-#pragma comment (lib, "d3d11.lib")
 
+typedef LRESULT(CALLBACK* WinProc)(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 namespace Engine
 {
-	typedef LRESULT(CALLBACK* WindowProcPtr)(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 
 	class Window
 	{
 	public:
-		Window(int wWidth, int wHeight, WindowProcPtr);
+		Window(int wWidth, int wHeight, WinProc);
 		~Window();
 
 		void onDestroy();

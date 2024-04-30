@@ -75,7 +75,7 @@
       <Filter>Source\Engine</Filter>
     </ClCompile>
     <ClCompile Include="EngineSource\source\Graphics\ShaderManager.cpp">
-      <Filter>Source</Filter>
+      <Filter>Include\Engine</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -6,7 +6,7 @@
 using namespace Engine;
 
 
-Window::Window(int wWidth, int wHeight, WindowProcPtr WindowProc)
+Window::Window(int wWidth, int wHeight, WinProc WindowProc)
 {
 
 	aspectRatio = (float)wWidth / wHeight;

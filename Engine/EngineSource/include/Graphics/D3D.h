@@ -3,6 +3,7 @@
 #include <d3d10.h>
 #include <d3dcompiler.h>
 #include <mutex>
+#include <assert.h>
 #include <wrl.h>
 
 #pragma comment (lib, "d3d11.lib")
@@ -25,29 +26,66 @@ namespace Engine
 
 		void Reset();
 
-		void CreateBuffer(const D3D11_BUFFER_DESC* bd, const D3D11_SUBRESOURCE_DATA* sd);
 		ID3D11Device* GetDevice() { return pDevice.Get(); }
 		ID3D11Device** GetDeviceAdress() { return pDevice.GetAddressOf(); }
 
 		ID3D11DeviceContext* GetContext() { return pContext.Get(); }
 		ID3D11DeviceContext** GetContextAdress() { return pContext.GetAddressOf(); }
-
-		ID3D11Buffer** GetBufferAdress() { return pBuffer.GetAddressOf(); }
 	private:
 		static D3D* pInstance;
 		static std::mutex mutex_;
 		Microsoft::WRL::ComPtr<ID3D11Device> pDevice;
 		Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext;
-		Microsoft::WRL::ComPtr<ID3D11Buffer> pBuffer;
 
 	protected:
 		D3D(UINT flags);
 	
 	public:
-		Microsoft::WRL::ComPtr<ID3D11InputLayout> pLayout;
-		Microsoft::WRL::ComPtr<ID3D11Buffer> pConstBuffer;
 		D3D(D3D& other) = delete;
 		void operator=(const D3D&) = delete;
+	};
+
+	template<typename T>
+	class ConstBuffer
+	{
+	public:
+		bool updateBuffer(const T* constBufferSource)
+		{
+			D3D* d3d = D3D::GetInstance();
+			if (d3d && m_constBuffer.Get())
+			{
+				constBufferData = *constBufferSource;
+				D3D11_MAPPED_SUBRESOURCE mappedResource;
+				HRESULT hr = d3d->GetContext()->Map(m_constBuffer.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &mappedResource);
+				assert(SUCCEEDED(hr));
+				T* data = (T*)mappedResource.pData;
+				memcpy(data, constBufferSource, sizeof(*constBufferSource));
+				d3d->GetContext()->Unmap(m_constBuffer.Get(), 0u);
+
+				return true;
+			}
+			return false;
+		}
+
+		bool updateBuffer()
+		{
+			D3D* d3d = D3D::GetInstance();
+			if (d3d && m_constBuffer.Get())
+			{
+				D3D11_MAPPED_SUBRESOURCE mappedResource;
+				HRESULT hr = d3d->GetContext()->Map(m_constBuffer.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &mappedResource);
+				assert(SUCCEEDED(hr));
+				T* data = (T*)mappedResource.pData;
+				memcpy(data, &constBufferData, sizeof(constBufferData));
+				d3d->GetContext()->Unmap(m_constBuffer.Get(), 0u);
+
+				return true;
+			}
+			return false;
+		}
+	public:
+		Microsoft::WRL::ComPtr<ID3D11Buffer> m_constBuffer;
+		T constBufferData;
 	};
 }
 

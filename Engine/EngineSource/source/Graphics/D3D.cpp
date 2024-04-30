@@ -38,11 +38,6 @@ Engine::D3D::D3D(UINT flags)
 }
 
 
-void Engine::D3D::CreateBuffer(const D3D11_BUFFER_DESC* bd, const D3D11_SUBRESOURCE_DATA* sd)
-{
-    HRESULT hr = pDevice->CreateBuffer(bd, sd, &pBuffer);
-    assert(SUCCEEDED(hr));
-}
 
 void Engine::D3D::Reset()
 {
