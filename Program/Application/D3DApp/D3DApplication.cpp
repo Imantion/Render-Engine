@@ -23,17 +23,12 @@ void D3DApplication::PrepareTriangle()
 
 		D3D_SHADER_MACRO psMacro[] = { "FIRST_SHADER", "0", NULL, NULL };
 
-		Engine::shader* triangleShader = Engine::ShaderManager::CompileAndCreateShader("Triangle", L"Shaders/VertexShader.hlsl", L"Shaders/PixelShader.hlsl", nullptr, psMacro);
+		Engine::shader* triangleShader = Engine::ShaderManager::CompileAndCreateShader("Triangle", L"Shaders/VertexShader.hlsl", L"Shaders/PixelShader.hlsl", ied, nullptr, psMacro);
 		if (!triangleShader)
 			throw std::runtime_error("Failed to compile and create shader!");
 
 
-		d3d->GetContext()->VSSetShader(triangleShader->vertexShader.Get(), nullptr, 0u);
-
-		d3d->GetDevice()->CreateInputLayout(ied, 2u, triangleShader->vertexShaderBlob->GetBufferPointer(), triangleShader->vertexShaderBlob->GetBufferSize(), &pLayout);
-		d3d->GetContext()->IASetInputLayout(pLayout.Get());
-
-		d3d->GetContext()->PSSetShader(triangleShader->pixelShader.Get(), nullptr, 0u);
+		triangleShader->BindShader();
 
 		Vertex OutVertices[] =
 		{
@@ -42,37 +37,18 @@ void D3DApplication::PrepareTriangle()
 			{-0.45f, -0.5f,{0.0f, 0.0f, 1.0f, 1.0f}}
 		};
 
-		D3D11_BUFFER_DESC bd;
-		ZeroMemory(&bd, sizeof(bd));
-
-		bd.Usage = D3D11_USAGE_DEFAULT;
-		bd.ByteWidth = sizeof(Vertex) * 3;
-		bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-		D3D11_SUBRESOURCE_DATA sr_data;
-		sr_data.pSysMem = OutVertices;
-
-		d3d->GetDevice()->CreateBuffer(&bd, &sr_data, &pBuffer);
+		vertexBuffer.create(OutVertices, 3);
 		
 		ConstantBuffer cb = {{800.0f,400.0f, 0.0f, 0.0f}, 0.0f };
 
-		D3D11_BUFFER_DESC cbd;
-		cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		cbd.Usage = D3D11_USAGE_DYNAMIC;
-		cbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		cbd.MiscFlags = 0u;
-		cbd.ByteWidth = sizeof(cb);
-		cbd.StructureByteStride = 0u;
-		D3D11_SUBRESOURCE_DATA csd = {};
-		csd.pSysMem = &cb;
-		HRESULT hr = d3d->GetDevice()->CreateBuffer(&cbd, &csd, &PSConstBuffer.m_constBuffer);
-		assert(SUCCEEDED(hr));
+		PSConstBuffer.create(&cb);
 
 		d3d->GetContext()->PSSetConstantBuffers(0u, 1u, PSConstBuffer.m_constBuffer.GetAddressOf());
 
 		UINT stride = sizeof(Vertex);
 		UINT offset = 0;
 
-		d3d->GetContext()->IASetVertexBuffers(0, 1, pBuffer.GetAddressOf(), &stride, &offset);
+		vertexBuffer.bind(0u);
 		d3d->GetContext()->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	}
 }
@@ -88,18 +64,11 @@ void D3DApplication::PrepareCurlesque()
 
 		D3D_SHADER_MACRO pm[] = { "FIRST_SHADER", "0", NULL, NULL };
 
-		Engine::shader* triangleShader = Engine::ShaderManager::CompileAndCreateShader("Curlesque", L"Shaders/VertexShader.hlsl", L"Shaders/PixelShader.hlsl", nullptr, pm);
+		Engine::shader* triangleShader = Engine::ShaderManager::CompileAndCreateShader("Curlesque", L"Shaders/VertexShader.hlsl", L"Shaders/PixelShader.hlsl",ied, nullptr, pm);
 		if (!triangleShader)
 			throw std::runtime_error("Failed to compile and create shader!");
 
-
-		d3d->GetContext()->VSSetShader(triangleShader->vertexShader.Get(), nullptr, 0u);
-
-		d3d->GetDevice()->CreateInputLayout(ied, 2u, triangleShader->vertexShaderBlob->GetBufferPointer(), triangleShader->vertexShaderBlob->GetBufferSize(), &pLayout);
-		d3d->GetContext()->IASetInputLayout(pLayout.Get());
-
-		d3d->GetContext()->PSSetShader(triangleShader->pixelShader.Get(), nullptr, 0u);
-
+		triangleShader->BindShader();
 
 		Vertex OutVertices[] =
 		{
@@ -109,42 +78,27 @@ void D3DApplication::PrepareCurlesque()
 			{1.0f, 1.0f,{0.0f, 0.0f, 1.0f, 1.0f}},
 		};
 
+		vertexBuffer.create(OutVertices, 4);
 
-		D3D11_BUFFER_DESC bd;
-		ZeroMemory(&bd, sizeof(bd));
+		ConstantBuffer cb = {{800.0f,400.0f, 0.0f, 0.0f}, 0.0f };
 
-		bd.Usage = D3D11_USAGE_DEFAULT;
-		bd.ByteWidth = sizeof(Vertex) * 4;
-		bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-		D3D11_SUBRESOURCE_DATA sr_data;
-		sr_data.pSysMem = OutVertices;
-
-		d3d->GetDevice()->CreateBuffer(&bd, &sr_data, &pBuffer);
-
-		ConstantBuffer cb = { {800.0f,400.0f, 0.0f, 0.0f}, 0.0f };
-
-		D3D11_BUFFER_DESC cbd;
-		cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		cbd.Usage = D3D11_USAGE_DYNAMIC;
-		cbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		cbd.MiscFlags = 0u;
-		cbd.ByteWidth = sizeof(cb);
-		cbd.StructureByteStride = 0u;
-		D3D11_SUBRESOURCE_DATA csd = {};
-		csd.pSysMem = &cb;
-		HRESULT hr = d3d->GetDevice()->CreateBuffer(&cbd, &csd, &PSConstBuffer.m_constBuffer);
-		assert(SUCCEEDED(hr));
+		PSConstBuffer.create(&cb);
 
 		d3d->GetContext()->PSSetConstantBuffers(0u, 1u, PSConstBuffer.m_constBuffer.GetAddressOf());
 
 
 		UINT stride = sizeof(Vertex);
-		UINT offset = 0;
+		UINT offset = 0u;
 
-		d3d->GetContext()->IASetVertexBuffers(0u, 1u,pBuffer.GetAddressOf(), &stride, &offset);
+		vertexBuffer.bind(0u);
 		d3d->GetContext()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 	}
+}
+
+bool D3DApplication::isClosed()
+{
+	return pWindow->isClosed();
 }
 
 void D3DApplication::Update(float deltaTime)
@@ -165,8 +119,10 @@ void D3DApplication::Update(float deltaTime)
 	Engine::D3D* d3d = Engine::D3D::GetInstance();
 	d3d->GetContext()->ClearRenderTargetView(pWindow->pRenderTarget.Get(), color);
 
-	D3D11_BUFFER_DESC bd;
-	pBuffer->GetDesc(&bd);
-	d3d->GetContext()->Draw(bd.ByteWidth / (UINT)sizeof(Vertex), 0u);
+	d3d->GetContext()->Draw(vertexBuffer.getSize(), 0u);
 	pWindow->flush();
+}
+
+D3DApplication::~D3DApplication()
+{
 }

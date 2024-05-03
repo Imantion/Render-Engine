@@ -133,5 +133,8 @@
     <ClInclude Include="EngineSource\include\Graphics\ShaderManager.h">
       <Filter>Include\Engine</Filter>
     </ClInclude>
+    <ClInclude Include="EngineSource\include\Graphics\Buffers.h">
+      <Filter>Include</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

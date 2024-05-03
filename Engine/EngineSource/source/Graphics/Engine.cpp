@@ -15,4 +15,5 @@ void Engine::Engine::Init()
 void Engine::Engine::Deinit()
 {
 	D3D::GetInstance()->Reset();
+	ShaderManager::deleteShaders();
 }

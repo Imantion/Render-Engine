@@ -2,6 +2,7 @@
 #include <memory>
 #include "Window/Window.h"
 #include "Graphics/D3D.h"
+#include "Graphics/Buffers.h"
 
 
 struct Vertex
@@ -25,13 +26,16 @@ public:
 
 	void PrepareTriangle();
 	void PrepareCurlesque();
+	bool isClosed();
 
 	void Update(float deltaTime);
 
+	
+	~D3DApplication();
 
 private:
 	std::unique_ptr<Engine::Window> pWindow;
-	Microsoft::WRL::ComPtr<ID3D11Buffer> pBuffer;
+	Engine::VertexBuffer<Vertex> vertexBuffer;
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> pLayout;
 	Engine::ConstBuffer<ConstantBuffer> PSConstBuffer;
 };

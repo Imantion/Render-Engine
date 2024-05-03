@@ -90,7 +90,7 @@ int main(int argc, char* argv[])
 
 	app.PrepareTriangle();
 
-	while (true)
+	while (!app.isClosed())
 	{
 		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 		{
