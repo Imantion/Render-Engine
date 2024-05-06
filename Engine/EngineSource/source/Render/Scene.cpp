@@ -4,6 +4,7 @@
 #include "Render/Camera.h"
 #include "Render/Material.h"
 #include <algorithm>
+#include "assimp/Importer.hpp"
 
 #define PI 3.14159265359f
 
@@ -33,7 +34,7 @@ Engine::Scene::Scene() :
 	spheres[1].radius = 0.5f;
 	spheres[1].material.color = vec3(0.8f, 0.4f, 0.6f); // Different color for sphere 1
 
-
+	Assimp::Importer importer;
 	cube::mesh.reset(Mesh::UniteCube());
 }
 
