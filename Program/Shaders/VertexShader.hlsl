@@ -1,14 +1,19 @@
+cbuffer ConstantBuffer : register(b0)
+{
+    row_major matrix projection;
+}
+
 struct VOut
 {
     float4 position : SV_POSITION;
     float4 color : COLOR;
 };
 
-VOut main(float2 pos : POSITION, float4 color : COLOR)
+VOut main(float3 pos : POSITION, float4 color : COLOR)
 {
     VOut output;
 
-    output.position = float4(pos, 0.0f, 1.0f);
+    output.position = mul(float4(pos, 1.0f), projection);
     output.color = color;
 
     return output;

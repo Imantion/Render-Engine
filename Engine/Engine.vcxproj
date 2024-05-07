@@ -159,6 +159,7 @@
     <ClCompile Include="EngineSource\source\Render\Camera.cpp" />
     <ClCompile Include="EngineSource\source\Render\Scene.cpp" />
     <ClCompile Include="EngineSource\source\Math\vec.cpp" />
+    <ClCompile Include="EngineSource\source\Utils\TrianlgeOctree.cpp" />
     <ClCompile Include="EngineSource\source\Window\Windows.cpp" />
     <ClCompile Include="EngineSource\source\Utils\IRayDraggable.cpp" />
   </ItemGroup>

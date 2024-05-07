@@ -77,10 +77,13 @@
     <ClCompile Include="EngineSource\source\Graphics\ShaderManager.cpp">
       <Filter>Include\Engine</Filter>
     </ClCompile>
-    <ClCompile Include="EngineSource\include\Graphics\Model.cpp">
+    <ClCompile Include="EngineSource\source\Graphics\Renderer.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="EngineSource\source\Graphics\Renderer.cpp">
+    <ClCompile Include="EngineSource\source\Utils\TrianlgeOctree.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="EngineSource\include\Graphics\Model.cpp">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>
@@ -142,7 +145,7 @@
     <ClInclude Include="EngineSource\include\Graphics\Buffers.h">
       <Filter>Include</Filter>
     </ClInclude>
-    <ClInclude Include="EngineSource\include\Utils\TriangleOctree.hpp">
+    <ClInclude Include="EngineSource\include\Graphics\Renderer.h">
       <Filter>Include</Filter>
     </ClInclude>
     <ClInclude Include="EngineSource\include\Graphics\Mesh.h">
@@ -151,10 +154,10 @@
     <ClInclude Include="EngineSource\include\Graphics\Model.h">
       <Filter>Include</Filter>
     </ClInclude>
-    <ClInclude Include="EngineSource\include\Graphics\Renderer.h">
+    <ClInclude Include="EngineSource\include\Math\Box.hpp">
       <Filter>Include</Filter>
     </ClInclude>
-    <ClInclude Include="EngineSource\include\Math\Box.hpp">
+    <ClInclude Include="EngineSource\include\Utils\TriangleOctree.hpp">
       <Filter>Include</Filter>
     </ClInclude>
   </ItemGroup>
