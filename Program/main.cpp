@@ -7,7 +7,6 @@
 #include "Utils/Timer.h"
 #include "Math/matrix.h"
 
-
 #define FRAME_RATE 60
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
