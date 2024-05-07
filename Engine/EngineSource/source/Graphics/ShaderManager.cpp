@@ -2,7 +2,7 @@
 #include "Graphics/D3D.h"
 
 #include "assert.h"
-bool Engine::shader::CreateShader(ID3DBlob* vsBlob, ID3DBlob* psBlob, const D3D11_INPUT_ELEMENT_DESC* ied)
+bool Engine::shader::CreateShader(ID3DBlob* vsBlob, ID3DBlob* psBlob, const D3D11_INPUT_ELEMENT_DESC* ied, UINT iedSize)
 {
 	{
 		if (D3D* d3d = D3D::GetInstance())
@@ -14,7 +14,7 @@ bool Engine::shader::CreateShader(ID3DBlob* vsBlob, ID3DBlob* psBlob, const D3D1
 			hr = d3d->GetDevice()->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, &pixelShader);
 			assert(SUCCEEDED(hr));
 
-			hr = d3d->GetDevice()->CreateInputLayout(ied, 2u, vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), &inputLayout);
+			hr = d3d->GetDevice()->CreateInputLayout(ied, iedSize, vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), &inputLayout);
 			assert(SUCCEEDED(hr));
 
 			if(pixelShader && vertexShader)
@@ -40,7 +40,8 @@ void Engine::shader::BindShader()
 
 std::unordered_map<std::string, Engine::shader*> Engine::ShaderManager::shaders;
 
-Engine::shader* Engine::ShaderManager::CompileAndCreateShader(const char* shaderName, const wchar_t* vertexShaderSource, const wchar_t* pixelShaderSource,const D3D11_INPUT_ELEMENT_DESC* ied, const D3D_SHADER_MACRO* vertexShaderMacro,const D3D_SHADER_MACRO* pixelShaderMacro)
+Engine::shader* Engine::ShaderManager::CompileAndCreateShader(const char* shaderName, const wchar_t* vertexShaderSource, const wchar_t* pixelShaderSource,const D3D11_INPUT_ELEMENT_DESC* ied, UINT iedSize,
+	const D3D_SHADER_MACRO* vertexShaderMacro,const D3D_SHADER_MACRO* pixelShaderMacro)
 {
 	Microsoft::WRL::ComPtr<ID3DBlob> pixelBlob;
 	Microsoft::WRL::ComPtr<ID3DBlob> vertexlBlob;
@@ -54,7 +55,7 @@ Engine::shader* Engine::ShaderManager::CompileAndCreateShader(const char* shader
 
 	shader* shader = new Engine::shader();
 
-	if (shader->CreateShader(vertexlBlob.Get(), pixelBlob.Get(), ied))
+	if (shader->CreateShader(vertexlBlob.Get(), pixelBlob.Get(), ied, iedSize))
 	{
 		shaders.insert({ shaderName, shader });
 

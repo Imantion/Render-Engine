@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "Windows.h"
 #include "memory"
-#include <dxgi1_4.h>
+#include <dxgi1_5.h>
 #include <d3d11.h>
 #include <mutex>
 #include <wrl.h>
@@ -63,8 +63,7 @@ namespace Engine
 		}
 
 		Microsoft::WRL::ComPtr<IDXGISwapChain1> swapchain;
-		public:
-		Microsoft::WRL::ComPtr <ID3D11RenderTargetView> pRenderTarget;
+		Microsoft::WRL::ComPtr<ID3D11Texture2D> backBuffer;
 		D3D11_VIEWPORT viewport;
 
 	};

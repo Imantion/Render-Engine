@@ -103,3 +103,19 @@ Engine::mat4 Engine::mat4::operator*(float t)
 
 	return ret;
 }
+
+Engine::mat4 Engine::mat4::operator*(const mat4& m2)
+{
+	Engine::mat4 result;
+
+	for (int row = 0; row < 4; ++row) {
+		for (int col = 0; col < 4; ++col) {
+			result[row][col] = mat[row][0] * m2[0][col] +
+				mat[row][1] * m2[1][col] +
+				mat[row][2] * m2[2][col] +
+				mat[row][3] * m2[3][col];
+		}
+	}
+
+	return result;
+}

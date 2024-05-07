@@ -4,7 +4,7 @@
 
 namespace Engine
 {
-    class Mesh;
+    class mesh;
     struct vec3;
     struct ray;
     struct hitInfo;
@@ -36,10 +36,10 @@ namespace Engine
         Extents extents;
     public:
         BVH();
-        BVH(const Mesh* mesh);
+        BVH(const mesh* mesh);
         BVH(const BVH& bvh);
         const bool intersect(const ray& ray, hitInfo& isectData) const;
-        void computeBounds(const Mesh* mesh);
+        void computeBounds(const mesh* mesh);
         ~BVH();
 
     };

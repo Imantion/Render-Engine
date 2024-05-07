@@ -11,10 +11,10 @@ namespace Engine
 	struct triangle;
 	struct ray;
 
-	class Mesh
+	class mesh
 	{
 	public:
-		static Mesh* UniteCube();
+		static mesh* UniteCube();
 		
 
 		const triangle getTriangle(uint8_t index) const;
@@ -60,7 +60,7 @@ namespace Engine
 		}
 
 		vec3 getPosition() { return position; }
-		virtual const Mesh* getMesh() = 0;
+		virtual const mesh* getMesh() = 0;
 
 		mat4 transformeMatrix;
 		mat4 invTransformeMatrix;
@@ -74,7 +74,7 @@ namespace Engine
 		primitive() : mathPrimitive() {}
 		primitive(const vec3& pos) : mathPrimitive(pos) {}
 
-		virtual const Mesh* getMesh() = 0;
+		virtual const mesh* getMesh() = 0;
 
 		Material material;
 	};

@@ -147,6 +147,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="EngineSource\include\Graphics\Model.cpp" />
+    <ClCompile Include="EngineSource\source\Graphics\Renderer.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\ShaderManager.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\D3D.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\Engine.cpp" />
@@ -164,6 +166,10 @@
     <ClInclude Include="EngineSource\include\Graphics\Buffers.h" />
     <ClInclude Include="EngineSource\include\Graphics\D3D.h" />
     <ClInclude Include="EngineSource\include\Graphics\Engine.h" />
+    <ClInclude Include="EngineSource\include\Graphics\Mesh.h" />
+    <ClInclude Include="EngineSource\include\Graphics\Model.h" />
+    <ClInclude Include="EngineSource\include\Graphics\Renderer.h" />
+    <ClInclude Include="EngineSource\include\Math\Box.hpp" />
     <ClInclude Include="EngineSource\include\Math\BVH.h" />
     <ClInclude Include="EngineSource\include\Math\matrix.h" />
     <ClInclude Include="EngineSource\include\Math\math.h" />
@@ -176,6 +182,7 @@
     <ClInclude Include="EngineSource\include\Render\Scene.h" />
     <ClInclude Include="EngineSource\include\Math\vec.h" />
     <ClInclude Include="EngineSource\include\Utils\Timer.h" />
+    <ClInclude Include="EngineSource\include\Utils\TriangleOctree.hpp" />
     <ClInclude Include="EngineSource\include\Window\Window.h" />
     <ClInclude Include="EngineSource\include\Math\hitable.h" />
     <ClInclude Include="EngineSource\include\Utils\IRayDraggable.h" />

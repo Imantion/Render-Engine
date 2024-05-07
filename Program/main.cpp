@@ -8,6 +8,7 @@
 #include "Math/matrix.h"
 #include "Graphics/Engine.h"
 #include "D3DApp/D3DApplication.h"
+#include "Graphics/Model.h"
 
 #define FRAME_RATE 60
 #define D3DAPP
@@ -88,7 +89,9 @@ int main(int argc, char* argv[])
 	Engine::Engine::Init();
 	D3DApplication app(800, 400, WindowProc);
 
-	app.PrepareTriangle();
+	Engine::ModelManager::GetInstance()->loadModel("C:\\Users\\d.kolomiiets\\Downloads\\hints-master-models\\hints-master-models\\models\\Samurai\\Samurai.fbx");
+
+	app.PrepareSecondTriangle();
 
 	while (!app.isClosed())
 	{
@@ -104,7 +107,6 @@ int main(int argc, char* argv[])
 
 		if (timer.timeElapsed(FRAME_RATE))
 		{
-
 			app.Update(timer.getDeltatime());
 			Input::resetScroll();
 		}

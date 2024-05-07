@@ -16,6 +16,26 @@ vec3 vec3::normalized() const {
     return vec3(x / len, y / len, z / len);
 }
 
+vec3 Engine::vec3::minimum(const vec3& other)
+{
+    vec3 returnVec;
+    for (size_t i = 0; i < 3; i++)
+    {
+        (&returnVec.x)[i] = (&x)[i] < (&other.x)[i] ? (&x)[i] : (&other.x)[i];
+    }
+    return returnVec;
+}
+
+vec3 Engine::vec3::maximum(const vec3& other)
+{
+    vec3 returnVec;
+    for (int i = 0; i < 3; i++)
+    {
+        (*this)[i] = (*this)[i] > other[i] ? (*this)[i] : other[i];
+    }
+    return returnVec;
+}
+
 vec3& Engine::vec3::operator=(const vec4& v)
 {
     x = v.x;

@@ -11,18 +11,17 @@ namespace Engine
 	class BVH;
 	class Window;
 	class Camera;
-	class Mesh;
 
 	class Scene
 	{
 	public:
 
 		struct cube : primitive {
-			static std::unique_ptr<Mesh> mesh;
+			static std::unique_ptr<mesh> m_mesh;
 
-			virtual const Mesh* getMesh() override
+			virtual const Engine::mesh* getMesh() override
 			{
-				return mesh.get();
+				return m_mesh.get();
 			}
 		};
 

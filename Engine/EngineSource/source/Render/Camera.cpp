@@ -7,6 +7,8 @@ Engine::Camera::Camera(float verticalFov, float nearPlane, float farPlane)
 	FOV = verticalFov;
 	nearClip = farPlane;
 	farClip = farPlane;
+
+	calculateViewMatrix();
 }
 
 Engine::vec3 Engine::Camera::getRayDirection(const vec2& point)
@@ -30,6 +32,7 @@ void Engine::Camera::calculateViewMatrix()
 	/*inverseView = InverseLookAt(position, position + forwardDirection, upDirection);*/
 
 	inverseView = transformMatrix(position, forwardDirection, rightDirection, upDirection);
+	view = viewMatrix(position, position + forwardDirection, upDirection);
 
 
 }

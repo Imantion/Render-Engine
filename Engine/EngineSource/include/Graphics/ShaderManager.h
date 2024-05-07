@@ -12,7 +12,7 @@ namespace Engine
 		Microsoft::WRL::ComPtr<ID3D11InputLayout> inputLayout;
 		Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShader;
 
-		bool CreateShader(ID3DBlob* vsBlob, ID3DBlob* psBlob, const D3D11_INPUT_ELEMENT_DESC* ied);
+		bool CreateShader(ID3DBlob* vsBlob, ID3DBlob* psBlob, const D3D11_INPUT_ELEMENT_DESC* ied, UINT iedSize);
 		void BindShader();
 		
 	};
@@ -20,8 +20,8 @@ namespace Engine
 	class ShaderManager
 	{
 	public:
-		static shader* CompileAndCreateShader(const char* shaderName, const wchar_t* vertexShaderSource, const wchar_t* pixelShaderSource, const D3D11_INPUT_ELEMENT_DESC* ied, const D3D_SHADER_MACRO* vertexShaderMacro,
-										   const D3D_SHADER_MACRO* pixelShaderMacro);
+		static shader* CompileAndCreateShader(const char* shaderName, const wchar_t* vertexShaderSource, const wchar_t* pixelShaderSource, const D3D11_INPUT_ELEMENT_DESC* ied, UINT iedSize,
+			const D3D_SHADER_MACRO* vertexShaderMacro,  const D3D_SHADER_MACRO* pixelShaderMacro);
 
 		static shader* GetShader(const char* name);
 		static void deleteShader(const char* name);

@@ -33,7 +33,8 @@ Engine::D3D::D3D(UINT flags)
         &pDevice, 
         nullptr, 
         &pContext);
-
+    assert(SUCCEEDED(hr));
+    hr = CreateDXGIFactory2(0, __uuidof(IDXGIFactory5), &pFactory);
     assert(SUCCEEDED(hr));
 }
 

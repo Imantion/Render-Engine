@@ -4,10 +4,9 @@
 #include "Render/Camera.h"
 #include "Render/Material.h"
 #include <algorithm>
-
 #define PI 3.14159265359f
 
-std::unique_ptr<Engine::Mesh> Engine::Scene::cube::mesh;
+std::unique_ptr<Engine::mesh> Engine::Scene::cube::m_mesh;
 Engine::vec3 lightDir = Engine::vec3(2.0f, -1.0f, 0.5f).normalized();
 Engine::vec3 lightColor(0.5f, 0.7f, 1.0f);
 
@@ -34,7 +33,7 @@ Engine::Scene::Scene() :
 	spheres[1].material.color = vec3(0.8f, 0.4f, 0.6f); // Different color for sphere 1
 
 
-	cube::mesh.reset(Mesh::UniteCube());
+	cube::m_mesh.reset(mesh::UniteCube());
 }
 
 void Engine::Scene::render(Engine::Window& window, Engine::Camera& camera)
@@ -121,7 +120,7 @@ bool Engine::Scene::intersectPrimitive(const ray& r, hitInfo& hInfo, objectRef& 
 		return false;
 
 	bool isHited = false;
-	const Mesh* cubeMesh = cubes[0].getMesh();
+	const mesh* cubeMesh = cubes[0].getMesh();
 
 	ray cubeR(r);
 	for(primitive& p : cubes)

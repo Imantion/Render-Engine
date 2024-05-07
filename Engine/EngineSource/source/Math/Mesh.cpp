@@ -2,9 +2,9 @@
 #include "Math/triangle.h"
 #include "Math/math.h"
 
-Engine::Mesh* Engine::Mesh::UniteCube()
+Engine::mesh* Engine::mesh::UniteCube()
 {
-	Mesh* cube = new Mesh;
+	mesh* cube = new mesh;
 
 	cube->vertex = { vec3(0, 0, 0), vec3(1, 0, 0), vec3(0, 1, 0), vec3(0, 0, 1), vec3(1, 1, 0), vec3(1, 0, 1), vec3(0, 1, 1), vec3(1, 1, 1) };
 
@@ -16,12 +16,12 @@ Engine::Mesh* Engine::Mesh::UniteCube()
 	return cube;
 }
 
-const Engine::triangle Engine::Mesh::getTriangle(uint8_t index) const
+const Engine::triangle Engine::mesh::getTriangle(uint8_t index) const
 {
 	return triangle(vertex[buffer[index].a], vertex[buffer[index].b], vertex[buffer[index].c]);
 }
 
-bool Engine::Mesh::intersect(const ray& r, hitInfo& hInfo) const
+bool Engine::mesh::intersect(const ray& r, hitInfo& hInfo) const
 {
 	uint32_t intersectedTriIndex;
 	bool intersected = false;
@@ -39,7 +39,7 @@ bool Engine::Mesh::intersect(const ray& r, hitInfo& hInfo) const
 	return intersected;
 }
 
-void Engine::Mesh::computeBounds(const vec3& normal, float& near, float& far) const
+void Engine::mesh::computeBounds(const vec3& normal, float& near, float& far) const
 {
 	for (size_t i = 0; i < vertex.size(); i++)
 	{
