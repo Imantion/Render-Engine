@@ -112,6 +112,18 @@ namespace Engine
 			return false;
 		}
 
+		void map(D3D11_MAPPED_SUBRESOURCE& mappedResource)
+		{
+			D3D* d3d = D3D::GetInstance();
+			HRESULT hr = d3d->GetContext()->Map(m_vertexBuffer.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &mappedResource);
+		}
+
+		void unmap()
+		{
+			D3D* d3d = D3D::GetInstance();
+			HRESULT hr = d3d->GetContext()->Unmap(m_vertexBuffer.Get(), 0u);
+		}
+
 		UINT getSize() { return instances; }
 
 	private:

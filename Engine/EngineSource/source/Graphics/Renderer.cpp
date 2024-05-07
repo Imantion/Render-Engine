@@ -1,4 +1,5 @@
 #include "Graphics/Renderer.h"
+#include "Graphics/Model.h"
 
 std::mutex Engine::Renderer::mutex_;
 Engine::Renderer* Engine::Renderer::pInstance = nullptr;

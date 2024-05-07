@@ -90,8 +90,10 @@ int main(int argc, char* argv[])
 	D3DApplication app(800, 400, WindowProc);
 
 	Engine::ModelManager::GetInstance()->loadModel("C:\\Users\\d.kolomiiets\\Downloads\\hints-master-models\\hints-master-models\\models\\Samurai\\Samurai.fbx");
-
+	auto model = Engine::ModelManager::GetInstance()->GetModel("C:\\Users\\d.kolomiiets\\Downloads\\hints-master-models\\hints-master-models\\models\\Samurai\\Samurai.fbx");
 	app.PrepareSecondTriangle();
+
+	
 
 	while (!app.isClosed())
 	{

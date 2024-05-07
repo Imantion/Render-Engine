@@ -41,11 +41,11 @@ void D3DApplication::PrepareTriangle()
 		};
 
 		vertexBuffer.create(OutVertices, 3);
-		
-		ConstantBuffer cb = {{800.0f,400.0f, 0.0f, 0.0f}, 0.0f };
+
+		ConstantBuffer cb = { {800.0f,400.0f, 0.0f, 0.0f}, 0.0f };
 
 
-		auto d =  dx::XMMatrixPerspectiveFovLH(3.14f / 2.0f,2.0f,10.0f,0.05f);
+		auto d = dx::XMMatrixPerspectiveFovLH(3.14f / 2.0f, 2.0f, 10.0f, 0.05f);
 
 		/*Projection pj = { Engine::projectionMatrix(3.14f / 2.0f, 0.1f, 10.0f, 800, 400) };
 
@@ -78,9 +78,17 @@ void D3DApplication::PrepareSecondTriangle()
 		{"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0}
 		};
 
-		D3D_SHADER_MACRO psMacro[] = { "FIRST_SHADER", "1", NULL, NULL };
+		/*D3D11_INPUT_ELEMENT_DESC ied[] = {
+		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"BITANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 36, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"TC", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 48, D3D11_INPUT_PER_VERTEX_DATA, 0}
+		};*/
 
-		Engine::shader* triangleShader = Engine::ShaderManager::CompileAndCreateShader("Triangle", L"Shaders/VertexShader.hlsl", L"Shaders/PixelShader.hlsl", ied, 2u, nullptr, psMacro);
+		D3D_SHADER_MACRO pm[] = { "FIRST_SHADER", "1", NULL, NULL };
+
+		Engine::shader* triangleShader = Engine::ShaderManager::CompileAndCreateShader("Curlesque", L"D:\\Work\\Render_Internship_2024\\Program\\Shaders\\VertexShader.hlsl", L"D:\\Work\\Render_Internship_2024\\Program\\Shaders\\PixelShader.hlsl", ied, 2u, nullptr, pm);
 		if (!triangleShader)
 			throw std::runtime_error("Failed to compile and create shader!");
 
@@ -101,7 +109,7 @@ void D3DApplication::PrepareSecondTriangle()
 
 		vertexBuffer.create(OutVertices, 8);
 		ConstantBuffer cb = { {800.0f,400.0f, 0.0f, 0.0f}, 0.0f };
-		
+
 		Engine::mat4 translation = {
 			Engine::vec4(1,0,0,0),
 			Engine::vec4(0,1,0,0),
@@ -114,7 +122,7 @@ void D3DApplication::PrepareSecondTriangle()
 		auto third = dx::XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
 		auto testMat = camera->getViewMatrix();
 		auto testDx = dx::XMMatrixLookAtLH(first, second, third);
-		Projection pj = { translation * testMat * Engine::projectionMatrix(3.14f / 2.0f, 0.1f, 10.0f, 800, 400)};
+		Projection pj = { translation * testMat * Engine::projectionMatrix(3.14f / 2.0f, 0.1f, 10.0f, 800, 400) };
 		/*Projection pj = {Engine::projectionMatrix(3.14f / 2.0f, 0.1f, 10.0f, 800, 400) };*/
 
 		PSConstBuffer.create();
@@ -154,9 +162,17 @@ void D3DApplication::PrepareCurlesque()
 		{"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0}
 		};
 
+		/*	D3D11_INPUT_ELEMENT_DESC ied[] = {
+			{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+			{"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
+			{"TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0},
+			{"BITANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 36, D3D11_INPUT_PER_VERTEX_DATA, 0},
+			{"TC", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 48, D3D11_INPUT_PER_VERTEX_DATA, 0}
+			};*/
+
 		D3D_SHADER_MACRO pm[] = { "FIRST_SHADER", "0", NULL, NULL };
 
-		Engine::shader* triangleShader = Engine::ShaderManager::CompileAndCreateShader("Curlesque", L"Shaders/VertexShader.hlsl", L"Shaders/PixelShader.hlsl",ied, 2u, nullptr, pm);
+		Engine::shader* triangleShader = Engine::ShaderManager::CompileAndCreateShader("Curlesque", L"Shaders/VertexShader.hlsl", L"Shaders/PixelShader.hlsl", ied, 2u, nullptr, pm);
 		if (!triangleShader)
 			throw std::runtime_error("Failed to compile and create shader!");
 
@@ -224,6 +240,8 @@ void D3DApplication::Update(float deltaTime)
 	Engine::Renderer::GetInstance()->Render();
 	d3d->GetContext()->DrawIndexed(indexBuffer.getSize(), 0u, 0u);
 
+	/*Engine::Renderer::GetInstance()->Render();*/
+
 
 	pWindow->flush();
 }
@@ -265,7 +283,7 @@ void D3DApplication::UpdateInput(float deltaTime)
 		cameraSpeed += cameraSpeed * 0.05f * scrolls;
 
 
-	
+
 
 	camera->moveCamera(cameraMoveDirection);
 
@@ -277,7 +295,7 @@ void D3DApplication::UpdateInput(float deltaTime)
 		if (delta.x != 0 || delta.y != 0)
 		{
 			Engine::quaternion q = (Engine::quaternion::angleAxis(delta.y, camera->getRight()) *
-								    Engine::quaternion::angleAxis(delta.x, camera->getUp())).normalize();
+				Engine::quaternion::angleAxis(delta.x, camera->getUp())).normalize();
 			camera->setForward(Engine::quaternion::rotate(q, camera->getForward()));
 			cameraRotated = true;
 		}

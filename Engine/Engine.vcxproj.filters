@@ -160,5 +160,8 @@
     <ClInclude Include="EngineSource\include\Utils\TriangleOctree.hpp">
       <Filter>Include</Filter>
     </ClInclude>
+    <ClInclude Include="EngineSource\include\Graphics\MeshSystem.h">
+      <Filter>Include</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

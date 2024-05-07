@@ -21,7 +21,7 @@ namespace Engine
 
 		friend class ModelManager;
 
-	protected:
+	public:
 		std::vector<Mesh> m_meshes;
 		std::vector<MeshRange> m_ranges; // where each mesh data is stored in m_vertices
 		VertexBuffer<Mesh::vertex> m_vertices; // stores vertices of all meshes of this Model
@@ -39,6 +39,7 @@ namespace Engine
 		static ModelManager* GetInstance() { return pInstance; }
 
 		void loadModel(std::string path);
+		std::shared_ptr<Model> GetModel(std::string name);
 
 	protected:
 		std::unordered_map<std::string, std::shared_ptr<Model>> models;
