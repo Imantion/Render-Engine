@@ -2,6 +2,7 @@
 #include <vector>
 #include <memory>
 #include "Math/matrix.h"
+#include "Math/math.h"
 #include "Graphics/Buffers.h"
 #include "Graphics/Model.h"
 
@@ -19,12 +20,12 @@ namespace Engine
 		};
 		struct Material
 		{
-			
+			vec3 color;
 		};
 
 		struct Instance
 		{
-			
+			mat4 tranformation;
 		};
 
 		struct PerMaterial
@@ -48,9 +49,64 @@ namespace Engine
 		VertexBuffer<Instance> instanceBuffer;
 		ConstBuffer<MeshData> meshData;
 		// ConstBuffer<MaterialData> materialData;
+	public:
+
+		void addModel(std::shared_ptr<Model> model, const vec3& position, const vec3& color)
+		{
+
+			Instance transform{ transformMatrix(position, vec3(0.0f, 0.0f, 1.0f), vec3(1.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f)) };
+			auto it = perModel.end();
+			for (auto i = perModel.begin(); i != perModel.end(); i++)
+			{
+				if (i->model.get() == model.get())
+					it = i;
+			}
+
+			if (it == perModel.end())
+			{
+				std::vector<Instance> inst(1, transform);
+				Material mat = { color };
+				PerMaterial perMat = { mat,inst };
+
+				PerMesh perMes = { std::vector<PerMaterial>(1,perMat) };
+				
+				PerModel perMod = { model, std::vector<PerMesh>(model->m_meshes.size(),perMes) };
+
+				perModel.push_back(perMod);
+			}
+			else
+			{
+				auto pModel = it;
+				for (uint32_t meshIndex = 0; meshIndex < pModel->perMesh.size(); ++meshIndex)
+				{
+					const Mesh& mesh = pModel->model->m_meshes[meshIndex];
+
+					bool inserted = false;
+					for (auto& perMaterial : pModel->perMesh[meshIndex].perMaterial)
+					{
+						if (color == perMaterial.material.color)
+						{
+							perMaterial.instances.push_back(transform);
+							inserted = true;
+						}
+					}
+
+					if (!inserted)
+					{
+						std::vector<Instance> inst;
+						Material mat = { color };
+						inst.push_back(transform);
+						pModel->perMesh[meshIndex].perMaterial.push_back(PerMaterial{ mat, inst });
+					}
+				}
+			}
+
+		}
 
 		void updateInstanceBuffers()
 		{
+			meshData.create();
+
 			uint32_t totalInstances = 0;
 			for (auto& perModel : perModel)
 				for (auto& perMesh : perModel.perMesh)
@@ -77,7 +133,7 @@ namespace Engine
 					{
 						auto& instances = perMaterial.instances;
 
-						uint32_t numModelInstances = instances.size();
+						uint32_t numModelInstances = (uint32_t)instances.size();
 						for (uint32_t index = 0; index < numModelInstances; ++index)
 						{
 							dst[copiedNum++] = instances[index];
@@ -97,7 +153,8 @@ namespace Engine
 
 			D3D* d3d = D3D::GetInstance();
 			/*shader.bind();*/
-			instanceBuffer.bind();
+			instanceBuffer.bind(3u);
+			d3d->GetContext()->VSSetConstantBuffers(4u, 1, meshData.m_constBuffer.GetAddressOf());
 
 			uint32_t renderedInstances = 0;
 			for (const auto& perModel : perModel)
@@ -112,8 +169,8 @@ namespace Engine
 					const Mesh& mesh = perModel.model->m_meshes[meshIndex];
 					const auto& meshRange = perModel.model->m_ranges[meshIndex];
 
-					MeshData meshToModel = { *mesh.instances.data() };
-					meshData.updateBuffer(&meshToModel); // ... update shader local per-mesh uniform buffer
+					/*MeshData meshToModel = { * };*/
+					meshData.updateBuffer(reinterpret_cast<const MeshData*>(mesh.instances.data())); // ... update shader local per-mesh uniform buffer
 
 					for (const auto& perMaterial : perModel.perMesh[meshIndex].perMaterial)
 					{
@@ -137,12 +194,20 @@ namespace Engine
 
 	class MeshSystem
 	{
+	public:
 		OpaqueInstances opaqueInstances;
 
-		void render()
-		{
-			opaqueInstances.render();
-		}
+		void render();
+		
+
+		static MeshSystem* Init();
+		
+
+		static void Deinit();
+
+	protected:
+		static std::mutex mutex_;
+		static MeshSystem* pInstance;
 	};
 
 }

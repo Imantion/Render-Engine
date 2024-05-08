@@ -18,9 +18,29 @@ VOut main(float3 pos : POSITION, float4 color : COLOR)
 
     return output;
 }
-//cbuffer ConstantBuffer : register(b0)
+
+//#define CONCAT(a,b) a##b 
+//#define bReg(index) CONCAT(b,index)
+
+//cbuffer perView : register(b0)
 //{
-//    row_major matrix projection;
+//    row_major matrix viewProjection;
+//}
+
+//cbuffer perFrame : register(b1)
+//{
+//    float4 iResolution;
+//    float iTime;
+//}
+
+//cbuffer instanceBuffer : register(b3)
+//{
+//    row_major matrix transform;
+//}
+
+//cbuffer meshData : register(b4)
+//{
+//    row_major matrix meshToModel;
 //}
 
 //struct VIn
@@ -42,7 +62,7 @@ VOut main(float3 pos : POSITION, float4 color : COLOR)
 //{
 //    VOut output;
 
-//    output.position = mul(float4(input.pos, 1.0f), projection);
+//    output.position = mul(float4(input.pos, 1.0f), viewProjection);
 //    output.color = output.position;
 
 //    return output;

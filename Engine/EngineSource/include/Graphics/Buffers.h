@@ -121,7 +121,7 @@ namespace Engine
 		void unmap()
 		{
 			D3D* d3d = D3D::GetInstance();
-			HRESULT hr = d3d->GetContext()->Unmap(m_vertexBuffer.Get(), 0u);
+			d3d->GetContext()->Unmap(m_vertexBuffer.Get(), 0u);
 		}
 
 		UINT getSize() { return instances; }

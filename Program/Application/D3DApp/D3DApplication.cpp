@@ -233,12 +233,12 @@ void D3DApplication::Update(float deltaTime)
 	auto testMat = camera->getViewMatrix();
 	auto testDx = dx::XMMatrixLookAtLH(first, second, third);
 
-	Projection pj = { translation * camera->getViewMatrix() * Engine::projectionMatrix(3.14f / 3.0f, 100.0f, 0.1f, 800, 400) };
+	Projection pj = { translation * camera->getViewMatrix() * Engine::projectionMatrix(3.14f / 3.0f, 100.0f, 0.1f, pWindow->getWindowWidth(), pWindow->getWindowHeight())};
 	VSConstBuffer.updateBuffer(&pj);
 
 	Engine::D3D* d3d = Engine::D3D::GetInstance();
 	Engine::Renderer::GetInstance()->Render();
-	d3d->GetContext()->DrawIndexed(indexBuffer.getSize(), 0u, 0u);
+	d3d->GetContext()->DrawIndexed(36,0,0);
 
 	/*Engine::Renderer::GetInstance()->Render();*/
 

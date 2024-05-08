@@ -1,5 +1,6 @@
 #include "Graphics/Renderer.h"
 #include "Graphics/Model.h"
+#include "Graphics/MeshSystem.h"
 
 std::mutex Engine::Renderer::mutex_;
 Engine::Renderer* Engine::Renderer::pInstance = nullptr;
@@ -74,13 +75,17 @@ void Engine::Renderer::InitDepth(UINT wWidth, UINT wHeight)
 void Engine::Renderer::Render()
 {
 	Engine::D3D* d3d = Engine::D3D::GetInstance();
-
+	d3d->GetContext()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	d3d->GetContext()->OMSetRenderTargets(1u, pRenderTarget.GetAddressOf(), pViewDepth.Get());
 
 	const float color[] = { 0.5f, 0.5f,0.5f,1.0f };
 	
 	d3d->GetContext()->ClearRenderTargetView(pRenderTarget.Get(), color);
 	d3d->GetContext()->ClearDepthStencilView(pViewDepth.Get(), D3D11_CLEAR_DEPTH, 0.0f, 0u);
+
+	/*d3d->GetContext()->DrawIndexed(162678,0,0);*/
+
+	//MeshSystem::Init()->opaqueInstances.render();
 }
 
 Engine::Renderer::Renderer()

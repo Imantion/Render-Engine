@@ -86,6 +86,9 @@
     <ClCompile Include="EngineSource\include\Graphics\Model.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="EngineSource\include\Graphics\MeshSystem.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EngineSource\include\Render\Scene.h">

@@ -54,6 +54,18 @@ void Engine::ModelManager::loadModel(std::string path)
 	static_assert(sizeof(vec3) == sizeof(aiVector3D), "vec3 doesn't equel to aiVecotr3D");
 	static_assert(sizeof(Mesh::triangle) == 3 * sizeof(uint32_t), "Triangle is not 3 * uint32_T");
 
+	int vertexOffset = 0, indexOffset = 0;
+
+	int vertexAmount = 0, facesAmount = 0;
+	for (size_t i = 0; i < numMeshes; i++)
+	{
+		vertexAmount += assimpScene->mMeshes[i]->mNumVertices;
+		facesAmount += assimpScene->mMeshes[i]->mNumFaces;
+	}
+
+	std::vector<Mesh::vertex> verticies; verticies.reserve(vertexAmount);
+	std::vector<Mesh::triangle> indicies; indicies.reserve(facesAmount);
+	
 	for (uint32_t i = 0; i < numMeshes; ++i)
 	{
 		auto& srcMesh = assimpScene->mMeshes[i];
@@ -66,20 +78,10 @@ void Engine::ModelManager::loadModel(std::string path)
 
 		dstMesh.vertices.resize(srcMesh->mNumVertices);
 		dstMesh.triangles.resize(srcMesh->mNumFaces);
-		dstMeshRange.vertexNum = srcMesh->mNumVertices; 
+		dstMeshRange.vertexNum = srcMesh->mNumVertices;
+		dstMeshRange.vertexOffset = vertexOffset;
 		dstMeshRange.indexNum = srcMesh->mNumFaces * 3;
-
-		if (i != 0)
-		{
-			auto previousRange = (&dstMeshRange)[i - 1];
-			dstMeshRange.vertexOffset = previousRange.vertexOffset + previousRange.vertexNum;
-			dstMeshRange.indexOffset = previousRange.indexOffset + previousRange.indexNum;
-		}
-		else
-		{
-			dstMeshRange.vertexOffset = 0;
-			dstMeshRange.indexOffset = 0;
-		}
+		dstMeshRange.indexOffset = indexOffset;
 
 		for (uint32_t v = 0; v < srcMesh->mNumVertices; ++v)
 		{
@@ -89,6 +91,8 @@ void Engine::ModelManager::loadModel(std::string path)
 			vert.normal = reinterpret_cast<Engine::vec3&>(srcMesh->mNormals[v]);
 			vert.tangent = reinterpret_cast<Engine::vec3&>(srcMesh->mTangents[v]);
 			vert.bitangent = reinterpret_cast<Engine::vec3&>(srcMesh->mBitangents[v]) * -1.f; // Flip V
+
+			verticies.push_back(vert);
 		}
 
 		for (uint32_t f = 0; f < srcMesh->mNumFaces; ++f)
@@ -96,9 +100,13 @@ void Engine::ModelManager::loadModel(std::string path)
 			const auto& face = srcMesh->mFaces[f];
 			//DEV_ASSERT(face.mNumIndices == 3);
 			dstMesh.triangles[f] = *reinterpret_cast<Mesh::triangle*>(face.mIndices);
+
+			indicies.push_back(dstMesh.triangles[f]);
 		}
 
 		dstMesh.updateOctree();
+		vertexOffset += dstMeshRange.vertexNum;
+		indexOffset += dstMeshRange.indexNum;
 	}
 
 	// Recursively load mesh instances (meshToModel transformation matrices)
@@ -131,8 +139,10 @@ void Engine::ModelManager::loadModel(std::string path)
 	{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 48, D3D11_INPUT_PER_VERTEX_DATA, 0}
 	};
 
-	model->m_vertices.create(model->m_meshes[0].vertices.data(), model->m_meshes[0].vertices.size());
-	model->m_indices.create(reinterpret_cast<unsigned int*>(model->m_meshes[0].triangles.data()), model->m_meshes[0].triangles.size() * 3);
+	//model->m_vertices.create(model->m_meshes[7].vertices.data(), model->m_meshes[7].vertices.size());
+	//model->m_indices.create(reinterpret_cast<unsigned int*>(model->m_meshes[7].triangles.data()), model->m_meshes[7].triangles.size() * 3);
+	model->m_vertices.create(verticies.data(), (UINT)verticies.size());
+	model->m_indices.create(reinterpret_cast<unsigned int*>(indicies.data()), indicies.size() * 3u);
 }
 
 std::shared_ptr<Engine::Model> Engine::ModelManager::GetModel(std::string name)

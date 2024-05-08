@@ -95,7 +95,8 @@ void Window::onResize()
 
 	aspectRatio = (float)width / height;
 
-	if (D3D* d3d = D3D::GetInstance())
+	D3D* d3d = D3D::GetInstance();
+	if (width != 0 && height != 0 && d3d != nullptr)
 	{
 		d3d->GetContext()->OMSetRenderTargets(0, 0, 0);
 		
@@ -119,7 +120,7 @@ void Window::onResize()
 
 	wasResized = true;
 
-	/*ResizeFrameBuffer(width, height);*/
+	//ResizeFrameBuffer(width, height);
 }
 
 void Engine::Window::Resize(int wWidth, int wHeight)
