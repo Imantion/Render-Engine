@@ -23,6 +23,7 @@ namespace Engine
 		vec3 getUp() { return upDirection; }
 		vec3 getRight() { return rightDirection; }
 		const mat4& getViewMatrix() { return view; }
+		const mat4& getProjectionMatrix() { return projection; }
 
 		void setForward(vec3 f);
 		void setUp(vec3 u);

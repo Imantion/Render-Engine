@@ -5,7 +5,7 @@
 Engine::Camera::Camera(float verticalFov, float nearPlane, float farPlane)
 {
 	FOV = verticalFov;
-	nearClip = farPlane;
+	nearClip = nearPlane;
 	farClip = farPlane;
 
 	calculateViewMatrix();

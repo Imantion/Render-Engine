@@ -20,7 +20,7 @@ namespace Engine
 		float* operator[](int index) { return mat[index]; }
 		const float* operator[](int index) const { return mat[index]; } 
 		mat4 operator*(float t);
-		mat4 operator*(const mat4& other);
+		mat4 operator*(const mat4& other) const;
 		
 
 		float mat[4][4];

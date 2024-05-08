@@ -104,7 +104,7 @@ Engine::mat4 Engine::mat4::operator*(float t)
 	return ret;
 }
 
-Engine::mat4 Engine::mat4::operator*(const mat4& m2)
+Engine::mat4 Engine::mat4::operator*(const mat4& m2) const
 {
 	Engine::mat4 result;
 

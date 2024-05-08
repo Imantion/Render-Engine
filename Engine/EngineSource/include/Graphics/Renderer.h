@@ -5,6 +5,7 @@
 
 namespace Engine
 {
+	class Camera;
 	struct PerFrameCB
 	{
 		float g_resolution[4];
@@ -29,7 +30,7 @@ namespace Engine
 		void InitDepth(UINT wWidth, UINT wHeight);
 		void ReleaseRenderTarget() { pRenderTarget.ReleaseAndGetAddressOf(); }
 
-		void Render();
+		void Render(Camera* camera);
 
 	protected:
 		Renderer();

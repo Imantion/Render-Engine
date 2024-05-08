@@ -12,8 +12,9 @@ Engine::vec2 previousMousePosition;
 
 D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc windowEvent)
 {
-	camera.reset(new Engine::Camera(90.0f, 0.1f, 100.0f));
+	camera.reset(new Engine::Camera(60.0f, 0.1f, 100.0f));
 	pWindow.reset(new Engine::Window(windowWidth, windowHeight, windowEvent));
+	camera->calculateProjectionMatrix(800, 400);
 }
 
 void D3DApplication::PrepareTriangle()
@@ -73,82 +74,82 @@ void D3DApplication::PrepareSecondTriangle()
 {
 	if (Engine::D3D* d3d = Engine::D3D::GetInstance())
 	{
-		D3D11_INPUT_ELEMENT_DESC ied[] = {
+	/*	D3D11_INPUT_ELEMENT_DESC ied[] = {
 		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
 		{"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0}
-		};
+		};*/
 
-		/*D3D11_INPUT_ELEMENT_DESC ied[] = {
+		D3D11_INPUT_ELEMENT_DESC ied[] = {
 		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
 		{"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
 		{"TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0},
 		{"BITANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 36, D3D11_INPUT_PER_VERTEX_DATA, 0},
 		{"TC", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 48, D3D11_INPUT_PER_VERTEX_DATA, 0}
-		};*/
+		};
 
 		D3D_SHADER_MACRO pm[] = { "FIRST_SHADER", "1", NULL, NULL };
 
-		Engine::shader* triangleShader = Engine::ShaderManager::CompileAndCreateShader("Curlesque", L"D:\\Work\\Render_Internship_2024\\Program\\Shaders\\VertexShader.hlsl", L"D:\\Work\\Render_Internship_2024\\Program\\Shaders\\PixelShader.hlsl", ied, 2u, nullptr, pm);
+		Engine::shader* triangleShader = Engine::ShaderManager::CompileAndCreateShader("Curlesque", L"D:\\Work\\Render_Internship_2024\\Program\\Shaders\\VertexShader.hlsl", L"D:\\Work\\Render_Internship_2024\\Program\\Shaders\\PixelShader.hlsl", ied, 5u, nullptr, pm);
 		if (!triangleShader)
 			throw std::runtime_error("Failed to compile and create shader!");
 
 
 		triangleShader->BindShader();
 
-		Vertex OutVertices[] =
-		{
-		{ -1.0f,-1.0f,5.0f	,{1.0f,0.0f,0.0f,1.0f}},
-		{ 1.0f,-1.0f,5.0f	 ,{1.0f,1.0f,0.0f,1.0f}},
-		{ -1.0f,1.0f,5.0f	 ,{1.0f,1.0f,1.0f,1.0f}},
-		{ 1.0f,1.0f,5.0f	 ,{1.0f,0.0f,1.0f,1.0f} },
-		{ -1.0f,-1.0f,7.0f	 ,{0.0f,1.0f,0.0f,1.0f}},
-		{ 1.0f,-1.0f,7.0f	 ,{0.0f,1.0f,1.0f,1.0f} },
-		{ -1.0f,1.0f,7.0f	,{0.0f,0.0f,1.0f,1.0f} },
-		{ 1.0f,1.0f,7.0f	,{0.0f,0.0f,0.0f,1.0f} },
-		};
+		//Vertex OutVertices[] =
+		//{
+		//{ -1.0f,-1.0f,5.0f	,{1.0f,0.0f,0.0f,1.0f}},
+		//{ 1.0f,-1.0f,5.0f	 ,{1.0f,1.0f,0.0f,1.0f}},
+		//{ -1.0f,1.0f,5.0f	 ,{1.0f,1.0f,1.0f,1.0f}},
+		//{ 1.0f,1.0f,5.0f	 ,{1.0f,0.0f,1.0f,1.0f} },
+		//{ -1.0f,-1.0f,7.0f	 ,{0.0f,1.0f,0.0f,1.0f}},
+		//{ 1.0f,-1.0f,7.0f	 ,{0.0f,1.0f,1.0f,1.0f} },
+		//{ -1.0f,1.0f,7.0f	,{0.0f,0.0f,1.0f,1.0f} },
+		//{ 1.0f,1.0f,7.0f	,{0.0f,0.0f,0.0f,1.0f} },
+		//};
 
-		vertexBuffer.create(OutVertices, 8);
-		ConstantBuffer cb = { {800.0f,400.0f, 0.0f, 0.0f}, 0.0f };
+		//vertexBuffer.create(OutVertices, 8);
+		//ConstantBuffer cb = { {800.0f,400.0f, 0.0f, 0.0f}, 0.0f };
 
-		Engine::mat4 translation = {
-			Engine::vec4(1,0,0,0),
-			Engine::vec4(0,1,0,0),
-			Engine::vec4(0,0,1,0),
-			Engine::vec4(4,-3,0,1)
-		};
-		auto a = camera->getPosition();
-		auto first = dx::XMVectorSet(a.x, a.y, a.z, 1.0f);
-		auto second = dx::XMVectorSet(a.x, a.y, a.z + 1.0f, 1.0f);
-		auto third = dx::XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
-		auto testMat = camera->getViewMatrix();
-		auto testDx = dx::XMMatrixLookAtLH(first, second, third);
-		Projection pj = { translation * testMat * Engine::projectionMatrix(3.14f / 2.0f, 0.1f, 10.0f, 800, 400) };
-		/*Projection pj = {Engine::projectionMatrix(3.14f / 2.0f, 0.1f, 10.0f, 800, 400) };*/
+		//Engine::mat4 translation = {
+		//	Engine::vec4(1,0,0,0),
+		//	Engine::vec4(0,1,0,0),
+		//	Engine::vec4(0,0,1,0),
+		//	Engine::vec4(4,-3,0,1)
+		//};
+		//auto a = camera->getPosition();
+		//auto first = dx::XMVectorSet(a.x, a.y, a.z, 1.0f);
+		//auto second = dx::XMVectorSet(a.x, a.y, a.z + 1.0f, 1.0f);
+		//auto third = dx::XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
+		//auto testMat = camera->getViewMatrix();
+		//auto testDx = dx::XMMatrixLookAtLH(first, second, third);
+		//Projection pj = { translation * testMat * Engine::projectionMatrix(3.14f / 2.0f, 0.1f, 10.0f, 800, 400) };
+		///*Projection pj = {Engine::projectionMatrix(3.14f / 2.0f, 0.1f, 10.0f, 800, 400) };*/
 
-		PSConstBuffer.create();
-		VSConstBuffer.create();
+		//PSConstBuffer.create();
+		//VSConstBuffer.create();
 
-		unsigned int indecies[] = {
-		0,2,1, 2,3,1,
-		1,3,5, 3,7,5,
-		2,6,3, 3,6,7,
-		4,5,7, 4,7,6,
-		0,4,2, 2,4,6,
-		0,1,4, 1,5,4
-		};
-		indexBuffer.create(indecies, 36);
+		//unsigned int indecies[] = {
+		//0,2,1, 2,3,1,
+		//1,3,5, 3,7,5,
+		//2,6,3, 3,6,7,
+		//4,5,7, 4,7,6,
+		//0,4,2, 2,4,6,
+		//0,1,4, 1,5,4
+		//};
+		//indexBuffer.create(indecies, 36);
 
-		indexBuffer.bind();
+		//indexBuffer.bind();
 
-		d3d->GetContext()->PSSetConstantBuffers(0u, 1u, PSConstBuffer.m_constBuffer.GetAddressOf());
-		d3d->GetContext()->VSSetConstantBuffers(0u, 1u, VSConstBuffer.m_constBuffer.GetAddressOf());
+		//d3d->GetContext()->PSSetConstantBuffers(0u, 1u, PSConstBuffer.m_constBuffer.GetAddressOf());
+		//d3d->GetContext()->VSSetConstantBuffers(0u, 1u, VSConstBuffer.m_constBuffer.GetAddressOf());
 
-		d3d->GetContext()->PSSetConstantBuffers(0u, 1u, PSConstBuffer.m_constBuffer.GetAddressOf());
+		//d3d->GetContext()->PSSetConstantBuffers(0u, 1u, PSConstBuffer.m_constBuffer.GetAddressOf());
 
-		UINT stride = sizeof(Vertex);
-		UINT offset = 0;
+		//UINT stride = sizeof(Vertex);
+		//UINT offset = 0;
 
-		vertexBuffer.bind(0u);
+		//vertexBuffer.bind(0u);
 		d3d->GetContext()->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	}
 }
@@ -234,11 +235,10 @@ void D3DApplication::Update(float deltaTime)
 	auto testDx = dx::XMMatrixLookAtLH(first, second, third);
 
 	Projection pj = { translation * camera->getViewMatrix() * Engine::projectionMatrix(3.14f / 3.0f, 100.0f, 0.1f, pWindow->getWindowWidth(), pWindow->getWindowHeight())};
-	VSConstBuffer.updateBuffer(&pj);
+	/*VSConstBuffer.updateBuffer(&pj);*/
 
 	Engine::D3D* d3d = Engine::D3D::GetInstance();
-	Engine::Renderer::GetInstance()->Render();
-	d3d->GetContext()->DrawIndexed(36,0,0);
+	Engine::Renderer::GetInstance()->Render(camera.get());
 
 	/*Engine::Renderer::GetInstance()->Render();*/
 

@@ -153,8 +153,8 @@ namespace Engine
 
 			D3D* d3d = D3D::GetInstance();
 			/*shader.bind();*/
-			instanceBuffer.bind(3u);
-			d3d->GetContext()->VSSetConstantBuffers(4u, 1, meshData.m_constBuffer.GetAddressOf());
+			/*instanceBuffer.bind(2u);*/
+			d3d->GetContext()->VSSetConstantBuffers(3u, 1, meshData.m_constBuffer.GetAddressOf());
 
 			uint32_t renderedInstances = 0;
 			for (const auto& perModel : perModel)

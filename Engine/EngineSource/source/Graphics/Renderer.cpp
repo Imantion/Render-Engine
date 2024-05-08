@@ -1,6 +1,7 @@
 #include "Graphics/Renderer.h"
 #include "Graphics/Model.h"
 #include "Graphics/MeshSystem.h"
+#include "Render/Camera.h"
 
 std::mutex Engine::Renderer::mutex_;
 Engine::Renderer* Engine::Renderer::pInstance = nullptr;
@@ -72,7 +73,7 @@ void Engine::Renderer::InitDepth(UINT wWidth, UINT wHeight)
 	assert(SUCCEEDED(hr));
 }
 
-void Engine::Renderer::Render()
+void Engine::Renderer::Render(Camera* camera)
 {
 	Engine::D3D* d3d = Engine::D3D::GetInstance();
 	d3d->GetContext()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -83,9 +84,14 @@ void Engine::Renderer::Render()
 	d3d->GetContext()->ClearRenderTargetView(pRenderTarget.Get(), color);
 	d3d->GetContext()->ClearDepthStencilView(pViewDepth.Get(), D3D11_CLEAR_DEPTH, 0.0f, 0u);
 
+	d3d->GetContext()->VSSetConstantBuffers(0, 1, perViewBuffer.m_constBuffer.GetAddressOf());
+	d3d->GetContext()->VSSetConstantBuffers(1, 1, perFrameBuffer.m_constBuffer.GetAddressOf());
+	PerViewCB perView = PerViewCB{ camera->getViewMatrix() * camera->getProjectionMatrix()};
+	perViewBuffer.updateBuffer(&perView);
+
 	/*d3d->GetContext()->DrawIndexed(162678,0,0);*/
 
-	//MeshSystem::Init()->opaqueInstances.render();
+	MeshSystem::Init()->opaqueInstances.render();
 }
 
 Engine::Renderer::Renderer()
