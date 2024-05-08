@@ -92,7 +92,7 @@ int main(int argc, char* argv[])
 
 	Engine::ModelManager::GetInstance()->loadModel("C:\\Users\\d.kolomiiets\\Downloads\\hints-master-models\\hints-master-models\\models\\Samurai\\Samurai.fbx");
 	auto model = Engine::ModelManager::GetInstance()->GetModel("C:\\Users\\d.kolomiiets\\Downloads\\hints-master-models\\hints-master-models\\models\\Samurai\\Samurai.fbx");
-	Engine::MeshSystem::Init()->opaqueInstances.addModel(model, Engine::vec3(0, 0, 5.0f), Engine::vec3(1.0f));
+	Engine::MeshSystem::Init()->opaqueInstances.addModel(model, Engine::vec3(0, 3.0f, 1.0f), Engine::vec3(1.0f));
 	Engine::MeshSystem::Init()->opaqueInstances.updateInstanceBuffers();
 	app.PrepareSecondTriangle();
 	

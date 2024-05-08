@@ -131,16 +131,6 @@ void Engine::ModelManager::loadModel(std::string path)
 
 	loadInstances(assimpScene->mRootNode);
 
-	D3D11_INPUT_ELEMENT_DESC ied[] = {
-	{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-	{"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
-	{"TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0},
-	{"BITANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 36, D3D11_INPUT_PER_VERTEX_DATA, 0},
-	{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 48, D3D11_INPUT_PER_VERTEX_DATA, 0}
-	};
-
-	//model->m_vertices.create(model->m_meshes[7].vertices.data(), model->m_meshes[7].vertices.size());
-	//model->m_indices.create(reinterpret_cast<unsigned int*>(model->m_meshes[7].triangles.data()), model->m_meshes[7].triangles.size() * 3);
 	model->m_vertices.create(verticies.data(), (UINT)verticies.size());
 	model->m_indices.create(reinterpret_cast<unsigned int*>(indicies.data()), indicies.size() * 3u);
 }

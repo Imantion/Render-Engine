@@ -14,7 +14,7 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 {
 	camera.reset(new Engine::Camera(60.0f, 0.1f, 100.0f));
 	pWindow.reset(new Engine::Window(windowWidth, windowHeight, windowEvent));
-	camera->calculateProjectionMatrix(800, 400);
+	camera->calculateProjectionMatrix(windowWidth, windowHeight);
 }
 
 void D3DApplication::PrepareTriangle()
@@ -80,16 +80,20 @@ void D3DApplication::PrepareSecondTriangle()
 		};*/
 
 		D3D11_INPUT_ELEMENT_DESC ied[] = {
-		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-		{"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
-		{"TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0},
-		{"BITANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 36, D3D11_INPUT_PER_VERTEX_DATA, 0},
-		{"TC", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 48, D3D11_INPUT_PER_VERTEX_DATA, 0}
+		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"BITANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"TC", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"TOWORLD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+		{"TOWORLD", 1, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+		{"TOWORLD", 2, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+		{"TOWORLD", 3, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1}
 		};
 
 		D3D_SHADER_MACRO pm[] = { "FIRST_SHADER", "1", NULL, NULL };
 
-		Engine::shader* triangleShader = Engine::ShaderManager::CompileAndCreateShader("Curlesque", L"D:\\Work\\Render_Internship_2024\\Program\\Shaders\\VertexShader.hlsl", L"D:\\Work\\Render_Internship_2024\\Program\\Shaders\\PixelShader.hlsl", ied, 5u, nullptr, pm);
+		Engine::shader* triangleShader = Engine::ShaderManager::CompileAndCreateShader("Curlesque", L"D:\\Work\\Render_Internship_2024\\Program\\Shaders\\VertexShader.hlsl", L"D:\\Work\\Render_Internship_2024\\Program\\Shaders\\PixelShader.hlsl", ied, 9u, nullptr, pm);
 		if (!triangleShader)
 			throw std::runtime_error("Failed to compile and create shader!");
 
@@ -211,14 +215,18 @@ bool D3DApplication::isClosed()
 void D3DApplication::Update(float deltaTime)
 {
 	UpdateInput(deltaTime);
-	ConstantBuffer constBufferData;
-	FLOAT windowWidth = (FLOAT)pWindow->getWindowWidth(), windowHeight = (FLOAT)pWindow->getWindowHeight();
-	constBufferData.g_resolution[0] = windowWidth;
-	constBufferData.g_resolution[1] = windowHeight;
-	constBufferData.g_resolution[2] = constBufferData.g_resolution[3] = 1 / (windowWidth * windowHeight);
-	constBufferData.g_time += deltaTime;
+	if (pWindow->wasWindowResized())
+	{
+		camera->calculateProjectionMatrix(pWindow->getWindowWidth(), pWindow->getWindowHeight());
+	}
+	//ConstantBuffer constBufferData;
+	//FLOAT windowWidth = (FLOAT)pWindow->getWindowWidth(), windowHeight = (FLOAT)pWindow->getWindowHeight();
+	//constBufferData.g_resolution[0] = windowWidth;
+	//constBufferData.g_resolution[1] = windowHeight;
+	//constBufferData.g_resolution[2] = constBufferData.g_resolution[3] = 1 / (windowWidth * windowHeight);
+	//constBufferData.g_time += deltaTime;
 
-	PSConstBuffer.updateBuffer(&constBufferData);
+	/*PSConstBuffer.updateBuffer(&constBufferData);*/
 	Engine::mat4 translation = {
 			Engine::vec4(1,0,0,0),
 			Engine::vec4(0,1,0,0),
@@ -226,22 +234,8 @@ void D3DApplication::Update(float deltaTime)
 			Engine::vec4(4,-3,0,1)
 	};
 
-	auto a = camera->getPosition();
-	auto b = camera->getForward();
-	auto first = dx::XMVectorSet(a.x, a.y, a.z, 1.0f);
-	auto second = dx::XMVectorSet(a.x + b.x, a.y + b.y, a.z + b.z, 1.0f);
-	auto third = dx::XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
-	auto testMat = camera->getViewMatrix();
-	auto testDx = dx::XMMatrixLookAtLH(first, second, third);
-
-	Projection pj = { translation * camera->getViewMatrix() * Engine::projectionMatrix(3.14f / 3.0f, 100.0f, 0.1f, pWindow->getWindowWidth(), pWindow->getWindowHeight())};
-	/*VSConstBuffer.updateBuffer(&pj);*/
-
 	Engine::D3D* d3d = Engine::D3D::GetInstance();
 	Engine::Renderer::GetInstance()->Render(camera.get());
-
-	/*Engine::Renderer::GetInstance()->Render();*/
-
 
 	pWindow->flush();
 }

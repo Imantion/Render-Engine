@@ -50,6 +50,10 @@ struct VIn
     float3 tangent : TANGENT;
     float3 bitangent : BITANGENT;
     float2 tc : TC;
+    float4 modelToWorld0 : TOWORLD0;
+    float4 modelToWorld1 : TOWORLD1;
+    float4 modelToWorld2 : TOWORLD2;
+    float4 modelToWorld3 : TOWORLD3;
 };
 
 struct VOut
@@ -61,8 +65,12 @@ struct VOut
 VOut main(VIn input)
 {
     VOut output;
+    
 
-    output.position = mul(mul(float4(input.pos, 1.0f), meshToModel), viewProjection);
+    matrix toWorld = matrix(input.modelToWorld0, input.modelToWorld1, input.modelToWorld2, input.modelToWorld3);
+    //float4x4 toWorld = float4x4(float4(1, 0, 0, 0), float4(0, 1, 0, 0), float4(0, 0, 1, 0), float4(0, 0, 0, 1));
+    
+    output.position = mul(mul(mul(float4(input.pos, 1.0f), toWorld), meshToModel), viewProjection);
     output.color = output.position;
 
     return output;
