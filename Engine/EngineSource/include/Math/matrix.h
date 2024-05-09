@@ -15,7 +15,9 @@ namespace Engine
 
 		static mat4 Inverse(const mat4& m);
 
-		
+		static mat4 rotateX(float angle);
+		static mat4 rotateY(float angle);
+		static mat4 rotateZ(float angle);
 		mat4& operator=(const mat4& other);
 		float* operator[](int index) { return mat[index]; }
 		const float* operator[](int index) const { return mat[index]; } 

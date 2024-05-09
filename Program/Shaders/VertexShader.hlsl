@@ -1,63 +1,4 @@
-//cbuffer ConstantBuffer : register(b0)
-//{
-//    row_major matrix projection;
-//}
-
-//struct VOut
-//{
-//    float4 position : SV_POSITION;
-//    float4 color : COLOR;
-//};
-
-//VOut main(float3 pos : POSITION, float4 color : COLOR)
-//{
-//    VOut output;
-
-//    output.position = mul(float4(pos, 1.0f), projection);
-//    output.color = color;
-
-//    return output;
-//}
-
-#define CONCAT(a,b) a##b 
-#define bReg(index) CONCAT(b,index)
-
-cbuffer perView : register(b0)
-{
-    row_major matrix viewProjection;
-}
-
-cbuffer perFrame : register(b1)
-{
-    float4 iResolution;
-    float iTime;
-}
-
-cbuffer instanceBuffer : register(b2)
-{
-    row_major matrix transform;
-}
-
-cbuffer meshData : register(b3)
-{
-    row_major matrix meshToModel;
-}
-
-struct VIn
-{
-    float3 pos : POSITION;
-    float3 normal : NORMAL;
-    float3 tangent : TANGENT;
-    float3 bitangent : BITANGENT;
-    float2 tc : TC;
-    float4 modelToWorld[4] : TOWORLD;
-};
-
-struct VOut
-{
-    float4 position : SV_POSITION;
-    float4 color : COLOR;
-};
+#include "declarations.hlsli"
 
 VOut main(VIn input)
 {
@@ -71,10 +12,26 @@ VOut main(VIn input)
     float3 axisX = normalize(toWorld[0].xyz);
     float3 axisY = normalize(toWorld[1].xyz);
     float3 axisZ = normalize(toWorld[2].xyz);
-  
-    float3 worldN = input.normal.x * axisX + input.normal.y * axisY + input.normal.z * axisZ;
     
+    float3x3 meshToWorldNormalized = float3x3(normalize(meshToModel._11_12_13), normalize(meshToModel._21_22_23), normalize(meshToModel._31_32_33));
+    float3 N = mul(input.normal, meshToWorldNormalized);
+    N = normalize(N);
+    
+    float3 worldN = N.x * axisX + N.y * axisY + N.z * axisZ;
     worldN = worldN * 0.5 + 0.5f;
+    
+    // local normal visualizationg
+    //float3 axisX = normalize(meshToModel._11_21_31);
+    //float3 axisY = normalize(meshToModel._12_22_32);
+    //float3 axisZ = normalize(meshToModel._13_23_33);
+    
+    //float3 N = float4(input.normal, 1);
+    
+    
+    //N = normalize(N);
+    //float3 worldN = N.x * axisX + N.y * axisY + N.z * axisZ;
+    
+    //worldN = worldN * 0.5 + 0.5f;
     
     output.color = float4(worldN, 1);
     return output;

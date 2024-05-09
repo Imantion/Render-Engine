@@ -12,12 +12,28 @@ cbuffer perFrame : register(b1)
     float iTime;
 }
 
-cbuffer instanceBuffer : register(b3)
+cbuffer instanceBuffer : register(b2)
 {
     row_major matrix transform;
 }
 
-cbuffer meshData : register(b4)
+cbuffer meshData : register(b3)
 {
     row_major matrix meshToModel;
 }
+
+struct VIn
+{
+    float3 pos : POSITION;
+    float3 normal : NORMAL;
+    float3 tangent : TANGENT;
+    float3 bitangent : BITANGENT;
+    float2 tc : TC;
+    float4 modelToWorld[4] : TOWORLD;
+};
+
+struct VOut
+{
+    float4 position : SV_POSITION;
+    float4 color : COLOR;
+};

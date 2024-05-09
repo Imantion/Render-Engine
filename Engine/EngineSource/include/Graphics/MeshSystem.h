@@ -9,7 +9,7 @@
 namespace Engine
 {
 
-
+	/*template <typename I,typename M>*/
 	class OpaqueInstances
 	{
 	protected:
@@ -51,10 +51,15 @@ namespace Engine
 		// ConstBuffer<MaterialData> materialData;
 	public:
 
-		void addModel(std::shared_ptr<Model> model, const vec3& position, const vec3& color)
+		void addModel(std::shared_ptr<Model> model, const vec3& color, const vec3& position, float xRotation = 0.0f, float yRotation = 0.0f, float zRotation = 0.0f) // rotation order rows!
 		{
+			float pi = 3.14159265359;
+			auto rotX = mat4::rotateX(pi * (-xRotation) / 360.0f);
+			auto rotY = mat4::rotateY(pi * (-yRotation) / 360.0f);
+			auto rotZ = mat4::rotateZ(pi * (-zRotation) / 360.0f);
+			auto trans = transformMatrix(position, vec3(0.0f, 0.0f, 1.0f), vec3(1.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
 
-			Instance transform{ transformMatrix(position, vec3(0.0f, 0.0f, 1.0f), vec3(1.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f)) };
+			Instance transform{ rotX * rotY * rotZ * trans};
 			auto it = perModel.end();
 			for (auto i = perModel.begin(); i != perModel.end(); i++)
 			{

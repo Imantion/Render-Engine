@@ -1,6 +1,6 @@
 #include "Math/matrix.h"
 #include "Math/vec.h"
-
+#include <cmath>
 Engine::mat4::mat4(float t)
 {
 	for (size_t i = 0; i < 4; i++)
@@ -75,6 +75,54 @@ Engine::mat4 Engine::mat4::Inverse(const mat4& m)
 	float Dot1 = (Dot0.x + Dot0.y) + (Dot0.z + Dot0.w);
 	float OneOverDeterminant = 1.0f / Dot1;
 	return inverse * OneOverDeterminant;
+}
+
+Engine::mat4 Engine::mat4::rotateX(float angle)
+{
+	mat4 result;
+	float sinTheta = std::sinf(angle);
+	float cosTheta = std::cosf(angle);
+
+	result.mat[0][0] = 1.0f;
+	result.mat[1][1] = cosTheta;
+	result.mat[1][2] = -sinTheta;
+	result.mat[2][1] = sinTheta;
+	result.mat[2][2] = cosTheta;
+	result.mat[3][3] = 1.0f;
+
+	return result;
+}
+
+Engine::mat4 Engine::mat4::rotateY(float angle)
+{
+	mat4 result;
+	float sinTheta = std::sinf(angle);
+	float cosTheta = std::cosf(angle);
+
+	result.mat[0][0] = cosTheta;
+	result.mat[0][2] = sinTheta;
+	result.mat[1][1] = 1.0f;
+	result.mat[2][0] = -sinTheta;
+	result.mat[2][2] = cosTheta;
+	result.mat[3][3] = 1.0f;
+
+	return result;
+}
+
+Engine::mat4 Engine::mat4::rotateZ(float angle)
+{
+	mat4 result;
+	float sinTheta = std::sinf(angle);
+	float cosTheta = std::cosf(angle);
+
+	result.mat[0][0] = cosTheta;
+	result.mat[0][1] = -sinTheta;
+	result.mat[1][0] = sinTheta;
+	result.mat[1][1] = cosTheta;
+	result.mat[2][2] = 1.0f;
+	result.mat[3][3] = 1.0f;
+
+	return result;
 }
 
 Engine::mat4& Engine::mat4::operator=(const mat4& other)
