@@ -5,11 +5,11 @@
 #include "Math/math.h"
 #include "Graphics/Buffers.h"
 #include "Graphics/Model.h"
+#include "Graphics/ShaderManager.h"
 
 namespace Engine
 {
-
-	/*template <typename I,typename M>*/
+	template <typename I, typename M>
 	class OpaqueInstances
 	{
 	protected:
@@ -18,20 +18,11 @@ namespace Engine
 		{
 			mat4 meshToModel;
 		};
-		struct Material
-		{
-			vec3 color;
-		};
-
-		struct Instance
-		{
-			mat4 tranformation;
-		};
 
 		struct PerMaterial
 		{
-			Material material;
-			std::vector<Instance> instances;
+			M material;
+			std::vector<I> instances;
 		};
 
 		struct PerMesh
@@ -45,11 +36,19 @@ namespace Engine
 			std::vector<PerMesh> perMesh;
 		};
 
+		std::shared_ptr<shader> m_shader;
 		std::vector<PerModel> perModel;
-		VertexBuffer<Instance> instanceBuffer;
+		VertexBuffer<I> instanceBuffer;
 		ConstBuffer<MeshData> meshData;
 		// ConstBuffer<MaterialData> materialData;
 	public:
+
+		void updateShader(std::shared_ptr<shader> shdr)
+		{
+			m_shader = shdr;
+		}
+
+		OpaqueInstances() { meshData.create(); }
 
 		void addModel(std::shared_ptr<Model> model, const vec3& color, const vec3& position, float xRotation = 0.0f, float yRotation = 0.0f, float zRotation = 0.0f) // rotation order rows!
 		{
@@ -59,7 +58,7 @@ namespace Engine
 			auto rotZ = mat4::rotateZ(pi * (-zRotation) / 360.0f);
 			auto trans = transformMatrix(position, vec3(0.0f, 0.0f, 1.0f), vec3(1.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f));
 
-			Instance transform{ rotX * rotY * rotZ * trans};
+			I transform{ rotX * rotY * rotZ * trans };
 			auto it = perModel.end();
 			for (auto i = perModel.begin(); i != perModel.end(); i++)
 			{
@@ -69,12 +68,12 @@ namespace Engine
 
 			if (it == perModel.end())
 			{
-				std::vector<Instance> inst(1, transform);
-				Material mat = { color };
+				std::vector<I> inst(1, transform);
+				M mat = { color };
 				PerMaterial perMat = { mat,inst };
 
 				PerMesh perMes = { std::vector<PerMaterial>(1,perMat) };
-				
+
 				PerModel perMod = { model, std::vector<PerMesh>(model->m_meshes.size(),perMes) };
 
 				perModel.push_back(perMod);
@@ -98,8 +97,8 @@ namespace Engine
 
 					if (!inserted)
 					{
-						std::vector<Instance> inst;
-						Material mat = { color };
+						std::vector<I> inst;
+						M mat = { color };
 						inst.push_back(transform);
 						pModel->perMesh[meshIndex].perMaterial.push_back(PerMaterial{ mat, inst });
 					}
@@ -110,8 +109,6 @@ namespace Engine
 
 		void updateInstanceBuffers()
 		{
-			meshData.create();
-
 			uint32_t totalInstances = 0;
 			for (auto& perModel : perModel)
 				for (auto& perMesh : perModel.perMesh)
@@ -125,7 +122,7 @@ namespace Engine
 
 			D3D11_MAPPED_SUBRESOURCE mapping;
 			instanceBuffer.map(mapping);
-			Instance* dst = static_cast<Instance*>(mapping.pData);
+			I* dst = static_cast<I*>(mapping.pData);
 
 			uint32_t copiedNum = 0;
 			for (const auto& perModel : perModel)
@@ -157,7 +154,7 @@ namespace Engine
 				return;
 
 			D3D* d3d = D3D::GetInstance();
-			/*shader.bind();*/
+			m_shader->BindShader();
 			instanceBuffer.bind(1u);
 			d3d->GetContext()->VSSetConstantBuffers(3u, 1, meshData.m_constBuffer.GetAddressOf());
 
@@ -200,15 +197,28 @@ namespace Engine
 	class MeshSystem
 	{
 	public:
-		OpaqueInstances opaqueInstances;
+		struct Material
+		{
+			vec3 color;
+		};
+
+		struct Instance
+		{
+			mat4 tranformation;
+		};
+
+		OpaqueInstances<Instance, Material> hologramGroup;
+		OpaqueInstances<Instance, Material> normVisGroup;
 
 		void render();
-		
+
 
 		static MeshSystem* Init();
-		
+
 
 		static void Deinit();
+	private:
+		MeshSystem();
 
 	protected:
 		static std::mutex mutex_;

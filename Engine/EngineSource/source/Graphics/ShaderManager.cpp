@@ -41,9 +41,9 @@ void Engine::shader::BindShader()
 
 
 
-std::unordered_map<std::string, Engine::shader*> Engine::ShaderManager::shaders;
+std::unordered_map<std::string, std::shared_ptr<Engine::shader>> Engine::ShaderManager::shaders;
 
-Engine::shader* Engine::ShaderManager::CompileAndCreateShader(const char* shaderName, const wchar_t* vertexShaderSource, const wchar_t* pixelShaderSource,const D3D11_INPUT_ELEMENT_DESC* ied, UINT iedSize,
+std::shared_ptr<Engine::shader> Engine::ShaderManager::CompileAndCreateShader(const char* shaderName, const wchar_t* vertexShaderSource, const wchar_t* pixelShaderSource,const D3D11_INPUT_ELEMENT_DESC* ied, UINT iedSize,
 	const D3D_SHADER_MACRO* vertexShaderMacro,const D3D_SHADER_MACRO* pixelShaderMacro)
 {
 	UINT flags = 0;
@@ -61,7 +61,7 @@ Engine::shader* Engine::ShaderManager::CompileAndCreateShader(const char* shader
 	hr = D3DCompileFromFile(pixelShaderSource, pixelShaderMacro, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "ps_5_0", D3DCOMPILE_DEBUG, 0, &pixelBlob, nullptr);
 	assert(SUCCEEDED(hr));
 
-	shader* shader = new Engine::shader();
+	std::shared_ptr<shader>shader = std::make_shared<Engine::shader>();
 
 	if (shader->CreateShader(vertexlBlob.Get(), pixelBlob.Get(), ied, iedSize))
 	{
@@ -70,11 +70,10 @@ Engine::shader* Engine::ShaderManager::CompileAndCreateShader(const char* shader
 		return shader;
 	}
 
-	delete shader;
 	return nullptr;
 }
 
-Engine::shader* Engine::ShaderManager::GetShader(const char* name)
+std::shared_ptr<Engine::shader> Engine::ShaderManager::GetShader(const char* name)
 {
 	auto returnValue = shaders.find(name);
 
@@ -91,16 +90,11 @@ void Engine::ShaderManager::deleteShader(const char* name)
 
 	if (it != shaders.end())
 	{
-		delete (*it).second;
 		shaders.erase(it);
 	}
 }
 
 void Engine::ShaderManager::deleteShaders()
 {
-	for (auto& a : shaders)
-	{
-		delete a.second;
-	}
 	shaders.clear();
 }

@@ -132,7 +132,7 @@ void Engine::ModelManager::loadModel(std::string path)
 	loadInstances(assimpScene->mRootNode);
 
 	model->m_vertices.create(verticies.data(), (UINT)verticies.size());
-	model->m_indices.create(reinterpret_cast<unsigned int*>(indicies.data()), indicies.size() * 3u);
+	model->m_indices.create(reinterpret_cast<unsigned int*>(indicies.data()), (UINT)indicies.size() * 3u);
 }
 
 std::shared_ptr<Engine::Model> Engine::ModelManager::GetModel(std::string name)

@@ -3,6 +3,7 @@
 #include <wrl.h>
 #include <string>
 #include <unordered_map>
+#include <memory>
 
 namespace Engine
 {
@@ -20,15 +21,15 @@ namespace Engine
 	class ShaderManager
 	{
 	public:
-		static shader* CompileAndCreateShader(const char* shaderName, const wchar_t* vertexShaderSource, const wchar_t* pixelShaderSource, const D3D11_INPUT_ELEMENT_DESC* ied, UINT iedSize,
+		static std::shared_ptr<shader> CompileAndCreateShader(const char* shaderName, const wchar_t* vertexShaderSource, const wchar_t* pixelShaderSource, const D3D11_INPUT_ELEMENT_DESC* ied, UINT iedSize,
 			const D3D_SHADER_MACRO* vertexShaderMacro,  const D3D_SHADER_MACRO* pixelShaderMacro);
 
-		static shader* GetShader(const char* name);
+		static std::shared_ptr<shader> GetShader(const char* name);
 		static void deleteShader(const char* name);
 
 		static void deleteShaders();
 
 	private:
-		static std::unordered_map<std::string, shader*> shaders;
+		static std::unordered_map<std::string, std::shared_ptr<shader>> shaders;
 	};
 };

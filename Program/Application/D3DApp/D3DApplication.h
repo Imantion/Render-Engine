@@ -36,9 +36,6 @@ class D3DApplication
 public:
 	D3DApplication(int windowSize, int windowHeight, WinProc);
 
-	void PrepareTriangle();
-	void PrepareSecondTriangle();
-	void PrepareCurlesque();
 	bool isClosed();
 
 	void Update(float deltaTime);

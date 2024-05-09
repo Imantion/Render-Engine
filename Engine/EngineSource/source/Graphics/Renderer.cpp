@@ -91,7 +91,7 @@ void Engine::Renderer::Render(Camera* camera)
 
 	/*d3d->GetContext()->DrawIndexed(162678,0,0);*/
 
-	MeshSystem::Init()->opaqueInstances.render();
+	MeshSystem::Init()->render();
 }
 
 Engine::Renderer::Renderer()
