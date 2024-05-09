@@ -136,8 +136,8 @@ struct VIn
 struct VOut
 {
     float4 position : SV_POSITION;
+    float3 spacePosition : SPACE_POS;
     float3 normal : NORMAL;
-    float3 offset : OFFSET;
     float4 color : COLOR;
 };
 
@@ -147,14 +147,21 @@ VOut vsMain(VIn input)
     VOut output;
     matrix toWorld = matrix(input.modelToWorld[0], input.modelToWorld[1], input.modelToWorld[2], input.modelToWorld[3]);
     
-    output.position = mul(mul(mul(float4(input.pos, 1.0f), meshToModel), toWorld), viewProjection);
+    output.spacePosition = mul(mul(float4(input.pos, 1.0f), meshToModel), toWorld);
+
+
+    float3x3 meshToWorldNormalized = float3x3(normalize(meshToModel._11_12_13), normalize(meshToModel._21_22_23), normalize(meshToModel._31_32_33));
+    float3 N = mul(input.normal, meshToWorldNormalized);
+    N = normalize(N);
     
-    output.normal = input.normal;
+    output.normal = N;
     
-    output.offset = 0.0;
-    output.offset += input.normal * 0.025 * wave(input.pos, BLUE_WAVE_INTERVAL, BLUE_WAVE_SPEED, BLUE_WAVE_THICKNESS, true);
-    output.offset += input.normal * 0.05 * wave(input.pos, RED_WAVE_INTERVAL, RED_WAVE_SPEED, RED_WAVE_THICKNESS, false);
+    float offset = 0.0;
+    offset += output.normal * 0.025 * wave(output.spacePosition, BLUE_WAVE_INTERVAL, BLUE_WAVE_SPEED, BLUE_WAVE_THICKNESS, true);
+    offset += output.normal * 0.05 * wave(output.spacePosition, RED_WAVE_INTERVAL, RED_WAVE_SPEED, RED_WAVE_THICKNESS, false);
     
+    output.position = mul(float4(output.spacePosition + offset,1.0f), viewProjection);
+
     output.color = float4(1.0f, 1.0f, 1.0f, 1.0f);
     return output;
 }
@@ -162,7 +169,7 @@ VOut vsMain(VIn input)
 // called in pixel shader
 float3 psMain(VOut input) : SV_TARGET
 {
-    float3 pos = input.position;
+    float3 pos = input.spacePosition;
     float blueWave = wave(pos, BLUE_WAVE_INTERVAL, BLUE_WAVE_SPEED, BLUE_WAVE_THICKNESS, true);
     float redWave = wave(pos, RED_WAVE_INTERVAL, RED_WAVE_SPEED, RED_WAVE_THICKNESS, false);
 
@@ -183,8 +190,3 @@ float3 psMain(VOut input) : SV_TARGET
     color = lerp(color, float3(1.0, 0.0, 0.0), redWave * 0.25);
     return color;
 }
-
-//float4 main(float3 pos : POSITION) : SV_Position
-//{
-//    return float4(pos, 1);
-//}
