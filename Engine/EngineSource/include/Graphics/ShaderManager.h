@@ -22,7 +22,7 @@ namespace Engine
 	{
 	public:
 		static std::shared_ptr<shader> CompileAndCreateShader(const char* shaderName, const wchar_t* vertexShaderSource, const wchar_t* pixelShaderSource, const D3D11_INPUT_ELEMENT_DESC* ied, UINT iedSize,
-			const D3D_SHADER_MACRO* vertexShaderMacro,  const D3D_SHADER_MACRO* pixelShaderMacro);
+			const D3D_SHADER_MACRO* vertexShaderMacro,  const D3D_SHADER_MACRO* pixelShaderMacro, const char* vsEntryPoint = "main", const char* psEntryPoint = "main");
 
 		static std::shared_ptr<shader> GetShader(const char* name);
 		static void deleteShader(const char* name);

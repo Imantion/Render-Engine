@@ -6,6 +6,7 @@
 namespace Engine
 {
 	class Camera;
+
 	struct PerFrameCB
 	{
 		float g_resolution[4];
@@ -17,6 +18,8 @@ namespace Engine
 	struct PerViewCB
 	{
 		mat4 ProjectedView;
+		vec3 camerPosition;
+		float padding;
 	};
 	class Renderer
 	{
@@ -29,6 +32,7 @@ namespace Engine
 		void InitDepthWithRTV(ID3D11Resource* RenderBuffer, UINT wWidth, UINT wHeight);
 		void InitDepth(UINT wWidth, UINT wHeight);
 		void ReleaseRenderTarget() { pRenderTarget.ReleaseAndGetAddressOf(); }
+		void updatePerFrameCB(float deltaTime,float wWidth,float wHeight);
 
 		void Render(Camera* camera);
 
@@ -36,6 +40,8 @@ namespace Engine
 		Renderer();
 	private:
 		ConstBuffer<PerFrameCB> perFrameBuffer;
+		PerFrameCB perFrameData;
+
 		ConstBuffer<PerViewCB> perViewBuffer;
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pRenderTarget;
 		Microsoft::WRL::ComPtr <ID3D11DepthStencilView> pViewDepth;

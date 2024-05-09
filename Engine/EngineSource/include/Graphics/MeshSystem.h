@@ -50,7 +50,7 @@ namespace Engine
 
 		OpaqueInstances() { meshData.create(); }
 
-		void addModel(std::shared_ptr<Model> model, const vec3& color, const vec3& position, float xRotation = 0.0f, float yRotation = 0.0f, float zRotation = 0.0f) // rotation order rows!
+		void addModel(std::shared_ptr<Model> model, const vec3& color, const vec3& position, float xRotation = 0.0f, float yRotation = 0.0f, float zRotation = 0.0f) // rotation order means!
 		{
 			float pi = 3.14159265359;
 			auto rotX = mat4::rotateX(pi * (-xRotation) / 360.0f);
@@ -156,7 +156,7 @@ namespace Engine
 			D3D* d3d = D3D::GetInstance();
 			m_shader->BindShader();
 			instanceBuffer.bind(1u);
-			d3d->GetContext()->VSSetConstantBuffers(3u, 1, meshData.m_constBuffer.GetAddressOf());
+			d3d->GetContext()->VSSetConstantBuffers(2u, 1, meshData.m_constBuffer.GetAddressOf());
 
 			uint32_t renderedInstances = 0;
 			for (const auto& perModel : perModel)

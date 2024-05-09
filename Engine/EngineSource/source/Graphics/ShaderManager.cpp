@@ -44,7 +44,7 @@ void Engine::shader::BindShader()
 std::unordered_map<std::string, std::shared_ptr<Engine::shader>> Engine::ShaderManager::shaders;
 
 std::shared_ptr<Engine::shader> Engine::ShaderManager::CompileAndCreateShader(const char* shaderName, const wchar_t* vertexShaderSource, const wchar_t* pixelShaderSource,const D3D11_INPUT_ELEMENT_DESC* ied, UINT iedSize,
-	const D3D_SHADER_MACRO* vertexShaderMacro,const D3D_SHADER_MACRO* pixelShaderMacro)
+	const D3D_SHADER_MACRO* vertexShaderMacro,const D3D_SHADER_MACRO* pixelShaderMacro,const char* vsEntryPoint, const char* psEntryPoint)
 {
 	UINT flags = 0;
 #ifdef _DEBUG 
@@ -55,10 +55,10 @@ std::shared_ptr<Engine::shader> Engine::ShaderManager::CompileAndCreateShader(co
 	Microsoft::WRL::ComPtr<ID3DBlob> vertexlBlob;
 	/*ID3DBlob* vertexlBlob;*/
 
-	HRESULT hr = D3DCompileFromFile(vertexShaderSource, vertexShaderMacro, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "vs_5_0", D3DCOMPILE_DEBUG, 0, &vertexlBlob, nullptr);
+	HRESULT hr = D3DCompileFromFile(vertexShaderSource, vertexShaderMacro, D3D_COMPILE_STANDARD_FILE_INCLUDE, vsEntryPoint, "vs_5_0", D3DCOMPILE_DEBUG, 0, &vertexlBlob, nullptr);
 	assert(SUCCEEDED(hr));
 
-	hr = D3DCompileFromFile(pixelShaderSource, pixelShaderMacro, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "ps_5_0", D3DCOMPILE_DEBUG, 0, &pixelBlob, nullptr);
+	hr = D3DCompileFromFile(pixelShaderSource, pixelShaderMacro, D3D_COMPILE_STANDARD_FILE_INCLUDE, psEntryPoint, "ps_5_0", D3DCOMPILE_DEBUG, 0, &pixelBlob, nullptr);
 	assert(SUCCEEDED(hr));
 
 	std::shared_ptr<shader>shader = std::make_shared<Engine::shader>();

@@ -31,6 +31,13 @@ void Engine::Renderer::InitDepthWithRTV(ID3D11Resource* RenderBuffer, UINT wWidt
 		assert(SUCCEEDED(hr));
 		InitDepth(wWidth, wHeight);
 
+		d3d->GetContext()->PSSetConstantBuffers(0, 1, perViewBuffer.m_constBuffer.GetAddressOf());
+		d3d->GetContext()->PSSetConstantBuffers(1, 1, perFrameBuffer.m_constBuffer.GetAddressOf());
+
+		d3d->GetContext()->VSSetConstantBuffers(0, 1, perViewBuffer.m_constBuffer.GetAddressOf());
+		d3d->GetContext()->VSSetConstantBuffers(1, 1, perFrameBuffer.m_constBuffer.GetAddressOf());
+
+		d3d->GetContext()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	}
 }
 
@@ -73,10 +80,23 @@ void Engine::Renderer::InitDepth(UINT wWidth, UINT wHeight)
 	assert(SUCCEEDED(hr));
 }
 
+void Engine::Renderer::updatePerFrameCB(float deltaTime, float wWidth, float wHeight)
+{
+	perFrameData.g_time += deltaTime;
+
+	if (perFrameData.g_resolution[0] != wWidth || perFrameData.g_resolution[1] != wHeight)
+	{
+		perFrameData.g_resolution[0] = wWidth;
+		perFrameData.g_resolution[1] = wHeight;
+		perFrameData.g_resolution[2] = perFrameData.g_resolution[3] = 1 / (wWidth * wHeight);
+	}
+
+	perFrameBuffer.updateBuffer(&perFrameData);
+}
+
 void Engine::Renderer::Render(Camera* camera)
 {
 	Engine::D3D* d3d = Engine::D3D::GetInstance();
-	d3d->GetContext()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	d3d->GetContext()->OMSetRenderTargets(1u, pRenderTarget.GetAddressOf(), pViewDepth.Get());
 
 	const float color[] = { 0.5f, 0.5f,0.5f,1.0f };
@@ -84,9 +104,7 @@ void Engine::Renderer::Render(Camera* camera)
 	d3d->GetContext()->ClearRenderTargetView(pRenderTarget.Get(), color);
 	d3d->GetContext()->ClearDepthStencilView(pViewDepth.Get(), D3D11_CLEAR_DEPTH, 0.0f, 0u);
 
-	d3d->GetContext()->VSSetConstantBuffers(0, 1, perViewBuffer.m_constBuffer.GetAddressOf());
-	d3d->GetContext()->VSSetConstantBuffers(1, 1, perFrameBuffer.m_constBuffer.GetAddressOf());
-	PerViewCB perView = PerViewCB{ camera->getViewMatrix() * camera->getProjectionMatrix()};
+	PerViewCB perView = PerViewCB{ camera->getViewMatrix() * camera->getProjectionMatrix(), camera->getPosition()};
 	perViewBuffer.updateBuffer(&perView);
 
 	/*d3d->GetContext()->DrawIndexed(162678,0,0);*/
@@ -94,7 +112,8 @@ void Engine::Renderer::Render(Camera* camera)
 	MeshSystem::Init()->render();
 }
 
-Engine::Renderer::Renderer()
+Engine::Renderer::Renderer() :
+	perFrameData()
 {
     perFrameBuffer.create();
     perViewBuffer.create();

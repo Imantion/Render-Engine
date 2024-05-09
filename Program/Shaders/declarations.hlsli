@@ -4,36 +4,11 @@
 cbuffer perView : register(b0)
 {
     row_major matrix viewProjection;
+    float3 g_cameraPosition;
 }
 
 cbuffer perFrame : register(b1)
 {
     float4 iResolution;
-    float iTime;
+    float g_time;
 }
-
-cbuffer instanceBuffer : register(b2)
-{
-    row_major matrix transform;
-}
-
-cbuffer meshData : register(b3)
-{
-    row_major matrix meshToModel;
-}
-
-struct VIn
-{
-    float3 pos : POSITION;
-    float3 normal : NORMAL;
-    float3 tangent : TANGENT;
-    float3 bitangent : BITANGENT;
-    float2 tc : TC;
-    float4 modelToWorld[4] : TOWORLD;
-};
-
-struct VOut
-{
-    float4 position : SV_POSITION;
-    float4 color : COLOR;
-};

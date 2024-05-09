@@ -48,8 +48,8 @@ Engine::MeshSystem::MeshSystem()
 	if (!NormalVis)
 		throw std::runtime_error("Failed to compile and create shader!");
 
-	auto HologramGroup = Engine::ShaderManager::CompileAndCreateShader("HologramGroup", L"Shaders\\VertexShader.hlsl",
-		L"Shaders\\PixelShader.hlsl", ied, 9u, nullptr, pm);
+	auto HologramGroup = Engine::ShaderManager::CompileAndCreateShader("HologramGroup", L"Shaders\\Hologram.shader",
+		L"Shaders\\Hologram.shader", ied, 9u, nullptr, pm, "vsMain", "psMain");
 	if (!HologramGroup)
 		throw std::runtime_error("Failed to compile and create shader!");
 

@@ -1,5 +1,26 @@
 #include "declarations.hlsli"
 
+cbuffer meshData : register(b2)
+{
+    row_major matrix meshToModel;
+}
+
+struct VIn
+{
+    float3 pos : POSITION;
+    float3 normal : NORMAL;
+    float3 tangent : TANGENT;
+    float3 bitangent : BITANGENT;
+    float2 tc : TC;
+    float4 modelToWorld[4] : TOWORLD;
+};
+
+struct VOut
+{
+    float4 position : SV_POSITION;
+    float4 color : COLOR;
+};
+
 VOut main(VIn input)
 {
     VOut output;

@@ -204,6 +204,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\declarations.hlsli" />
+    <None Include="Shaders\Hologram.shader" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

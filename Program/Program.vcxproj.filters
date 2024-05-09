@@ -50,5 +50,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\declarations.hlsli" />
+    <None Include="Shaders\Hologram.shader" />
   </ItemGroup>
 </Project>

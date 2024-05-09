@@ -28,23 +28,13 @@ void D3DApplication::Update(float deltaTime)
 	if (pWindow->wasWindowResized())
 	{
 		camera->calculateProjectionMatrix(pWindow->getWindowWidth(), pWindow->getWindowHeight());
-	}
-	//ConstantBuffer constBufferData;
-	//FLOAT windowWidth = (FLOAT)pWindow->getWindowWidth(), windowHeight = (FLOAT)pWindow->getWindowHeight();
-	//constBufferData.g_resolution[0] = windowWidth;
-	//constBufferData.g_resolution[1] = windowHeight;
-	//constBufferData.g_resolution[2] = constBufferData.g_resolution[3] = 1 / (windowWidth * windowHeight);
-	//constBufferData.g_time += deltaTime;
 
-	Engine::mat4 translation = {
-			Engine::vec4(1,0,0,0),
-			Engine::vec4(0,1,0,0),
-			Engine::vec4(0,0,1,0),
-			Engine::vec4(4,-3,0,1)
-	};
+	}
 
 	Engine::D3D* d3d = Engine::D3D::GetInstance();
-	Engine::Renderer::GetInstance()->Render(camera.get());
+	Engine::Renderer* renderer = Engine::Renderer::GetInstance();
+	renderer->updatePerFrameCB(deltaTime, (FLOAT)pWindow->getWindowWidth(), (FLOAT)pWindow->getWindowHeight());
+	renderer->Render(camera.get());
 
 	pWindow->flush();
 }
