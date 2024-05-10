@@ -121,6 +121,7 @@ int main(int argc, char* argv[])
 		{
 			app.Update(timer.getDeltatime());
 			Input::resetScroll();
+			Input::resetMousePressed();
 		}
 
 

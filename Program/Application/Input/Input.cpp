@@ -86,8 +86,7 @@ void Input::resetMousePressed()
 {
 	for (size_t i = 0; i < mouse.size(); i++)
 	{
-		mouse[i].wasDown = true;
-		// That's why adding 1 to resolv this 
+		mouse[i].wasDown = true; 
 	}
 }
 

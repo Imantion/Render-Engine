@@ -56,32 +56,32 @@ namespace Engine
 
 		OpaqueInstances() { meshData.create(); materialData.create(); }
 
-		int intersect(const ray& r, hitInfo& hInfo, I& instance)
+		I* intersect(const ray& r, hitInfo& hInfo)
 		{
-			int intersectedInstance = -1;
-			int instanceNum = 0;
+			uint32_t modelIndex = -1, perMaterialIndex = -1;
+			I* intersectedInstance = nullptr;
 			ray transformedRay = r;
-			for (const auto& perModel : perModel)
+			for (size_t i = 0; i < perModel.size(); i++)
 			{
-				for (uint32_t meshIndex = 0; meshIndex < perModel.perMesh.size(); ++meshIndex)
+				for (uint32_t meshIndex = 0; meshIndex < perModel[i].perMesh.size(); ++meshIndex)
 				{
-					const Mesh& mesh = perModel.model->m_meshes[meshIndex];
+					const Mesh& mesh = perModel[i].model->m_meshes[meshIndex];
 
-					for (const auto& perMaterial : perModel.perMesh[meshIndex].perMaterial)
+					for (size_t j = 0; j < perModel[i].perMesh[meshIndex].perMaterial.size(); j++)
 					{
-						auto& instances = perMaterial.instances;
+						auto& instances = perModel[i].perMesh[meshIndex].perMaterial[j].instances;
 
 						uint32_t numModelInstances = (uint32_t)instances.size();
 						for (uint32_t index = 0; index < numModelInstances; ++index)
 						{
-							++instanceNum;
 							transformedRay.origin = vec4(r.origin, 1.0f) * mat4::Inverse(instances[index].tranformation) * mesh.invInstances[0];
 							transformedRay.direction = vec4(r.direction, 0.0f) * mesh.invInstances[0];
 							
 							if (mesh.intersect(transformedRay, hInfo))
 							{
-								intersectedInstance = instanceNum;
- 								instance = instances[index];
+								modelIndex = i;
+								perMaterialIndex = j;
+								intersectedInstance = &instances[index];
 								hInfo.p = r.point_at_parameter(hInfo.t);
 							}
 						}
@@ -89,9 +89,30 @@ namespace Engine
 				}
 			}
 
+			std::vector<mat4*> transforms;
+
+			if(modelIndex != -1 && perMaterialIndex != -1)
+				getInstanceTransform(modelIndex, perMaterialIndex, transforms);
+
 			return intersectedInstance;
 		}
 
+		void getInstanceTransform(uint32_t modelIndex, uint32_t perMaterialIndex, std::vector<mat4*>& transforms)
+		{
+			if (modelIndex < 0 || modelIndex > perModel.size())
+				throw("Invalide model index");
+
+			transforms.reserve(perModel[modelIndex].model->m_meshes.size());
+
+			for (size_t i = 0; i < perModel[modelIndex].model->m_meshes.size(); i++)
+			{
+				auto& instances = perModel[modelIndex].perMesh[i].perMaterial[perMaterialIndex].instances;
+				for (size_t j = 0; j < instances.size() ; j++)
+				{
+					transforms.push_back(&instances[j].tranformation);
+				}
+			}
+		}
 
 
 		void addModel(std::shared_ptr<Model> model, const M& material, const vec3& position, float xRotation = 0.0f, float yRotation = 0.0f, float zRotation = 0.0f) // rotation order means!
@@ -262,7 +283,7 @@ namespace Engine
 			}
 		};
 
-		struct Instance
+		struct Instance // all other template instances must inherit this one
 		{
 			mat4 tranformation;
 		};
@@ -270,7 +291,7 @@ namespace Engine
 		OpaqueInstances<Instance, Material> hologramGroup;
 		OpaqueInstances<Instance, Material> normVisGroup;
 
-		int intersect(const ray& r, hitInfo& hInfo, Instance& instance);
+		Instance* intersect(const ray& r, hitInfo& hInfo);
 
 		void render();
 

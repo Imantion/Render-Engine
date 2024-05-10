@@ -92,7 +92,7 @@ void D3DApplication::UpdateInput(float deltaTime)
 		}
 	}
 
-	if (Input::mouseIsDown(Input::MouseButtons::RIGHT))
+	if (Input::mouseWasPressed(Input::MouseButtons::RIGHT))
 	{
 		Engine::vec2 screenCoord(mousePosition.x, pWindow->getWindowHeight() - mousePosition.y);
 		Engine::ray r;
@@ -101,11 +101,27 @@ void D3DApplication::UpdateInput(float deltaTime)
 		r.origin = camera->getPosition();
 		r.direction = camera->calculateRayDirection(screenCoord);
 
-
-		Engine::MeshSystem::Instance inst;
 		Engine::hitInfo hInfo; hInfo.reset_parameter_t();
+		Engine::MeshSystem::Instance* inst = Engine::MeshSystem::Init()->intersect(r, hInfo);
 
-		Engine::MeshSystem::Init()->intersect(r, hInfo, inst);
+		if(inst != nullptr)
+			dragger = std::make_unique<Engine::IInstanceDragger<Engine::MeshSystem::Instance>>(inst, hInfo);
+				
+	}
+	else if (!Input::mouseIsDown(Input::MouseButtons::RIGHT))
+	{
+		dragger.release();
+	}
+
+	if (dragger)
+	{
+		Engine::vec2 screenCoord(mousePosition.x, pWindow->getWindowHeight() - mousePosition.y);
+		Engine::ray r;
+		screenCoord.x = (screenCoord.x / pWindow->getWindowWidth() - 0.5f) * 2.0f;
+		screenCoord.y = (screenCoord.y / pWindow->getWindowHeight() - 0.5f) * 2.0f;
+		r.origin = camera->getPosition();
+		r.direction = camera->calculateRayDirection(screenCoord);
+		dragger->drag(r);
 	}
 
 	if (cameraMoveDirection != Engine::vec3(0.0f) || cameraRotated)

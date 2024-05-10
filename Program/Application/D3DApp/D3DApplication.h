@@ -4,6 +4,7 @@
 #include "Window/Window.h"
 #include "Graphics/D3D.h"
 #include "Graphics/Buffers.h"
+#include "Utils/IRayDraggable.h"
 #include <DirectXMath.h>
 
 namespace dx = DirectX;
@@ -52,5 +53,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> pLayout;
 	Engine::ConstBuffer<ConstantBuffer> PSConstBuffer;
 	Engine::ConstBuffer<Projection> VSConstBuffer;
+	
+	std::unique_ptr<Engine::IRayDraggable> dragger;
 };
 
