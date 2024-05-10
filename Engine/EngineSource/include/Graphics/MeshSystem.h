@@ -3,6 +3,7 @@
 #include <memory>
 #include "Math/matrix.h"
 #include "Math/math.h"
+#include "Math/hitable.h"
 #include "Graphics/Buffers.h"
 #include "Graphics/Model.h"
 #include "Graphics/ShaderManager.h"
@@ -54,6 +55,41 @@ namespace Engine
 		}
 
 		OpaqueInstances() { meshData.create(); materialData.create(); }
+
+		int intersect(const ray& r, hitInfo& hInfo, I& instance)
+		{
+			int intersectedInstance = -1;
+			int instanceNum = 0;
+			ray transformedRay = r;
+			for (const auto& perModel : perModel)
+			{
+				for (uint32_t meshIndex = 0; meshIndex < perModel.perMesh.size(); ++meshIndex)
+				{
+					const Mesh& mesh = perModel.model->m_meshes[meshIndex];
+
+					for (const auto& perMaterial : perModel.perMesh[meshIndex].perMaterial)
+					{
+						auto& instances = perMaterial.instances;
+
+						uint32_t numModelInstances = (uint32_t)instances.size();
+						for (uint32_t index = 0; index < numModelInstances; ++index)
+						{
+							++instanceNum;
+							transformedRay.origin = vec4(r.origin, 1.0f) * mat4::Inverse(instances[index].tranformation);
+							if (mesh.intersect(transformedRay, hInfo))
+							{
+								intersectedInstance = instanceNum;
+								instance = instances[index];
+							}
+						}
+					}
+				}
+			}
+
+			return intersectedInstance;
+		}
+
+
 
 		void addModel(std::shared_ptr<Model> model, const M& material, const vec3& position, float xRotation = 0.0f, float yRotation = 0.0f, float zRotation = 0.0f) // rotation order means!
 		{
@@ -110,6 +146,15 @@ namespace Engine
 
 		}
 
+		void updateInstanceBufferData(int index, const I* instance)
+		{
+			D3D11_MAPPED_SUBRESOURCE mapping;
+			instanceBuffer.map(mapping);
+			I* dst = static_cast<I*>(mapping.pData);
+
+			dst[index] = instance;
+			instanceBuffer.unmap();
+		}
 		void updateInstanceBuffers()
 		{
 			uint32_t totalInstances = 0;
@@ -221,6 +266,8 @@ namespace Engine
 
 		OpaqueInstances<Instance, Material> hologramGroup;
 		OpaqueInstances<Instance, Material> normVisGroup;
+
+		int intersect(const ray& r, hitInfo& hInfo, Instance& instance);
 
 		void render();
 

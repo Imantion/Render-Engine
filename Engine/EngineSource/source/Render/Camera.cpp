@@ -35,8 +35,8 @@ void Engine::Camera::calculateProjectionMatrix(int viewportWidth, int viewportHe
 
 void Engine::Camera::calculateViewMatrix()
 {
-	inverseView = transformMatrix(position, forwardDirection, rightDirection, upDirection);
 	view = viewMatrix(position, position + forwardDirection, upDirection);
+	inverseView = mat4::Inverse(view);
 }
 
 void Engine::Camera::calculateRayDirections()

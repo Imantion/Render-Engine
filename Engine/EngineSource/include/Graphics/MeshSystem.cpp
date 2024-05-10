@@ -5,6 +5,14 @@
 std::mutex Engine::MeshSystem::mutex_;
 Engine::MeshSystem* Engine::MeshSystem::pInstance = nullptr;
 
+int Engine::MeshSystem::intersect(const ray& r, hitInfo& hInfo, Instance& instance)
+{
+	int tempNum1 = hologramGroup.intersect(r, hInfo, instance);
+	int tempNum2 =	normVisGroup.intersect(r, hInfo, instance);
+
+	return tempNum1 != -1? tempNum1: tempNum2;
+}
+
 void Engine::MeshSystem::render()
 {
 	normVisGroup.render();

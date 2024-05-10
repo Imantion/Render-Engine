@@ -8,6 +8,11 @@
 
 namespace Engine
 {
+	template <typename I, typename M>
+	class OpaqueInstances;
+	struct ray;
+	struct hitInfo;
+
 	class Model
 	{
 	public:
@@ -19,9 +24,13 @@ namespace Engine
 			uint32_t indexNum; // num of indices
 		};
 
-		friend class ModelManager;
+		bool intersect(const ray& r, hitInfo& info);
 
-	public:
+		friend class ModelManager;
+		template <typename I, typename M>
+		friend class OpaqueInstances;
+
+	private:
 		std::vector<Mesh> m_meshes;
 		std::vector<MeshRange> m_ranges; // where each mesh data is stored in m_vertices
 		VertexBuffer<Mesh::vertex> m_vertices; // stores vertices of all meshes of this Model

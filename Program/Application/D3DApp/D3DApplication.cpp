@@ -62,10 +62,6 @@ void D3DApplication::UpdateInput(float deltaTime)
 		cameraMoveDirection += camera->getUp() * cameraSpeed * deltaTime;
 	if (Input::keyIsDown(Input::KeyboardButtons::SHIFT))
 		cameraMoveDirection *= 5;
-	//if (Input::keyIsDown(Input::KeyboardButtons::E))
-	//	roll -= 0.5f * deltaTime;
-	//if (Input::keyIsDown(Input::KeyboardButtons::Q))
-	//	roll += 0.5f * deltaTime;
 
 
 
@@ -92,6 +88,11 @@ void D3DApplication::UpdateInput(float deltaTime)
 			camera->setForward(Engine::quaternion::rotate(q, camera->getForward()));
 			cameraRotated = true;
 		}
+	}
+
+	if (Input::mouseIsDown(Input::MouseButtons::RIGHT))
+	{
+
 	}
 
 	if (cameraMoveDirection != Engine::vec3(0.0f) || cameraRotated)

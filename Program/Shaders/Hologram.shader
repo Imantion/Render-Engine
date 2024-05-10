@@ -166,7 +166,7 @@ VOut vsMain(VIn input)
     offset += output.normal * 0.025 * wave(output.spacePosition, BLUE_WAVE_INTERVAL, BLUE_WAVE_SPEED, BLUE_WAVE_THICKNESS, true);
     offset += output.normal * 0.05 * wave(output.spacePosition, RED_WAVE_INTERVAL, RED_WAVE_SPEED, RED_WAVE_THICKNESS, false);
     
-    output.position = mul(float4(output.spacePosition + offset,1.0f), viewProjection);
+    output.position = mul(float4(output.spacePosition + offset ,1.0f), viewProjection);
 
     output.color = float4(1.0f, 1.0f, 1.0f, 1.0f);
     return output;

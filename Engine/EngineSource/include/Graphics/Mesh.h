@@ -46,7 +46,7 @@ namespace Engine
 			octree.initialize(*this);
 		}
 
-		bool intersect(const ray& r, hitInfo& info)
+		bool intersect(const ray& r, hitInfo& info) const
 		{
 			return octree.intersect(r, info);
 		}

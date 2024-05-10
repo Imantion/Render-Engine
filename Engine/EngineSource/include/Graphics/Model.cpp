@@ -3,6 +3,8 @@
 #include "assimp/postprocess.h"
 #include "assimp/Importer.hpp"
 #include "assimp/scene.h"
+#include "Math/hitable.h"
+#include "Math/math.h"
 #include <functional>
 
 std::mutex Engine::ModelManager::mutex_;
@@ -143,4 +145,17 @@ std::shared_ptr<Engine::Model> Engine::ModelManager::GetModel(std::string name)
 		return nullptr;
 
 	return (*it).second;
+}
+
+bool Engine::Model::intersect(const ray& r, hitInfo& info)
+{
+	info.reset_parameter_t();
+	bool intersected = false;
+	for (auto& mesh : m_meshes)
+	{
+		if(mesh.intersect(r, info))
+			intersected = true;
+	}
+
+	return intersected;
 }
