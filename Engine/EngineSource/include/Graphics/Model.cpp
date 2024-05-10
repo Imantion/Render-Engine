@@ -26,10 +26,10 @@ void Engine::ModelManager::Deinit()
 	delete pInstance;
 }
 
-void Engine::ModelManager::loadModel(std::string path)
+std::shared_ptr<Engine::Model> Engine::ModelManager::loadModel(std::string path)
 {
 	if (models.find(path) != models.end())
-		return;
+		return models.find(path)->second;
 	// Load aiScene
 
 	uint32_t flags = uint32_t(aiProcess_Triangulate | aiProcess_GenBoundingBoxes | aiProcess_ConvertToLeftHanded | aiProcess_CalcTangentSpace);
@@ -135,6 +135,8 @@ void Engine::ModelManager::loadModel(std::string path)
 
 	model->m_vertices.create(verticies.data(), (UINT)verticies.size());
 	model->m_indices.create(reinterpret_cast<unsigned int*>(indicies.data()), (UINT)indicies.size() * 3u);
+
+	return model;
 }
 
 std::shared_ptr<Engine::Model> Engine::ModelManager::GetModel(std::string name)

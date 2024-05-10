@@ -5,12 +5,28 @@
 std::mutex Engine::MeshSystem::mutex_;
 Engine::MeshSystem* Engine::MeshSystem::pInstance = nullptr;
 
-Engine::MeshSystem::Instance* Engine::MeshSystem::intersect(const ray& r, hitInfo& hInfo)
+std::vector<Engine::mat4*> Engine::MeshSystem::intersect(const ray& r, hitInfo& hInfo)
 {
-	Instance* tempInst1 = hologramGroup.intersect(r, hInfo);
-	Instance* tempInst2 = normVisGroup.intersect(r, hInfo);
+	auto firstPair = hologramGroup.intersect(r, hInfo);
+	auto secondPair = normVisGroup.intersect(r, hInfo);
+	
+	std::vector<mat4*> transforms;
+	if (secondPair.modelIndex != -1)
+	{
+		normVisGroup.getInstanceTransform(secondPair.modelIndex, secondPair.perMaterialIndex, secondPair.materialIndex, transforms);
+	}
+	else if (firstPair.modelIndex != -1)
+	{
+		hologramGroup.getInstanceTransform(firstPair.modelIndex, firstPair.perMaterialIndex, firstPair.materialIndex, transforms);
+	}
 
-	return tempInst1 != nullptr ? tempInst1 : tempInst2;
+	return transforms;
+}
+
+void Engine::MeshSystem::updateInstanceBuffers()
+{
+	normVisGroup.updateInstanceBuffers();
+	hologramGroup.updateInstanceBuffers();
 }
 
 void Engine::MeshSystem::render()

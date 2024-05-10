@@ -47,7 +47,7 @@ namespace Engine
 		static void Deinit();
 		static ModelManager* GetInstance() { return pInstance; }
 
-		void loadModel(std::string path);
+		std::shared_ptr<Model> loadModel(std::string path);
 		std::shared_ptr<Model> GetModel(std::string name);
 
 	protected:

@@ -17,6 +17,22 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 	camera.reset(new Engine::Camera(45.0f, 0.1f, 100.0f));
 	pWindow.reset(new Engine::Window(windowWidth, windowHeight, windowEvent));
 	camera->calculateProjectionMatrix(windowWidth, windowHeight);
+
+	Engine::MeshSystem::Material knightMat = { Engine::vec3(1.0,0.0f,1.0f), 0.0f,Engine::vec3(1.0,1.0f,0.0f), 0.0f };
+
+
+	auto model = Engine::ModelManager::GetInstance()->loadModel("Models\\Samurai.fbx");
+	Engine::MeshSystem::Init()->hologramGroup.addModel(model, knightMat, Engine::vec3(0.0f, -1.0f, 0.0f));
+	knightMat = { Engine::vec3(0.0,1.0f,1.0f), 0.0f,Engine::vec3(1.0,0.0f,0.0f), 0.0f };
+	Engine::MeshSystem::Init()->hologramGroup.addModel(model, knightMat, Engine::vec3(1.0f, -1.0f, 0.0f));
+
+	model = Engine::ModelManager::GetInstance()->loadModel("Models\\cube.obj");
+	Engine::MeshSystem::Init()->normVisGroup.addModel(model, knightMat, Engine::vec3(1.0f, 1.0f, 5.0f));
+	Engine::MeshSystem::Init()->normVisGroup.addModel(model, knightMat, Engine::vec3(3.0f, -1.0f, -2.0f));
+	Engine::MeshSystem::Init()->normVisGroup.addModel(model, knightMat, Engine::vec3(2.0f, -2.0f, 4.0f));
+	Engine::MeshSystem::Init()->normVisGroup.addModel(model, knightMat, Engine::vec3(-4.0f, 0.0f, 1.0f));
+	Engine::MeshSystem::Init()->normVisGroup.updateInstanceBuffers();
+	Engine::MeshSystem::Init()->hologramGroup.updateInstanceBuffers();
 }
 
 bool D3DApplication::isClosed()
@@ -86,7 +102,7 @@ void D3DApplication::UpdateInput(float deltaTime)
 		if (delta.x != 0 || delta.y != 0)
 		{
 			Engine::quaternion q = (Engine::quaternion::angleAxis(delta.y, camera->getRight()) *
-				Engine::quaternion::angleAxis(delta.x, camera->getUp())).normalize();
+			Engine::quaternion::angleAxis(delta.x, camera->getUp())).normalize();
 			camera->setForward(Engine::quaternion::rotate(q, camera->getForward()));
 			cameraRotated = true;
 		}
@@ -102,10 +118,10 @@ void D3DApplication::UpdateInput(float deltaTime)
 		r.direction = camera->calculateRayDirection(screenCoord);
 
 		Engine::hitInfo hInfo; hInfo.reset_parameter_t();
-		Engine::MeshSystem::Instance* inst = Engine::MeshSystem::Init()->intersect(r, hInfo);
+		auto instances = Engine::MeshSystem::Init()->intersect(r, hInfo);
 
-		if(inst != nullptr)
-			dragger = std::make_unique<Engine::IInstanceDragger<Engine::MeshSystem::Instance>>(inst, hInfo);
+		if(instances.size() > 0)
+			dragger = std::make_unique<Engine::IInstanceDragger>(std::move(instances), hInfo);
 				
 	}
 	else if (!Input::mouseIsDown(Input::MouseButtons::RIGHT))
