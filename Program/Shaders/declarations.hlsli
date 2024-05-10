@@ -1,6 +1,3 @@
-#define CONCAT(a,b) a##b 
-#define bReg(index) CONCAT(b,index)
-
 cbuffer perView : register(b0)
 {
     row_major matrix viewProjection;

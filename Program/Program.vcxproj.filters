@@ -49,7 +49,11 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\declarations.hlsli" />
-    <None Include="Shaders\Hologram.shader" />
+    <None Include="Shaders\declarations.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Hologram.shader">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
