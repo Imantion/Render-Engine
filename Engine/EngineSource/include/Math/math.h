@@ -142,7 +142,7 @@ namespace Engine
 
 		float t = dot(Q, E2) * invDeterminant;
 
-		if (t < 0 || t > hInfo.t)
+		if (t < 0 /*|| t > hInfo.t*/)
 			return false;
 
 		float u = dot(P, T) * invDeterminant;

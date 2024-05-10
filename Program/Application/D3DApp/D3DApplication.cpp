@@ -3,16 +3,18 @@
 #include "Graphics/ShaderManager.h"
 #include "Input/Input.h"
 #include "Render/Camera.h"
-#include <assert.h>
+#include "Math/hitable.h"
 #include "Math/math.h"
 #include "Graphics/Renderer.h"
 #include "Math/quaternion.h"
+#include "Graphics/MeshSystem.h"
+#include <assert.h>
 
 Engine::vec2 previousMousePosition;
 
 D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc windowEvent)
 {
-	camera.reset(new Engine::Camera(60.0f, 0.1f, 100.0f));
+	camera.reset(new Engine::Camera(45.0f, 0.1f, 100.0f));
 	pWindow.reset(new Engine::Window(windowWidth, windowHeight, windowEvent));
 	camera->calculateProjectionMatrix(windowWidth, windowHeight);
 }
@@ -92,7 +94,18 @@ void D3DApplication::UpdateInput(float deltaTime)
 
 	if (Input::mouseIsDown(Input::MouseButtons::RIGHT))
 	{
+		Engine::vec2 screenCoord(mousePosition.x, pWindow->getWindowHeight() - mousePosition.y);
+		Engine::ray r;
+		screenCoord.x = (screenCoord.x / pWindow->getWindowWidth() - 0.5f) * 2.0f;
+		screenCoord.y = (screenCoord.y / pWindow->getWindowHeight() - 0.5f) * 2.0f;
+		r.origin = camera->getPosition();
+		r.direction = camera->calculateRayDirection(screenCoord);
 
+
+		Engine::MeshSystem::Instance inst;
+		Engine::hitInfo hInfo; hInfo.reset_parameter_t();
+
+		Engine::MeshSystem::Init()->intersect(r, hInfo, inst);
 	}
 
 	if (cameraMoveDirection != Engine::vec3(0.0f) || cameraRotated)

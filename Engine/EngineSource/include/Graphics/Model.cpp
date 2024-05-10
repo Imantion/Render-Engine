@@ -149,7 +149,6 @@ std::shared_ptr<Engine::Model> Engine::ModelManager::GetModel(std::string name)
 
 bool Engine::Model::intersect(const ray& r, hitInfo& info)
 {
-	info.reset_parameter_t();
 	bool intersected = false;
 	for (auto& mesh : m_meshes)
 	{

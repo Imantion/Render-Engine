@@ -36,5 +36,11 @@ namespace Engine
 		hitInfo grabbedInfo;
 		vec3 grabbedVector;
 	};
+
+	template<typename I>
+	class IInstanceDragger : public IRayDraggable
+	{
+		IInstanceDragger(I* instance) {}
+	};
 }
 

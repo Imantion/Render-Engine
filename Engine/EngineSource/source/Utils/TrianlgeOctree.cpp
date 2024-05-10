@@ -13,7 +13,7 @@ namespace Engine
 		float tmax = std::numeric_limits<float>::infinity();
 		for (int i = 0; i < 3; i++)
 		{
-			if (ray.direction[i] > 0.0001)
+			if (fabs(ray.direction[i]) > 0.0001)
 			{
 				rdx = 1.0f / ray.direction[i];
 				t1 = (box.min[i] - ray.origin[i]) * rdx;
