@@ -19,6 +19,11 @@ namespace Engine
 			mat4 meshToModel;
 		};
 
+		struct MaterialData
+		{
+			M material;
+		};
+
 		struct PerMaterial
 		{
 			M material;
@@ -40,7 +45,7 @@ namespace Engine
 		std::vector<PerModel> perModel;
 		VertexBuffer<I> instanceBuffer;
 		ConstBuffer<MeshData> meshData;
-		// ConstBuffer<MaterialData> materialData;
+		ConstBuffer<MaterialData> materialData;
 	public:
 
 		void updateShader(std::shared_ptr<shader> shdr)
@@ -48,11 +53,11 @@ namespace Engine
 			m_shader = shdr;
 		}
 
-		OpaqueInstances() { meshData.create(); }
+		OpaqueInstances() { meshData.create(); materialData.create(); }
 
-		void addModel(std::shared_ptr<Model> model, const vec3& color, const vec3& position, float xRotation = 0.0f, float yRotation = 0.0f, float zRotation = 0.0f) // rotation order means!
+		void addModel(std::shared_ptr<Model> model, const M& material, const vec3& position, float xRotation = 0.0f, float yRotation = 0.0f, float zRotation = 0.0f) // rotation order means!
 		{
-			float pi = 3.14159265359;
+			float pi = 3.14159265359f;
 			auto rotX = mat4::rotateX(pi * (-xRotation) / 360.0f);
 			auto rotY = mat4::rotateY(pi * (-yRotation) / 360.0f);
 			auto rotZ = mat4::rotateZ(pi * (-zRotation) / 360.0f);
@@ -69,8 +74,8 @@ namespace Engine
 			if (it == perModel.end())
 			{
 				std::vector<I> inst(1, transform);
-				M mat = { color };
-				PerMaterial perMat = { mat,inst };
+
+				PerMaterial perMat = { material,inst };
 
 				PerMesh perMes = { std::vector<PerMaterial>(1,perMat) };
 
@@ -83,12 +88,11 @@ namespace Engine
 				auto pModel = it;
 				for (uint32_t meshIndex = 0; meshIndex < pModel->perMesh.size(); ++meshIndex)
 				{
-					const Mesh& mesh = pModel->model->m_meshes[meshIndex];
 
 					bool inserted = false;
 					for (auto& perMaterial : pModel->perMesh[meshIndex].perMaterial)
 					{
-						if (color == perMaterial.material.color)
+						if (material == perMaterial.material)
 						{
 							perMaterial.instances.push_back(transform);
 							inserted = true;
@@ -98,9 +102,8 @@ namespace Engine
 					if (!inserted)
 					{
 						std::vector<I> inst;
-						M mat = { color };
 						inst.push_back(transform);
-						pModel->perMesh[meshIndex].perMaterial.push_back(PerMaterial{ mat, inst });
+						pModel->perMesh[meshIndex].perMaterial.push_back(PerMaterial{ material, inst });
 					}
 				}
 			}
@@ -157,6 +160,8 @@ namespace Engine
 			m_shader->BindShader();
 			instanceBuffer.bind(1u);
 			d3d->GetContext()->VSSetConstantBuffers(2u, 1, meshData.m_constBuffer.GetAddressOf());
+			d3d->GetContext()->PSSetConstantBuffers(3u, 1, meshData.m_constBuffer.GetAddressOf());
+			d3d->GetContext()->PSSetConstantBuffers(2u, 1, materialData.m_constBuffer.GetAddressOf());
 
 			uint32_t renderedInstances = 0;
 			for (const auto& perModel : perModel)
@@ -171,7 +176,6 @@ namespace Engine
 					const Mesh& mesh = perModel.model->m_meshes[meshIndex];
 					const auto& meshRange = perModel.model->m_ranges[meshIndex];
 
-					/*MeshData meshToModel = { * };*/
 					meshData.updateBuffer(reinterpret_cast<const MeshData*>(mesh.instances.data())); // ... update shader local per-mesh uniform buffer
 
 					for (const auto& perMaterial : perModel.perMesh[meshIndex].perMaterial)
@@ -179,9 +183,9 @@ namespace Engine
 						if (perMaterial.instances.empty()) continue;
 
 						const auto& material = perMaterial.material;
-
+						MaterialData data = { material };
 						// ... update shader local per-draw uniform buffer
-						// materialData.update(...); // we don't have it in HW4
+						 materialData.updateBuffer(&data);
 
 						// ... bind each material texture, we don't have it in HW4
 
@@ -199,7 +203,15 @@ namespace Engine
 	public:
 		struct Material
 		{
-			vec3 color;
+			vec3 shortWaveColor;
+			float padding0;
+			vec3 longWaveColor;
+			float padding1;
+
+			bool operator==(const Material& other) const
+			{
+				return shortWaveColor == other.shortWaveColor && longWaveColor == other.longWaveColor;
+			}
 		};
 
 		struct Instance

@@ -45,7 +45,7 @@ void D3DApplication::UpdateInput(float deltaTime)
 	Engine::vec2 delta = (mousePosition - previousMousePosition) * 0.005f;
 	previousMousePosition = Input::getMousePosition();
 
-	float cameraSpeed = 5.0f;
+	float cameraSpeed = 2.0f;
 
 	Engine::vec3 cameraMoveDirection = (0.0f, 0.0f, 0.0f);
 	if (Input::keyIsDown(Input::KeyboardButtons::W))

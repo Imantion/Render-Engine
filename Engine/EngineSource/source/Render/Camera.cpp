@@ -19,6 +19,14 @@ Engine::vec3 Engine::Camera::getRayDirection(const vec2& point)
 	return downInterpolation * (1 - point.y) + upInterpolation * point.y;
 }
 
+Engine::vec3 Engine::Camera::calculateRayDirection(const vec2& screenPosition)
+{
+	vec4 target = vec4(screenPosition.x, screenPosition.y, 1, 1) * inverseProjection;
+	vec3 rayDirection = vec4((vec3(target) / target.w).normalized(), 0.0f) * inverseView;
+
+	return rayDirection;
+}
+
 void Engine::Camera::calculateProjectionMatrix(int viewportWidth, int viewportHeight)
 {
 	projection = projectionMatrix(FOV * PI / 180.0f, nearClip, farClip, viewportWidth, viewportHeight);
@@ -33,27 +41,27 @@ void Engine::Camera::calculateViewMatrix()
 
 void Engine::Camera::calculateRayDirections()
 {
-	vec2 coord(-1);
-	vec4 target = vec4(coord.x, coord.y, 1, 1) * inverseProjection;
-	vec3 rayDirection = vec4((vec3(target) / target.w).normalized(), 0) * inverseView;
+	vec2 coord(-1.0f);
+	vec4 target = vec4(coord.x, coord.y, 1.0f, 1.0f) * inverseProjection;
+	vec3 rayDirection = vec4((vec3(target) / target.w).normalized(), 0.0f) * inverseView;
 	rayDirections[LeftDown] = rayDirection;
 
-	coord.x = -1;
-	coord.y = 1;;
-	target = vec4(coord.x, coord.y, 1, 1) * inverseProjection;
-	rayDirection = vec4((vec3(target) / target.w).normalized(), 0) * inverseView;
+	coord.x = -1.0f;
+	coord.y = 1.0f;;
+	target = vec4(coord.x, coord.y, 1.0f, 1.0f) * inverseProjection;
+	rayDirection = vec4((vec3(target) / target.w).normalized(), 0.0f) * inverseView;
 	rayDirections[LeftUp] = rayDirection;
 
-	coord.x = 1;
-	coord.y = 1;;
-	target = vec4(coord.x, coord.y, 1, 1) * inverseProjection;
-	rayDirection = vec4((vec3(target) / target.w).normalized(), 0) * inverseView;
+	coord.x = 1.0f;
+	coord.y = 1.0f;;
+	target = vec4(coord.x, coord.y, 1.0f, 1.0f) * inverseProjection;
+	rayDirection = vec4((vec3(target) / target.w).normalized(), 0.0f) * inverseView;
 	rayDirections[RightUp] = rayDirection;
 
-	coord.x = 1;
-	coord.y = -1;
-	target = vec4(coord.x, coord.y, 1, 1) * inverseProjection;
-	rayDirection = vec4((vec3(target) / target.w).normalized(), 0) * inverseView;
+	coord.x = 1.0f;
+	coord.y = -1.0f;
+	target = vec4(coord.x, coord.y, 1.0f, 1.0f) * inverseProjection;
+	rayDirection = vec4((vec3(target) / target.w).normalized(), 0.0f) * inverseView;
 	rayDirections[RightDown] = rayDirection;
 }
 

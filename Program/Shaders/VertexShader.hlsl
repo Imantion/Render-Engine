@@ -15,10 +15,12 @@ struct VIn
     float4 modelToWorld[4] : TOWORLD;
 };
 
+
 struct VOut
 {
     float4 position : SV_POSITION;
-    float4 color : COLOR;
+    float3 normal : NORMAL;
+    float4 modelToWorld[4] : TOWORLD;
 };
 
 VOut main(VIn input)
@@ -30,16 +32,9 @@ VOut main(VIn input)
     
     output.position = mul(mul(mul(float4(input.pos, 1.0f), meshToModel), toWorld), viewProjection);
     
-    float3 axisX = normalize(toWorld[0].xyz);
-    float3 axisY = normalize(toWorld[1].xyz);
-    float3 axisZ = normalize(toWorld[2].xyz);
-    
-    float3x3 meshToWorldNormalized = float3x3(normalize(meshToModel._11_12_13), normalize(meshToModel._21_22_23), normalize(meshToModel._31_32_33));
-    float3 N = mul(input.normal, meshToWorldNormalized);
-    N = normalize(N);
-    
-    float3 worldN = N.x * axisX + N.y * axisY + N.z * axisZ;
-    worldN = worldN * 0.5 + 0.5f;
+    output.normal = input.normal;
+    output.modelToWorld = input.modelToWorld;
+ 
     
     // local normal visualizationg
     //float3 axisX = normalize(meshToModel._11_21_31);
@@ -54,6 +49,5 @@ VOut main(VIn input)
     
     //worldN = worldN * 0.5 + 0.5f;
     
-    output.color = float4(worldN, 1);
     return output;
 }

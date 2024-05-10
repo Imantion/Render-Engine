@@ -12,6 +12,7 @@ namespace Engine
 		Camera(float verticalFov, float nearPlane, float farPlane);
 
 		vec3 getRayDirection(const vec2&);
+		vec3 calculateRayDirection(const vec2&);
 		vec3 getPosition() { return position; }
 
 		void calculateProjectionMatrix(int viewportWidth, int viewportHeight);

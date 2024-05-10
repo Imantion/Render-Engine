@@ -123,6 +123,12 @@ cbuffer meshData : register(b2)
     row_major matrix meshToModel;
 }
 
+cbuffer meshData : register(b2)
+{
+    float3 shortWaveColor;
+    float3 longWaveColor;
+}
+
 struct VIn
 {
     float3 pos : POSITION;
@@ -183,10 +189,10 @@ float3 psMain(VOut input) : SV_TARGET
     // when contourWave is 0.0, contourGlow becomes darker, otherwise contourGlow color is plain, without ripple
     contourGlow = lerp(contourGlow / 10, contourGlow, contourWave);
 
-    float3 color = float3(0, 1.0, 1.0) * min(1, contourGlow + blueWave * 0.5);
+    float3 color = shortWaveColor * min(1, contourGlow + blueWave * 0.5);
     float colorNoise = sqrt(noise4d(float4(pos, frac(g_time)) * 100, 1));
     color *= lerp(colorNoise, 1.0, contourInterference);
     
-    color = lerp(color, float3(1.0, 0.0, 0.0), redWave * 0.25);
+    color = lerp(color, longWaveColor, redWave * 0.25);
     return color;
 }

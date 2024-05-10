@@ -90,13 +90,19 @@ int main(int argc, char* argv[])
 	Engine::Engine::Init();
 	D3DApplication app(800, 400, WindowProc);
 
+	Engine::MeshSystem::Material knightMat = { Engine::vec3(1.0,0.0f,1.0f), 0.0f,Engine::vec3(1.0,1.0f,0.0f), 0.0f };
+
 	Engine::ModelManager::GetInstance()->loadModel("C:\\Users\\d.kolomiiets\\Downloads\\hints-master-models\\hints-master-models\\models\\Samurai\\Samurai.fbx");
 	auto model = Engine::ModelManager::GetInstance()->GetModel("C:\\Users\\d.kolomiiets\\Downloads\\hints-master-models\\hints-master-models\\models\\Samurai\\Samurai.fbx");
-	Engine::MeshSystem::Init()->hologramGroup.addModel(model, Engine::vec3(1.0f), Engine::vec3(0.0f, -1.0f, 0.0f));
+	Engine::MeshSystem::Init()->hologramGroup.addModel(model, knightMat, Engine::vec3(0.0f, -1.0f, 0.0f));
+	knightMat = { Engine::vec3(0.0,1.0f,1.0f), 0.0f,Engine::vec3(1.0,0.0f,0.0f), 0.0f };
+	Engine::MeshSystem::Init()->hologramGroup.addModel(model, knightMat, Engine::vec3(1.0f, -1.0f, 0.0f));
+
 
 	//Engine::ModelManager::GetInstance()->loadModel("C:\\Users\\d.kolomiiets\\Downloads\\cube.obj");
 	//model = Engine::ModelManager::GetInstance()->GetModel("C:\\Users\\d.kolomiiets\\Downloads\\cube.obj");
-	//Engine::MeshSystem::Init()->normVisGroup.addModel(model, Engine::vec3(1.0f),Engine::vec3(1.0f, 0.0f, 1.0f));
+	//Engine::MeshSystem::Init()->normVisGroup.addModel(model, knightMat,Engine::vec3(1.0f, 1.0f, 1.0f));
+	//Engine::MeshSystem::Init()->normVisGroup.updateInstanceBuffers();
 	Engine::MeshSystem::Init()->hologramGroup.updateInstanceBuffers();
 	
 	while (!app.isClosed())
