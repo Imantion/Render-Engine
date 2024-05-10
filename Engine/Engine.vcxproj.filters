@@ -33,11 +33,11 @@
     <Filter Include="Include\Render">
       <UniqueIdentifier>{04d3fc8d-4e25-4526-b6bb-128a69dd4a60}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Include\Engine">
-      <UniqueIdentifier>{818c0adc-3efe-470b-8eac-8062dba15a18}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Engine">
+    <Filter Include="Source\Graphics">
       <UniqueIdentifier>{c1270baa-a026-4ec5-80b6-bb1bab5a0ed9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Include\Graphics">
+      <UniqueIdentifier>{818c0adc-3efe-470b-8eac-8062dba15a18}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -69,25 +69,25 @@
       <Filter>Source\Utils</Filter>
     </ClCompile>
     <ClCompile Include="EngineSource\source\Graphics\Engine.cpp">
-      <Filter>Source\Engine</Filter>
+      <Filter>Source\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="EngineSource\source\Graphics\D3D.cpp">
-      <Filter>Source\Engine</Filter>
-    </ClCompile>
-    <ClCompile Include="EngineSource\source\Graphics\ShaderManager.cpp">
-      <Filter>Include\Engine</Filter>
-    </ClCompile>
-    <ClCompile Include="EngineSource\source\Graphics\Renderer.cpp">
-      <Filter>Source</Filter>
+      <Filter>Source\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="EngineSource\source\Utils\TrianlgeOctree.cpp">
-      <Filter>Source</Filter>
+      <Filter>Source\Utils</Filter>
     </ClCompile>
-    <ClCompile Include="EngineSource\include\Graphics\Model.cpp">
-      <Filter>Source</Filter>
+    <ClCompile Include="EngineSource\source\Graphics\MeshSystem.cpp">
+      <Filter>Source\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="EngineSource\include\Graphics\MeshSystem.cpp">
-      <Filter>Source</Filter>
+    <ClCompile Include="EngineSource\source\Graphics\Model.cpp">
+      <Filter>Source\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="EngineSource\source\Graphics\Renderer.cpp">
+      <Filter>Source\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="EngineSource\source\Graphics\ShaderManager.cpp">
+      <Filter>Source\Graphics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -137,34 +137,34 @@
       <Filter>Include\Utils</Filter>
     </ClInclude>
     <ClInclude Include="EngineSource\include\Graphics\D3D.h">
-      <Filter>Include\Engine</Filter>
+      <Filter>Include\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="EngineSource\include\Graphics\Engine.h">
-      <Filter>Include\Engine</Filter>
+      <Filter>Include\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="EngineSource\include\Graphics\ShaderManager.h">
-      <Filter>Include\Engine</Filter>
-    </ClInclude>
-    <ClInclude Include="EngineSource\include\Graphics\Buffers.h">
-      <Filter>Include</Filter>
-    </ClInclude>
-    <ClInclude Include="EngineSource\include\Graphics\Renderer.h">
-      <Filter>Include</Filter>
-    </ClInclude>
-    <ClInclude Include="EngineSource\include\Graphics\Mesh.h">
-      <Filter>Include</Filter>
-    </ClInclude>
-    <ClInclude Include="EngineSource\include\Graphics\Model.h">
-      <Filter>Include</Filter>
+      <Filter>Include\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="EngineSource\include\Math\Box.hpp">
-      <Filter>Include</Filter>
+      <Filter>Include\Math</Filter>
     </ClInclude>
     <ClInclude Include="EngineSource\include\Utils\TriangleOctree.hpp">
-      <Filter>Include</Filter>
+      <Filter>Include\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineSource\include\Graphics\Buffers.h">
+      <Filter>Include\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineSource\include\Graphics\Mesh.h">
+      <Filter>Include\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="EngineSource\include\Graphics\MeshSystem.h">
-      <Filter>Include</Filter>
+      <Filter>Include\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineSource\include\Graphics\Model.h">
+      <Filter>Include\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineSource\include\Graphics\Renderer.h">
+      <Filter>Include\Graphics</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

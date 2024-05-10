@@ -147,8 +147,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="EngineSource\include\Graphics\MeshSystem.cpp" />
-    <ClCompile Include="EngineSource\include\Graphics\Model.cpp" />
+    <ClCompile Include="EngineSource\source\Graphics\MeshSystem.cpp" />
+    <ClCompile Include="EngineSource\source\Graphics\Model.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\Renderer.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\ShaderManager.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\D3D.cpp" />
