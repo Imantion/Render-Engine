@@ -6,8 +6,11 @@
 #include "Input/Input.h"
 #include "Utils/Timer.h"
 #include "Math/matrix.h"
+#include "Graphics/Engine.h"
+#include "D3DApp/D3DApplication.h"
 
 #define FRAME_RATE 60
+#define D3DAPP
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -24,8 +27,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 		Engine::Window* window = (Engine::Window*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
 		window->onResize();
-
-		window->flush();
 	}break;
 	case WM_SYSKEYDOWN:
 	case WM_KEYDOWN:
@@ -74,6 +75,48 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 
+#ifdef D3DAPP
+
+int main(int argc, char* argv[])
+{
+
+	MSG msg = { 0 };
+
+
+	Engine::Timer timer;
+	
+	Engine::Engine::Init();
+	D3DApplication app(800, 400, WindowProc);
+
+	app.PrepareTriangle();
+
+	while (!app.isClosed())
+	{
+		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+		{
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+
+			if (msg.message == WM_QUIT)
+				break;
+
+		}
+
+		if (timer.timeElapsed(FRAME_RATE))
+		{
+
+			app.Update(timer.getDeltatime());
+			Input::resetScroll();
+		}
+
+
+		std::this_thread::yield();
+	}
+
+	Engine::Engine::Deinit();
+	return 0;
+}
+#else
 
 int main(int argc, char* argv[])
 {
@@ -109,3 +152,4 @@ int main(int argc, char* argv[])
 	return 0;
 }
 
+#endif // D3DPAPP

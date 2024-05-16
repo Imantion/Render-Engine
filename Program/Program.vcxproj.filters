@@ -10,6 +10,12 @@
     <Filter Include="Application\Input">
       <UniqueIdentifier>{2687b57c-8216-444a-af94-15bb879b8905}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Application\D3DApp">
+      <UniqueIdentifier>{2e56ade9-a346-4b11-8356-3bcb804966ff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{17d2168b-3c71-49f7-a281-6e0d7b019bf4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Application\App\Application.cpp">
@@ -19,6 +25,9 @@
       <Filter>Application\Input</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Application\D3DApp\D3DApplication.cpp">
+      <Filter>Application\D3DApp</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application\App\Application.h">
@@ -27,5 +36,16 @@
     <ClInclude Include="Application\Input\Input.h">
       <Filter>Application\Input</Filter>
     </ClInclude>
+    <ClInclude Include="Application\D3DApp\D3DApplication.h">
+      <Filter>Application\D3DApp</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\PixelShader.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\VertexShader.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

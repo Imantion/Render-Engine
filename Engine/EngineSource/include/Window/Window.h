@@ -1,16 +1,22 @@
 ﻿#pragma once
 #include "Windows.h"
 #include "memory"
+#include <dxgi1_4.h>
+#include <d3d11.h>
+#include <mutex>
+#include <wrl.h>
+
+
+typedef LRESULT(CALLBACK* WinProc)(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 namespace Engine
 {
-	typedef LRESULT(CALLBACK* WindowProcPtr)(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 
 	class Window
 	{
 	public:
-		Window(int wWidth, int wHeight, WindowProcPtr);
+		Window(int wWidth, int wHeight, WinProc);
 		~Window();
 
 		void onDestroy();
@@ -35,7 +41,7 @@ namespace Engine
 	private:
 
 		void* m_handle = nullptr;
-		HDC device_context;
+		HDC window_device_context;
 		int height;
 		int width;
 		int buffersize;
@@ -55,6 +61,12 @@ namespace Engine
 		auto get_ptr(std::size_t size) {
 			return std::unique_ptr<void, decltype(&std::free)>(std::malloc(size), std::free);
 		}
+
+		Microsoft::WRL::ComPtr<IDXGISwapChain1> swapchain;
+		public:
+		Microsoft::WRL::ComPtr <ID3D11RenderTargetView> pRenderTarget;
+		D3D11_VIEWPORT viewport;
+
 	};
 
 } // namespace Engine
