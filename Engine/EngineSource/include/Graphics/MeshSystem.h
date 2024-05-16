@@ -89,9 +89,9 @@ namespace Engine
 							
 							if (mesh.intersect(transformedRay, hInfo))
 							{
-								inst.modelIndex = i;
-								inst.perMaterialIndex = j;
-								inst.materialIndex = index;
+								inst.modelIndex = (int)i;
+								inst.perMaterialIndex = (int)j;
+								inst.materialIndex = (int)index;
 								hInfo.p = r.point_at_parameter(hInfo.t);
 							}
 						}
