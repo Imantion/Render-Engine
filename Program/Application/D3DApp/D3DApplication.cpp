@@ -3,6 +3,11 @@
 #include "Graphics/ShaderManager.h"
 #include <assert.h>
 
+#define FIRST_SHADER "1"
+
+
+D3D_SHADER_MACRO psMacro[] = { "FIRST_SHADER", FIRST_SHADER, NULL, NULL};
+
 D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc windowEvent)
 {
 	pWindow.reset(new Engine::Window(windowWidth, windowHeight, windowEvent));
@@ -21,7 +26,7 @@ void D3DApplication::PrepareTriangle()
 		{"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 8, D3D11_INPUT_PER_VERTEX_DATA, 0}
 		};
 
-		D3D_SHADER_MACRO psMacro[] = { "FIRST_SHADER", "0", NULL, NULL };
+
 
 		Engine::shader* triangleShader = Engine::ShaderManager::CompileAndCreateShader("Triangle", L"Shaders/VertexShader.hlsl", L"Shaders/PixelShader.hlsl", ied, nullptr, psMacro);
 		if (!triangleShader)
@@ -62,9 +67,7 @@ void D3DApplication::PrepareCurlesque()
 		{"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 8, D3D11_INPUT_PER_VERTEX_DATA, 0}
 		};
 
-		D3D_SHADER_MACRO pm[] = { "FIRST_SHADER", "0", NULL, NULL };
-
-		Engine::shader* triangleShader = Engine::ShaderManager::CompileAndCreateShader("Curlesque", L"Shaders/VertexShader.hlsl", L"Shaders/PixelShader.hlsl",ied, nullptr, pm);
+		Engine::shader* triangleShader = Engine::ShaderManager::CompileAndCreateShader("Curlesque", L"Shaders/VertexShader.hlsl", L"Shaders/PixelShader.hlsl",ied, nullptr, psMacro);
 		if (!triangleShader)
 			throw std::runtime_error("Failed to compile and create shader!");
 
