@@ -1,4 +1,4 @@
-#include "declarations.hlsli"
+#include "../declarations.hlsli"
 
 cbuffer MeshData : register(b3)
 {

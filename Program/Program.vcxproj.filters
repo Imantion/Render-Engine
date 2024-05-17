@@ -35,18 +35,20 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\PixelShader.hlsl">
+    <None Include="Shaders\normalLines\PixelShader.hlsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\VertexShader.hlsl">
+    <None Include="Shaders\normalLines\VertexShader.hlsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\HullShader.hlsl">
+    <None Include="Shaders\normalLines\HullShader.hlsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\DomainShader.hlsl">
+    <None Include="Shaders\normalLines\DomainShader.hlsl">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="Shaders\normalColor\VertexShader.hlsl" />
+    <None Include="Shaders\normalColor\PixelShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\declarations.hlsli">
@@ -57,6 +59,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Shaders\GSnormal.hlsl" />
+    <FxCompile Include="Shaders\normalLines\GSnormal.hlsl" />
   </ItemGroup>
 </Project>

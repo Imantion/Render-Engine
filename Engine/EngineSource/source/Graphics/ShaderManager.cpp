@@ -97,6 +97,7 @@ void Engine::shader::BindShader()
 		d3d->GetContext()->DSSetShader(domainShader.Get(), nullptr, 0u);
 		d3d->GetContext()->GSSetShader(geometryShader.Get(), nullptr, 0u);
 		d3d->GetContext()->IASetInputLayout(inputLayout.Get());
+		d3d->GetContext()->IASetPrimitiveTopology(topology);
 	}
 }
 
@@ -106,7 +107,7 @@ void Engine::shader::BindShader()
 std::unordered_map<std::string, std::shared_ptr<Engine::shader>> Engine::ShaderManager::shaders;
 
 std::shared_ptr<Engine::shader> Engine::ShaderManager::CompileAndCreateShader(const char* shaderName, const wchar_t* vertexShaderSource, const wchar_t* pixelShaderSource,
-	const D3D11_INPUT_ELEMENT_DESC* ied, UINT iedSize, const D3D_SHADER_MACRO* vertexShaderMacro,const D3D_SHADER_MACRO* pixelShaderMacro,
+	const D3D11_INPUT_ELEMENT_DESC* ied, UINT iedSize, const D3D_SHADER_MACRO* vertexShaderMacro,const D3D_SHADER_MACRO* pixelShaderMacro, D3D_PRIMITIVE_TOPOLOGY topology,
 	const char* vsEntryPoint, const char* psEntryPoint)
 {
 	UINT flags = 0;
@@ -130,6 +131,7 @@ std::shared_ptr<Engine::shader> Engine::ShaderManager::CompileAndCreateShader(co
 
 	if (shader->CreateShader(vertexlBlob.Get(), pixelBlob.Get(), ied, iedSize))
 	{
+		shader->topology = topology;
 		shaders.insert({ shaderName, shader });
 
 		return shader;
@@ -140,7 +142,7 @@ std::shared_ptr<Engine::shader> Engine::ShaderManager::CompileAndCreateShader(co
 
 std::shared_ptr<Engine::shader> Engine::ShaderManager::CompileAndCreateShader(const char* shaderName, const wchar_t* vertexShaderSource, 
 	const wchar_t* pixelShaderSource, const wchar_t* hullShaderSource, const wchar_t* domainShaderSource, const wchar_t* geometryShaderSource, 
-	const D3D11_INPUT_ELEMENT_DESC* ied, UINT iedSize, const D3D_SHADER_MACRO* vertexShaderMacro, const D3D_SHADER_MACRO* pixelShaderMacro,
+	const D3D11_INPUT_ELEMENT_DESC* ied, UINT iedSize, const D3D_SHADER_MACRO* vertexShaderMacro, const D3D_SHADER_MACRO* pixelShaderMacro, D3D_PRIMITIVE_TOPOLOGY topology,
 	const char* vsEntryPoint, const char* psEntryPoint, const char* hsEntryPoint, const char* dsEntryPoint, const char* gsEntryPoint)
 {
 	UINT flags = 0;
@@ -160,17 +162,30 @@ std::shared_ptr<Engine::shader> Engine::ShaderManager::CompileAndCreateShader(co
 	assert(SUCCEEDED(hr));
 	shader->createPS(shaderBlob.Get());
 
-	hr = D3DCompileFromFile(hullShaderSource, nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, hsEntryPoint, "hs_5_0", flags, 0, &shaderBlob, nullptr);
-	assert(SUCCEEDED(hr));
-	shader->createHS(shaderBlob.Get());
+	if (hullShaderSource != nullptr)
+	{
+		hr = D3DCompileFromFile(hullShaderSource, nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, hsEntryPoint, "hs_5_0", flags, 0, &shaderBlob, nullptr);
+		assert(SUCCEEDED(hr));
+		shader->createHS(shaderBlob.Get());
+	}
 
-	hr = D3DCompileFromFile(domainShaderSource, nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, dsEntryPoint, "ds_5_0", flags, 0, &shaderBlob, nullptr);
-	assert(SUCCEEDED(hr));
-	shader->createDS(shaderBlob.Get());
+	if(domainShaderSource != nullptr)
+	{
+		hr = D3DCompileFromFile(domainShaderSource, nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, dsEntryPoint, "ds_5_0", flags, 0, &shaderBlob, nullptr);
+		assert(SUCCEEDED(hr));
+		shader->createDS(shaderBlob.Get());
+	}
 
-	hr = D3DCompileFromFile(geometryShaderSource, nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, gsEntryPoint, "gs_5_0", flags, 0, &shaderBlob, nullptr);
-	assert(SUCCEEDED(hr));
-	shader->createGS(shaderBlob.Get());
+	if(geometryShaderSource != nullptr)
+	{
+		hr = D3DCompileFromFile(geometryShaderSource, nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, gsEntryPoint, "gs_5_0", flags, 0, &shaderBlob, nullptr);
+		assert(SUCCEEDED(hr));
+		shader->createGS(shaderBlob.Get());
+	}
+
+	shader->topology = topology;
+
+	shaders.insert({ shaderName, shader });
 
 	return shader;
 }

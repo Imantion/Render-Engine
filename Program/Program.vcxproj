@@ -213,7 +213,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\PixelShader.hlsl">
+    <None Include="Shaders\normalLines\PixelShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
@@ -224,7 +224,7 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
       <FileType>Document</FileType>
     </None>
-    <None Include="Shaders\VertexShader.hlsl">
+    <None Include="Shaders\normalLines\VertexShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
@@ -237,7 +237,7 @@
     <None Include="Shaders\Hologram.shader" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\HullShader.hlsl">
+    <None Include="Shaders\normalLines\HullShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Hull</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Hull</ShaderType>
@@ -250,7 +250,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\DomainShader.hlsl">
+    <None Include="Shaders\normalLines\DomainShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Domain</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Domain</ShaderType>
@@ -263,7 +263,13 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Shaders\GSnormal.hlsl">
+    <None Include="Shaders\normalColor\PixelShader.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\normalColor\VertexShader.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <FxCompile Include="Shaders\normalLines\GSnormal.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Geometry</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Geometry</ShaderType>

@@ -1,4 +1,4 @@
-#include "declarations.hlsli"
+#include "..\declarations.hlsli"
 
 struct DS_OUTPUT
 {
