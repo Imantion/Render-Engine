@@ -49,6 +49,8 @@
     </None>
     <None Include="Shaders\normalColor\VertexShader.hlsl" />
     <None Include="Shaders\normalColor\PixelShader.hlsl" />
+    <None Include="Shaders\DomainShader.hlsl" />
+    <None Include="Shaders\HullShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\declarations.hlsli">
@@ -60,5 +62,6 @@
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\normalLines\GSnormal.hlsl" />
+    <FxCompile Include="Shaders\GSHologram.hlsl" />
   </ItemGroup>
 </Project>

@@ -77,11 +77,11 @@ Engine::MeshSystem::MeshSystem()
 		throw std::runtime_error("Failed to compile and create shader!");*/
 
 	auto HologramGroup = Engine::ShaderManager::CompileAndCreateShader("HologramGroup", L"Shaders\\Hologram.shader",
-		L"Shaders\\Hologram.shader", ied, 9u, nullptr, pm, D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST, "vsMain", "psMain");
+		L"Shaders\\Hologram.shader", L"Shaders\\HullShader.hlsl", L"Shaders\\DomainShader.hlsl", L"Shaders\\GSHologram.hlsl", ied, 9u, nullptr, pm, D3D_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST, "vsMain", "psMain");
 	if (!HologramGroup)
 		throw std::runtime_error("Failed to compile and create shader!");
 
-	normVisGroup.addShader(NormalVisLines);
-	normVisGroup.addShader(NormalVisColor);
+	/*normVisGroup.addShader(NormalVisLines);*/
+	normVisGroup.addShader(HologramGroup);
 	hologramGroup.addShader(HologramGroup);
 }
