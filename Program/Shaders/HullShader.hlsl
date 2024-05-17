@@ -28,6 +28,9 @@ HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(
     Output.EdgeTessFactor[1] = abs(distance(ip[1].vPosition, ip[2].vPosition)) * 3;
     Output.EdgeTessFactor[2] = abs(distance(ip[2].vPosition, ip[0].vPosition)) * 3;
     Output.InsideTessFactor = max(max(Output.EdgeTessFactor[0], Output.EdgeTessFactor[1]), Output.EdgeTessFactor[2]);
+    
+    //Output.EdgeTessFactor[0] = Output.EdgeTessFactor[1] = Output.EdgeTessFactor[2] = 1;
+    //Output.InsideTessFactor = 0;
 
     return Output;
 }

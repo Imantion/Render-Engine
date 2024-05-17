@@ -57,6 +57,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Shaders\GeometryShader.hlsl" />
+    <FxCompile Include="Shaders\GSnormal.hlsl" />
   </ItemGroup>
 </Project>
