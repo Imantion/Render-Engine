@@ -169,8 +169,8 @@ VOut vsMain(VIn input)
     output.normal = N;
     
     float offset = 0.0;
-    offset += output.normal * 0.025 * wave(output.spacePosition, BLUE_WAVE_INTERVAL, BLUE_WAVE_SPEED, BLUE_WAVE_THICKNESS, true);
-    offset += output.normal * 0.05 * wave(output.spacePosition, RED_WAVE_INTERVAL, RED_WAVE_SPEED, RED_WAVE_THICKNESS, false);
+    offset += float3(1,1,1) * 0.025 * wave(output.spacePosition, BLUE_WAVE_INTERVAL, BLUE_WAVE_SPEED, BLUE_WAVE_THICKNESS, true);
+    offset +=  float3(1,1,1) * 0.05 * wave(output.spacePosition, RED_WAVE_INTERVAL, RED_WAVE_SPEED, RED_WAVE_THICKNESS, false);
     
     // output.position = mul(float4(output.spacePosition + offset ,1.0f), viewProjection);
     output.offset = offset;
