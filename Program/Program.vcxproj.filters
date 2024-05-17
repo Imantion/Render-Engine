@@ -56,4 +56,7 @@
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Shaders\GeometryShader.hlsl" />
+  </ItemGroup>
 </Project>

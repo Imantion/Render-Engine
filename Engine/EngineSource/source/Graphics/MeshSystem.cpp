@@ -32,7 +32,7 @@ void Engine::MeshSystem::updateInstanceBuffers()
 void Engine::MeshSystem::render()
 {
 	normVisGroup.render();
-	hologramGroup.render();
+	//hologramGroup.render();
 }
 
 Engine::MeshSystem* Engine::MeshSystem::Init()

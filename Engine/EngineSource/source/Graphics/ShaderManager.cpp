@@ -55,10 +55,10 @@ std::shared_ptr<Engine::shader> Engine::ShaderManager::CompileAndCreateShader(co
 	Microsoft::WRL::ComPtr<ID3DBlob> vertexlBlob;
 	/*ID3DBlob* vertexlBlob;*/
 
-	HRESULT hr = D3DCompileFromFile(vertexShaderSource, vertexShaderMacro, D3D_COMPILE_STANDARD_FILE_INCLUDE, vsEntryPoint, "vs_5_0", D3DCOMPILE_DEBUG, 0, &vertexlBlob, nullptr);
+	HRESULT hr = D3DCompileFromFile(vertexShaderSource, vertexShaderMacro, D3D_COMPILE_STANDARD_FILE_INCLUDE, vsEntryPoint, "vs_5_0", flags, 0, &vertexlBlob, nullptr);
 	assert(SUCCEEDED(hr));
 
-	hr = D3DCompileFromFile(pixelShaderSource, pixelShaderMacro, D3D_COMPILE_STANDARD_FILE_INCLUDE, psEntryPoint, "ps_5_0", D3DCOMPILE_DEBUG, 0, &pixelBlob, nullptr);
+	hr = D3DCompileFromFile(pixelShaderSource, pixelShaderMacro, D3D_COMPILE_STANDARD_FILE_INCLUDE, psEntryPoint, "ps_5_0", flags, 0, &pixelBlob, nullptr);
 	assert(SUCCEEDED(hr));
 
 	std::shared_ptr<shader>shader = std::make_shared<Engine::shader>();

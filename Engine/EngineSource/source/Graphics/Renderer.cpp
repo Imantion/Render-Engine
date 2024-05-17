@@ -37,7 +37,23 @@ void Engine::Renderer::InitDepthWithRTV(ID3D11Resource* RenderBuffer, UINT wWidt
 		d3d->GetContext()->VSSetConstantBuffers(0, 1, perViewBuffer.m_constBuffer.GetAddressOf());
 		d3d->GetContext()->VSSetConstantBuffers(1, 1, perFrameBuffer.m_constBuffer.GetAddressOf());
 
-		d3d->GetContext()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		d3d->GetContext()->DSSetConstantBuffers(0, 1, perViewBuffer.m_constBuffer.GetAddressOf());
+
+		d3d->GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
+
+
+		Microsoft::WRL::ComPtr<ID3DBlob> blob;
+		D3DCompileFromFile(L"Shaders/HullShader.hlsl", nullptr, nullptr, "main", "hs_5_0", D3DCOMPILE_DEBUG, 0, &blob, nullptr);
+		d3d->GetDevice()->CreateHullShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &hullShader);
+
+		Microsoft::WRL::ComPtr<ID3DBlob> DSblob;
+		 hr = D3DCompileFromFile(L"Shaders/DomainShader.hlsl", nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "ds_5_0", D3DCOMPILE_DEBUG, 0, &DSblob, nullptr);
+		assert(SUCCEEDED(hr));
+		d3d->GetDevice()->CreateDomainShader(DSblob->GetBufferPointer(), DSblob->GetBufferSize(), nullptr, &domainShader);
+
+		d3d->GetContext()->DSSetShader(domainShader.Get(), NULL, 0u);
+		d3d->GetContext()->HSSetShader(hullShader.Get(), NULL, 0u);
+		
 	}
 }
 
@@ -97,6 +113,8 @@ void Engine::Renderer::updatePerFrameCB(float deltaTime, float wWidth, float wHe
 void Engine::Renderer::Render(Camera* camera)
 {
 	Engine::D3D* d3d = Engine::D3D::GetInstance();
+
+
 	d3d->GetContext()->OMSetRenderTargets(1u, pRenderTarget.GetAddressOf(), pViewDepth.Get());
 
 	const float color[] = { 0.5f, 0.5f,0.5f,1.0f };
@@ -107,7 +125,6 @@ void Engine::Renderer::Render(Camera* camera)
 	PerViewCB perView = PerViewCB{ camera->getViewMatrix() * camera->getProjectionMatrix(), camera->getPosition()};
 	perViewBuffer.updateBuffer(&perView);
 
-	/*d3d->GetContext()->DrawIndexed(162678,0,0);*/
 
 	MeshSystem::Init()->render();
 }
