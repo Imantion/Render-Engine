@@ -142,9 +142,8 @@ struct VIn
 struct VOut
 {
     float4 position : SV_POSITION;
-    float3 spacePosition : SPACE_POS;
+    float3 spacePosition : WORLDPOS;
     float3 normal : NORMAL;
-    float4 color : COLOR;
 };
 
 // called in vertex shader
@@ -168,7 +167,6 @@ VOut vsMain(VIn input)
     
     output.position = mul(float4(output.spacePosition + offset ,1.0f), viewProjection);
 
-    output.color = float4(1.0f, 1.0f, 1.0f, 1.0f);
     return output;
 }
 

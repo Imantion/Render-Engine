@@ -41,6 +41,12 @@
     <None Include="Shaders\VertexShader.hlsl">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="Shaders\HullShader.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\DomainShader.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\declarations.hlsli">
