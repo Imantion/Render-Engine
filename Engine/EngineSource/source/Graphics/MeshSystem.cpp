@@ -32,7 +32,7 @@ void Engine::MeshSystem::updateInstanceBuffers()
 void Engine::MeshSystem::render()
 {
 	normVisGroup.render();
-	//hologramGroup.render();
+	hologramGroup.render();
 }
 
 Engine::MeshSystem* Engine::MeshSystem::Init()
@@ -73,15 +73,18 @@ Engine::MeshSystem::MeshSystem()
 	auto NormalVisLines = Engine::ShaderManager::CompileAndCreateShader("NormalVisLines", L"Shaders\\normalLines\\VertexShader.hlsl",
 		L"Shaders\\normalLines\\PixelShader.hlsl", L"Shaders\\normalLines\\HullShader.hlsl", L"Shaders\\normalLines\\DomainShader.hlsl",
 		L"Shaders\\normalLines\\GSnormal.hlsl", ied, 9u, nullptr, pm, D3D_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
-	/*if (!NormalVisColor)
-		throw std::runtime_error("Failed to compile and create shader!");*/
+
+	NormalVisLines->DisableShader();
+	if (!NormalVisColor)
+		throw std::runtime_error("Failed to compile and create shader!");
 
 	auto HologramGroup = Engine::ShaderManager::CompileAndCreateShader("HologramGroup", L"Shaders\\Hologram.shader",
 		L"Shaders\\Hologram.shader", L"Shaders\\HullShader.hlsl", L"Shaders\\DomainShader.hlsl", L"Shaders\\GSHologram.hlsl", ied, 9u, nullptr, pm, D3D_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST, "vsMain", "psMain");
 	if (!HologramGroup)
 		throw std::runtime_error("Failed to compile and create shader!");
 
-	/*normVisGroup.addShader(NormalVisLines);*/
-	normVisGroup.addShader(HologramGroup);
+	normVisGroup.addShader(NormalVisLines);
+	normVisGroup.addShader(NormalVisColor);
 	hologramGroup.addShader(HologramGroup);
+	hologramGroup.addShader(NormalVisLines);
 }

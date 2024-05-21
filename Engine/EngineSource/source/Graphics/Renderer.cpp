@@ -38,7 +38,9 @@ void Engine::Renderer::InitDepthWithRTV(ID3D11Resource* RenderBuffer, UINT wWidt
 		d3d->GetContext()->VSSetConstantBuffers(1, 1, perFrameBuffer.m_constBuffer.GetAddressOf());
 
 		d3d->GetContext()->DSSetConstantBuffers(0, 1, perViewBuffer.m_constBuffer.GetAddressOf());
+
 		d3d->GetContext()->GSSetConstantBuffers(0, 1, perViewBuffer.m_constBuffer.GetAddressOf());
+		d3d->GetContext()->GSSetConstantBuffers(1, 1, perFrameBuffer.m_constBuffer.GetAddressOf());
 
 		d3d->GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
 	}

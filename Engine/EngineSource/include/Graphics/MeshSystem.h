@@ -117,13 +117,14 @@ namespace Engine
 		}
 
 
-		void addModel(std::shared_ptr<Model> model, const M& material, const I& instance) // rotation order means!
+		void addModel(std::shared_ptr<Model> model, const M& material, const vec3& position, float scale = 1.0f) // rotation order means!
 		{
 			//float pi = 3.14159265359f;
 			//auto rotX = mat4::rotateX(pi * (-xRotation) / 360.0f);
 			//auto rotY = mat4::rotateY(pi * (-yRotation) / 360.0f);
 			//auto rotZ = mat4::rotateZ(pi * (-zRotation) / 360.0f);
 
+			I transform{ transformMatrix(position, vec3(0.0f, 0.0f, 1.0f) * scale, vec3(1.0f, 0.0f, 0.0f) * scale, vec3(0.0f, 1.0f, 0.0f) * scale)};
 			auto it = perModel.end();
 			for (auto i = perModel.begin(); i != perModel.end(); i++)
 			{
@@ -133,7 +134,7 @@ namespace Engine
 
 			if (it == perModel.end())
 			{
-				std::vector<I> inst(1, instance);
+				std::vector<I> inst(1, transform);
 
 				PerMaterial perMat = { material,inst };
 
@@ -154,7 +155,7 @@ namespace Engine
 					{
 						if (material == perMaterial.material)
 						{
-							perMaterial.instances.push_back(instance);
+							perMaterial.instances.push_back(transform);
 							inserted = true;
 						}
 					}
@@ -162,7 +163,7 @@ namespace Engine
 					if (!inserted)
 					{
 						std::vector<I> inst;
-						inst.push_back(instance);
+						inst.push_back(transform);
 						pModel->perMesh[meshIndex].perMaterial.push_back(PerMaterial{ material, inst });
 					}
 				}
@@ -228,6 +229,8 @@ namespace Engine
 			D3D* d3d = D3D::GetInstance();
 			for (size_t i = 0; i < m_shaders.size(); i++)
 			{
+				if (!m_shaders[i]->isEnabled)
+					continue;
 				m_shaders[i]->BindShader();
 				instanceBuffer.bind(1u);
 				d3d->GetContext()->VSSetConstantBuffers(2u, 1, meshData.m_constBuffer.GetAddressOf());

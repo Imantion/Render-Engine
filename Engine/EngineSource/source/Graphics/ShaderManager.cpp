@@ -87,9 +87,20 @@ bool Engine::shader::CreateShader(ID3DBlob* vsBlob, ID3DBlob* psBlob, const D3D1
 	return isSuccessful;
 }
 
+void Engine::shader::EnableShader()
+{
+	isEnabled = true;
+}
+
+void Engine::shader::DisableShader()
+{
+	isEnabled = false;
+}
+
 void Engine::shader::BindShader()
 {
-	if (D3D* d3d = D3D::GetInstance())
+	D3D* d3d = D3D::GetInstance();
+	if (d3d && isEnabled)
 	{
 		d3d->GetContext()->VSSetShader(vertexShader.Get(), nullptr, 0u);
 		d3d->GetContext()->PSSetShader(pixelShader.Get(), nullptr, 0u);

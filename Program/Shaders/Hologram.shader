@@ -143,7 +143,6 @@ struct VOut
 {
     float3 spacePosition : WORLDPOS;
     float3 normal : NORMAL;
-    float offset : OFFSET;
 };
 
 struct GSOut
@@ -173,7 +172,6 @@ VOut vsMain(VIn input)
     offset +=  float3(1,1,1) * 0.05 * wave(output.spacePosition, RED_WAVE_INTERVAL, RED_WAVE_SPEED, RED_WAVE_THICKNESS, false);
     
     // output.position = mul(float4(output.spacePosition + offset ,1.0f), viewProjection);
-    output.offset = offset;
 
     return output;
 }

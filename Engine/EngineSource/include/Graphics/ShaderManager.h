@@ -9,6 +9,17 @@ namespace Engine
 {
 	struct shader
 	{
+		bool createPS(ID3DBlob* psBlob);
+		bool createVS(ID3DBlob* vsBlob, const D3D11_INPUT_ELEMENT_DESC* ied, UINT iedSize);
+		bool createHS(ID3DBlob* psBlob);
+		bool createDS(ID3DBlob* psBlob);
+		bool createGS(ID3DBlob* psBlob);
+		bool CreateShader(ID3DBlob* vsBlob, ID3DBlob* psBlob, const D3D11_INPUT_ELEMENT_DESC* ied, UINT iedSize);
+
+		void EnableShader();
+		void DisableShader();
+		void BindShader();
+
 		Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader;
 		Microsoft::WRL::ComPtr<ID3D11InputLayout> inputLayout;
 		Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShader;
@@ -16,14 +27,8 @@ namespace Engine
 		Microsoft::WRL::ComPtr<ID3D11DomainShader> domainShader;
 		Microsoft::WRL::ComPtr<ID3D11GeometryShader> geometryShader;
 		D3D_PRIMITIVE_TOPOLOGY topology;
-
-		bool createPS(ID3DBlob* psBlob);
-		bool createVS(ID3DBlob* vsBlob, const D3D11_INPUT_ELEMENT_DESC* ied, UINT iedSize);
-		bool createHS(ID3DBlob* psBlob);
-		bool createDS(ID3DBlob* psBlob);
-		bool createGS(ID3DBlob* psBlob);
-		bool CreateShader(ID3DBlob* vsBlob, ID3DBlob* psBlob, const D3D11_INPUT_ELEMENT_DESC* ied, UINT iedSize);
-		void BindShader();
+		
+		bool isEnabled = true;
 		
 	};
 
