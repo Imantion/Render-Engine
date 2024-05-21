@@ -85,14 +85,15 @@ namespace Engine
 						for (uint32_t index = 0; index < numModelInstances; ++index)
 						{
 							transformedRay.origin = vec4(r.origin, 1.0f) * mat4::Inverse(instances[index].tranformation) * mesh.invInstances[0];
-							transformedRay.direction = vec4(r.direction, 0.0f) * mesh.invInstances[0];
+							transformedRay.direction = vec4(r.direction, 0.0f) * mat4::Inverse(instances[index].tranformation)  * mesh.invInstances[0];
 							
 							if (mesh.intersect(transformedRay, hInfo))
 							{
 								inst.modelIndex = (int)i;
 								inst.perMaterialIndex = (int)j;
 								inst.materialIndex = (int)index;
-								hInfo.p = r.point_at_parameter(hInfo.t);
+								hInfo.p = vec4(transformedRay.point_at_parameter(hInfo.t),1.0f) * mesh.instances[0] * instances[index].tranformation;
+								/*hInfo.p = r.point_at_parameter(hInfo.t);*/
 							}
 						}
 					}

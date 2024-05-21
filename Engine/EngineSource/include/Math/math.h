@@ -320,6 +320,15 @@ namespace Engine
 		return matrix;
 	}
 
+	inline void setTransformPosition(mat4* transform, const vec3& position)
+	{
+		vec3 transformedPosition = vec4(position, 0.0f) * (*transform);
+
+		for (int i = 0; i < 3; i++)
+		{
+			(*transform)[3][i] = transformedPosition[i];
+		}
+	}
 
 	inline float Max(const float& a, const float& b)
 	{

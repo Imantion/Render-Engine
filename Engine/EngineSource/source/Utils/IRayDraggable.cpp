@@ -17,7 +17,8 @@ void Engine::IInstanceDragger::drag(const ray& r)
 {
 	for (size_t i = 0; i < instances.size(); i++)
 	{
-		vec3 newPosition = r.point_at_parameter(grabbedInfo.t) - grabbedVectors[i];
+		vec3 translatedPosition = vec4(r.point_at_parameter(grabbedInfo.t), 0.0f);
+		vec3 newPosition = (translatedPosition - grabbedVectors[i]);
 
 		(*instances[i])[3][0] = newPosition.x;
 		(*instances[i])[3][1] = newPosition.y;
