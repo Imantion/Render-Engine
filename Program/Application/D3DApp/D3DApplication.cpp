@@ -11,6 +11,7 @@
 #include <assert.h>
 
 Engine::vec2 previousMousePosition;
+static float cameraSpeed = 2.0f;
 
 D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc windowEvent)
 {
@@ -60,45 +61,43 @@ void D3DApplication::Update(float deltaTime)
 void D3DApplication::UpdateInput(float deltaTime)
 {
 	Engine::vec2 mousePosition = Input::getMousePosition();
-	Engine::vec2 delta = (mousePosition - previousMousePosition) * 0.005f;
-	previousMousePosition = Input::getMousePosition();
-
-	float cameraSpeed = 2.0f;
 
 	Engine::vec3 cameraMoveDirection = (0.0f, 0.0f, 0.0f);
 	if (Input::keyIsDown(Input::KeyboardButtons::W))
-		cameraMoveDirection += camera->getForward() * cameraSpeed * deltaTime;
+		cameraMoveDirection += camera->getForward() * deltaTime;
 	if (Input::keyIsDown(Input::KeyboardButtons::A))
-		cameraMoveDirection += camera->getRight() * cameraSpeed * -deltaTime;
+		cameraMoveDirection += camera->getRight() * -deltaTime;
 	if (Input::keyIsDown(Input::KeyboardButtons::S))
-		cameraMoveDirection += camera->getForward() * cameraSpeed * -deltaTime;
+		cameraMoveDirection += camera->getForward() * -deltaTime;
 	if (Input::keyIsDown(Input::KeyboardButtons::D))
-		cameraMoveDirection += camera->getRight() * cameraSpeed * deltaTime;
-	if (Input::keyIsDown(Input::KeyboardButtons::CTRL))
-		cameraMoveDirection += camera->getUp() * cameraSpeed * -deltaTime;
-	if (Input::keyIsDown(Input::KeyboardButtons::SPACE))
-		cameraMoveDirection += camera->getUp() * cameraSpeed * deltaTime;
+		cameraMoveDirection += camera->getRight() * deltaTime;
+	if (Input::keyIsDown(Input::KeyboardButtons::Q))
+		cameraMoveDirection += camera->getUp() * -deltaTime;
+	if (Input::keyIsDown(Input::KeyboardButtons::E))
+		cameraMoveDirection += camera->getUp() * deltaTime;
 	if (Input::keyIsDown(Input::KeyboardButtons::SHIFT))
 		cameraMoveDirection *= 5;
+	if (Input::mouseWasPressed(Input::MouseButtons::LEFT))
+		previousMousePosition = mousePosition;
 
 
 
 	int scrolls = Input::scrollAmount();
 	if (scrolls > 0)
-		cameraSpeed += cameraSpeed * 0.05f * scrolls;
+		cameraSpeed += cameraSpeed * 0.1f * scrolls;
 	else if (scrolls < 0)
-		cameraSpeed += cameraSpeed * 0.05f * scrolls;
+		cameraSpeed += cameraSpeed * 0.1f * scrolls;
 
 
 
 
-	camera->moveCamera(cameraMoveDirection);
+	camera->moveCamera(cameraMoveDirection * cameraSpeed);
 
 	bool cameraRotated = false;
 
 	if (Input::mouseIsDown(Input::MouseButtons::LEFT))
 	{
-
+		Engine::vec2 delta = (mousePosition - previousMousePosition) * (0.01f * deltaTime);
 		if (delta.x != 0 || delta.y != 0)
 		{
 			Engine::quaternion q = (Engine::quaternion::angleAxis(delta.y, camera->getRight()) *

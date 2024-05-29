@@ -2,7 +2,7 @@
 
 cbuffer MeshData : register(b3)
 {
-    row_major matrix meshToModel;
+    float4x4 meshToModel;
 };
 
 struct VOut

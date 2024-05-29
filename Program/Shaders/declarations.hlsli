@@ -1,6 +1,8 @@
+#pragma pack_matrix( row_major )
+
 cbuffer perView : register(b0)
 {
-    row_major matrix viewProjection;
+    matrix viewProjection;
     float3 g_cameraPosition;
 }
 

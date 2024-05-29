@@ -48,7 +48,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_LBUTTONDOWN:
 	case WM_LBUTTONUP:
 		Input::processMouseInput(wParam, lParam);
-		
+		break;
 	case WM_RBUTTONUP:
 		Input::processMouseInput(wParam, lParam);
 		break;
@@ -93,7 +93,7 @@ int main(int argc, char* argv[])
 	
 	while (!app.isClosed())
 	{
-		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 		{
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);

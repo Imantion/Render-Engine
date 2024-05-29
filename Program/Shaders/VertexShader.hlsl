@@ -2,7 +2,7 @@
 
 cbuffer meshData : register(b2)
 {
-    row_major matrix meshToModel;
+    float4x4 meshToModel;
 }
 
 struct VIn
@@ -28,7 +28,7 @@ VOut main(VIn input)
     VOut output;
     
 
-    matrix toWorld = matrix(input.modelToWorld[0], input.modelToWorld[1], input.modelToWorld[2], input.modelToWorld[3]);
+    float4x4 toWorld = float4x4(input.modelToWorld[0], input.modelToWorld[1], input.modelToWorld[2], input.modelToWorld[3]);
     
     output.position = mul(mul(mul(float4(input.pos, 1.0f), meshToModel), toWorld), viewProjection);
     
