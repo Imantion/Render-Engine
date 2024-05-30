@@ -21,17 +21,34 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 
 	Engine::MeshSystem::Material knightMat = { Engine::vec3(1.0,0.0f,1.0f), 0.0f,Engine::vec3(1.0,1.0f,0.0f), 0.0f };
 
+	auto changepos = [](Engine::MeshSystem::Instance& inst, const Engine::vec3& pos) {
+		for (size_t i = 0; i < 3; i++)
+		{
+			inst.tranformation[3][i] = pos[i];
+		}
+		};
 
 	auto model = Engine::ModelManager::GetInstance()->loadModel("Models\\Samurai.fbx");
-	Engine::MeshSystem::Init()->hologramGroup.addModel(model, knightMat, Engine::vec3(0.0f, -1.0f, 0.0f));
+	Engine::MeshSystem::Instance inst = { Engine::transformMatrix(Engine::vec3(0.0f, -1.0f, 0.0f), Engine::vec3(0.0f, 0.0f, 1.0f), Engine::vec3(1.0f, 0.0f, 0.0f), Engine::vec3(0.0f, 1.0f, 0.0f)) };
+	Engine::MeshSystem::Init()->hologramGroup.addModel(model, knightMat, inst);
+
 	knightMat = { Engine::vec3(0.0,1.0f,1.0f), 0.0f,Engine::vec3(1.0,0.0f,0.0f), 0.0f };
-	Engine::MeshSystem::Init()->hologramGroup.addModel(model, knightMat, Engine::vec3(1.0f, -1.0f, 0.0f));
+	changepos(inst, Engine::vec3(1.0f, -1.0f, 0.0f));
+	Engine::MeshSystem::Init()->hologramGroup.addModel(model, knightMat, inst);
 
 	model = Engine::ModelManager::GetInstance()->loadModel("Models\\cube.obj");
-	Engine::MeshSystem::Init()->normVisGroup.addModel(model, knightMat, Engine::vec3(1.0f, 1.0f, 5.0f));
-	Engine::MeshSystem::Init()->normVisGroup.addModel(model, knightMat, Engine::vec3(3.0f, -1.0f, -2.0f));
-	Engine::MeshSystem::Init()->normVisGroup.addModel(model, knightMat, Engine::vec3(2.0f, -2.0f, 4.0f));
-	Engine::MeshSystem::Init()->normVisGroup.addModel(model, knightMat, Engine::vec3(-4.0f, 0.0f, 1.0f));
+	changepos(inst, Engine::vec3(1.0f, 1.0f, 5.0f));
+	Engine::MeshSystem::Init()->normVisGroup.addModel(model, knightMat, inst);
+
+	changepos(inst, Engine::vec3(3.0f, -1.0f, -2.0f));
+	Engine::MeshSystem::Init()->normVisGroup.addModel(model, knightMat, inst);
+
+	changepos(inst, Engine::vec3(2.0f, -2.0f, 4.0f));
+	Engine::MeshSystem::Init()->normVisGroup.addModel(model, knightMat, inst);
+
+	changepos(inst, Engine::vec3(-4.0f, 0.0f, 1.0f));
+	Engine::MeshSystem::Init()->normVisGroup.addModel(model, knightMat, inst);
+
 	Engine::MeshSystem::Init()->normVisGroup.updateInstanceBuffers();
 	Engine::MeshSystem::Init()->hologramGroup.updateInstanceBuffers();
 }
@@ -94,10 +111,10 @@ void D3DApplication::UpdateInput(float deltaTime)
 	camera->moveCamera(cameraMoveDirection * cameraSpeed);
 
 	bool cameraRotated = false;
-
+	Engine::vec2 delta;
 	if (Input::mouseIsDown(Input::MouseButtons::LEFT))
 	{
-		Engine::vec2 delta = (mousePosition - previousMousePosition) * (0.01f * deltaTime);
+		delta = (mousePosition - previousMousePosition) * (0.01f * deltaTime);
 		if (delta.x != 0 || delta.y != 0)
 		{
 			Engine::quaternion q = (Engine::quaternion::angleAxis(delta.y, camera->getRight()) *
@@ -105,6 +122,7 @@ void D3DApplication::UpdateInput(float deltaTime)
 			camera->setForward(Engine::quaternion::rotate(q, camera->getForward()));
 			cameraRotated = true;
 		}
+
 	}
 
 	if (Input::mouseWasPressed(Input::MouseButtons::RIGHT))
@@ -136,6 +154,13 @@ void D3DApplication::UpdateInput(float deltaTime)
 		screenCoord.y = (screenCoord.y / pWindow->getWindowHeight() - 0.5f) * 2.0f;
 		r.origin = camera->getPosition();
 		r.direction = camera->calculateRayDirection(screenCoord);
+
+		if (delta.x != 0 || delta.y != 0)
+		{
+			Engine::quaternion q = (Engine::quaternion::angleAxis(delta.y, camera->getRight()) *
+									Engine::quaternion::angleAxis(delta.x, camera->getUp())).normalize();
+			r.direction = Engine::quaternion::rotate(q, r.direction);
+		}
 		dragger->drag(r);
 	}
 
