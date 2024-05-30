@@ -146,6 +146,12 @@ void D3DApplication::UpdateInput(float deltaTime)
 		dragger.release();
 	}
 
+	if (cameraMoveDirection != Engine::vec3(0.0f) || cameraRotated)
+	{
+		camera->calculateViewMatrix();
+		camera->setRight(Engine::cross(camera->getUp(), camera->getForward()));
+	}
+
 	if (dragger)
 	{
 		Engine::vec2 screenCoord(mousePosition.x, pWindow->getWindowHeight() - mousePosition.y);
@@ -155,19 +161,7 @@ void D3DApplication::UpdateInput(float deltaTime)
 		r.origin = camera->getPosition();
 		r.direction = camera->calculateRayDirection(screenCoord);
 
-		if (delta.x != 0 || delta.y != 0)
-		{
-			Engine::quaternion q = (Engine::quaternion::angleAxis(delta.y, camera->getRight()) *
-									Engine::quaternion::angleAxis(delta.x, camera->getUp())).normalize();
-			r.direction = Engine::quaternion::rotate(q, r.direction);
-		}
 		dragger->drag(r);
-	}
-
-	if (cameraMoveDirection != Engine::vec3(0.0f) || cameraRotated)
-	{
-		camera->calculateViewMatrix();
-		camera->setRight(Engine::cross(camera->getUp(), camera->getForward()));
 	}
 }
 
