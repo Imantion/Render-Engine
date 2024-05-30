@@ -28,6 +28,13 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 		}
 		};
 
+	auto changescale = [](Engine::MeshSystem::Instance& inst,const float scale) {
+		for (size_t i = 0; i < 3; i++)
+		{
+			inst.tranformation[i][i] *= scale;
+		}
+		};
+
 	auto model = Engine::ModelManager::GetInstance()->loadModel("Models\\Samurai.fbx");
 	Engine::MeshSystem::Instance inst = { Engine::transformMatrix(Engine::vec3(0.0f, -1.0f, 0.0f), Engine::vec3(0.0f, 0.0f, 1.0f), Engine::vec3(1.0f, 0.0f, 0.0f), Engine::vec3(0.0f, 1.0f, 0.0f)) };
 	Engine::MeshSystem::Init()->hologramGroup.addModel(model, knightMat, inst);
@@ -44,10 +51,11 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 	Engine::MeshSystem::Init()->normVisGroup.addModel(model, knightMat, inst);
 
 	changepos(inst, Engine::vec3(2.0f, -2.0f, 4.0f));
-	Engine::MeshSystem::Init()->normVisGroup.addModel(model, knightMat, inst);
+	Engine::MeshSystem::Init()->hologramGroup.addModel(model, knightMat, inst);
 
+	changescale(inst, 0.5);
 	changepos(inst, Engine::vec3(-4.0f, 0.0f, 1.0f));
-	Engine::MeshSystem::Init()->normVisGroup.addModel(model, knightMat, inst);
+	Engine::MeshSystem::Init()->hologramGroup.addModel(model, knightMat, inst);
 
 	Engine::MeshSystem::Init()->normVisGroup.updateInstanceBuffers();
 	Engine::MeshSystem::Init()->hologramGroup.updateInstanceBuffers();
@@ -97,6 +105,13 @@ void D3DApplication::UpdateInput(float deltaTime)
 	if (Input::mouseWasPressed(Input::MouseButtons::LEFT))
 		previousMousePosition = mousePosition;
 
+	if (Input::keyPresseed(Input::KeyboardButtons::N))
+	{
+		auto visShader = Engine::ShaderManager::GetShader("NormalVisLines");
+
+		if (visShader)
+			visShader->isEnabled = !visShader->isEnabled;
+	}
 
 
 	int scrolls = Input::scrollAmount();
