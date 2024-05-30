@@ -1,8 +1,6 @@
 #include <thread>
 #include <iostream>
 #include "Window/Window.h"
-#include "Render/Scene.h"
-#include "App/Application.h"
 #include "Input/Input.h"
 #include "Utils/Timer.h"
 #include "Math/matrix.h"
@@ -12,7 +10,6 @@
 #include "Graphics/MeshSystem.h"
 
 #define FRAME_RATE 60
-#define D3DAPP
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -77,7 +74,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 
-#ifdef D3DAPP
 
 int main(int argc, char* argv[])
 {
@@ -117,40 +113,3 @@ int main(int argc, char* argv[])
 	Engine::Engine::Deinit();
 	return 0;
 }
-#else
-
-int main(int argc, char* argv[])
-{
-	Application app(800, 400, WindowProc);
-	Engine::Timer timer;
-
-	MSG msg = { 0 };
-
-	while (app.isOpen())
-	{
-		
-		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-
-			if (msg.message == WM_QUIT)
-				break;
-	
-		}
-		
-		if (timer.timeElapsed(FRAME_RATE))
-		{
-			app.updateInput(timer.getDeltatime());
-			app.update(timer.getDeltatime());
-			Input::resetScroll();
-			Input::resetMousePressed();
-		}
-
-		std::this_thread::yield();
-		
-	}
-	return 0;
-}
-
-#endif // D3DPAPP

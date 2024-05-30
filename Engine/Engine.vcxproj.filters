@@ -44,22 +44,13 @@
     <ClCompile Include="EngineSource\source\Math\vec.cpp">
       <Filter>Source\Math</Filter>
     </ClCompile>
-    <ClCompile Include="EngineSource\source\Render\Scene.cpp">
-      <Filter>Source\Render</Filter>
-    </ClCompile>
     <ClCompile Include="EngineSource\source\Window\Windows.cpp">
       <Filter>Source\Window</Filter>
-    </ClCompile>
-    <ClCompile Include="EngineSource\source\Math\BVH.cpp">
-      <Filter>Source\Math</Filter>
     </ClCompile>
     <ClCompile Include="EngineSource\source\Render\Camera.cpp">
       <Filter>Source\Render</Filter>
     </ClCompile>
     <ClCompile Include="EngineSource\source\Math\quaternion.cpp">
-      <Filter>Source\Math</Filter>
-    </ClCompile>
-    <ClCompile Include="EngineSource\source\Math\Mesh.cpp">
       <Filter>Source\Math</Filter>
     </ClCompile>
     <ClCompile Include="EngineSource\source\Math\matrix.cpp">
@@ -91,9 +82,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="EngineSource\include\Render\Scene.h">
-      <Filter>Include\Render</Filter>
-    </ClInclude>
     <ClInclude Include="EngineSource\include\Math\math.h">
       <Filter>Include\Math</Filter>
     </ClInclude>
@@ -108,18 +96,6 @@
     </ClInclude>
     <ClInclude Include="EngineSource\include\Math\hitable.h">
       <Filter>Include\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="EngineSource\include\Render\Light\Light.h">
-      <Filter>Include\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="EngineSource\include\Math\BVH.h">
-      <Filter>Include\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="EngineSource\include\Math\Mesh.h">
-      <Filter>Include\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="EngineSource\include\Render\Material.h">
-      <Filter>Include\Render</Filter>
     </ClInclude>
     <ClInclude Include="EngineSource\include\Render\Camera.h">
       <Filter>Include\Render</Filter>

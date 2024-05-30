@@ -29,8 +29,6 @@ Window::Window(int wWidth, int wHeight, WinProc WindowProc)
 		w_width, w_height, NULL, nullptr, nullptr, nullptr);
 
 	HWND w_handle = (HWND)m_handle;
-
-	ResizeFrameBuffer(wWidth, wHeight);
 	
 
 	assert(w_handle);
@@ -68,7 +66,7 @@ Window::Window(int wWidth, int wHeight, WinProc WindowProc)
 	ShowWindow(w_handle, SW_SHOW);
 	UpdateWindow(w_handle);
 
-	
+
 
 	closed = false;
 
@@ -120,45 +118,8 @@ void Window::onResize()
 
 	wasResized = true;
 
-	//ResizeFrameBuffer(width, height);
 }
 
-void Engine::Window::Resize(int wWidth, int wHeight)
-{
-	ResizeFrameBuffer(wWidth, wHeight);
-	wasResized = true;
-}
-
-void Engine::Window::ResizeFrameBuffer(int bWidth, int bHeight)
-{
-	buffer.memory.release();
-	buffer.width = bWidth;
-	buffer.height = bHeight;
-	buffersize = buffer.width * buffer.height * 4;
-
-	buffer.pitch = buffer.width * 4;
-	buffer.memory = get_ptr(buffersize);
-	BITMAPINFO bitmap_info;
-	bitmap_info.bmiHeader.biSize = sizeof(bitmap_info.bmiHeader);
-	bitmap_info.bmiHeader.biWidth = buffer.width;
-	bitmap_info.bmiHeader.biHeight = buffer.height;
-	bitmap_info.bmiHeader.biPlanes = 1;
-	bitmap_info.bmiHeader.biBitCount = 32;
-	bitmap_info.bmiHeader.biCompression = BI_RGB;
-	buffer.bitmap_info = bitmap_info;
-}
-
-void Window::setPixel(int x, int y)
-{
-	if (x < 0 || x > buffer.width || y < 0 || y > buffer.height)
-		return;
-
-	uint32_t color = 0x0000ff;
-	uint8_t* row = (uint8_t*)buffer.memory.get() + x * 4 + y * buffer.pitch;
-	uint32_t* pixel = (uint32_t*)row;
-	*pixel = color;
-
-}
 bool Engine::Window::wasWindowResized()
 {
 	bool returnWasResized = wasResized;
@@ -172,10 +133,5 @@ bool Window::isClosed() const
 
 void Engine::Window::flush()
 {
-	/*StretchDIBits(window_device_context, 0, 0, width, height, 0, 0, buffer.width, buffer.height, buffer.memory.get(), &(buffer.bitmap_info), DIB_RGB_COLORS, SRCCOPY);*/
 	swapchain->Present(0u, 0u);
-}
-
-void Engine::Window::clearScreen()
-{
 }

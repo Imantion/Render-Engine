@@ -3,7 +3,6 @@
 #include "Math/matrix.h"
 #include "Math/hitable.h"
 #include "Math/triangle.h"
-#include "Render/Material.h"
 #include <math.h>
 
 namespace Engine
@@ -18,16 +17,6 @@ namespace Engine
 		float radius;
 	};
 
-	struct sphere : public mathSphere
-	{
-		sphere() {}
-		sphere(vec3 pos, float r) : mathSphere(pos,r) {}
-		sphere(vec3 pos, float r, Material m) : mathSphere(pos,r), material(m) {}
-		sphere(const sphere& s) : mathSphere(s), material(s.material) {}
-
-		Material material;
-	};
-
 	struct mathPlane
 	{
 		mathPlane() {}
@@ -37,13 +26,6 @@ namespace Engine
 		vec3 normal;
 	};
 
-	struct plane : public mathPlane
-	{
-		plane() {}
-		plane(const vec3& point, const vec3& normal) : mathPlane(point, normal) {}
-		plane(const vec3& point, const vec3& normal, const Material& mat) : plane(point, normal) { material = mat; }
-		Material material;
-	};
 
 	struct ray
 	{
@@ -70,7 +52,7 @@ namespace Engine
 		return vec3(a.y * v.z - a.z * v.y, a.z * v.x - a.x * v.z, a.x * v.y - a.y * v.x);
 	}
 
-	inline bool hitSphere(const sphere& s, const ray& r, float t_min, float t_max, hitInfo& hInfo)
+	inline bool hitSphere(const mathSphere& s, const ray& r, float t_min, float t_max, hitInfo& hInfo)
 	{
 		vec3 oc = r.origin - s.position;
 		float a = dot(r.direction, r.direction);
@@ -104,7 +86,7 @@ namespace Engine
 		return false;
 	}
 
-	inline bool hitPlane(const plane& pln, const ray& ray, hitInfo& hInfo)
+	inline bool hitPlane(const mathPlane& pln, const ray& ray, hitInfo& hInfo)
 	{
 		
 		float denom = dot(-pln.normal, ray.direction);
