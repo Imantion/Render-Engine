@@ -1,11 +1,9 @@
 #pragma once
 #include "Math/math.h"
+#include "Graphics/MeshSystem.h"
 
 namespace Engine
 {
-	class Scene;
-	struct sphere;
-	struct primitive;
 
 	class IRayDraggable
 	{
@@ -14,27 +12,18 @@ namespace Engine
 		virtual void drag(const ray& r) = 0;
 	};
 
-	class ISphereDragger : public IRayDraggable
+	class IInstanceDragger : public IRayDraggable
 	{
 	public:
+		IInstanceDragger(std::vector<mat4*>&& transformationInstances, const hitInfo& hInfo);
 
-		ISphereDragger(sphere* s, const hitInfo& hInfo);
-		virtual void drag(const ray& r) override;
-	private:
-		sphere* grabbedSphere;
-		hitInfo grabbedInfo;
-		vec3 grabbedVector;
-	};
+		virtual void drag(const ray& r);
+	
 
-	class IMeshDragger : public IRayDraggable
-	{
-	public:
-		IMeshDragger(primitive* primitiveToDrag, const hitInfo& hInfo);
-		virtual void drag(const ray& r) override;
 	private:
-		primitive* grabbedPrim;
+		std::vector<mat4*> instances;
 		hitInfo grabbedInfo;
-		vec3 grabbedVector;
+		std::vector<vec3> grabbedVectors;
 	};
 }
 

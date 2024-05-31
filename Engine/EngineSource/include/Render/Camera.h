@@ -8,10 +8,11 @@ namespace Engine
 	{
 	public:
 
-		Camera(){}
+		Camera() {}
 		Camera(float verticalFov, float nearPlane, float farPlane);
 
 		vec3 getRayDirection(const vec2&);
+		vec3 calculateRayDirection(const vec2&);
 		vec3 getPosition() { return position; }
 
 		void calculateProjectionMatrix(int viewportWidth, int viewportHeight);
@@ -22,6 +23,8 @@ namespace Engine
 		vec3 getForward() { return forwardDirection; }
 		vec3 getUp() { return upDirection; }
 		vec3 getRight() { return rightDirection; }
+		const mat4& getViewMatrix() { return view; }
+		const mat4& getProjectionMatrix() { return projection; }
 
 		void setForward(vec3 f);
 		void setUp(vec3 u);

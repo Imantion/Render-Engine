@@ -3,7 +3,6 @@
 #include "Math/matrix.h"
 #include "Math/hitable.h"
 #include "Math/triangle.h"
-#include "Render/Material.h"
 #include <math.h>
 
 namespace Engine
@@ -18,16 +17,6 @@ namespace Engine
 		float radius;
 	};
 
-	struct sphere : public mathSphere
-	{
-		sphere() {}
-		sphere(vec3 pos, float r) : mathSphere(pos,r) {}
-		sphere(vec3 pos, float r, Material m) : mathSphere(pos,r), material(m) {}
-		sphere(const sphere& s) : mathSphere(s), material(s.material) {}
-
-		Material material;
-	};
-
 	struct mathPlane
 	{
 		mathPlane() {}
@@ -37,13 +26,6 @@ namespace Engine
 		vec3 normal;
 	};
 
-	struct plane : public mathPlane
-	{
-		plane() {}
-		plane(const vec3& point, const vec3& normal) : mathPlane(point, normal) {}
-		plane(const vec3& point, const vec3& normal, const Material& mat) : plane(point, normal) { material = mat; }
-		Material material;
-	};
 
 	struct ray
 	{
@@ -70,7 +52,7 @@ namespace Engine
 		return vec3(a.y * v.z - a.z * v.y, a.z * v.x - a.x * v.z, a.x * v.y - a.y * v.x);
 	}
 
-	inline bool hitSphere(const sphere& s, const ray& r, float t_min, float t_max, hitInfo& hInfo)
+	inline bool hitSphere(const mathSphere& s, const ray& r, float t_min, float t_max, hitInfo& hInfo)
 	{
 		vec3 oc = r.origin - s.position;
 		float a = dot(r.direction, r.direction);
@@ -104,7 +86,7 @@ namespace Engine
 		return false;
 	}
 
-	inline bool hitPlane(const plane& pln, const ray& ray, hitInfo& hInfo)
+	inline bool hitPlane(const mathPlane& pln, const ray& ray, hitInfo& hInfo)
 	{
 		
 		float denom = dot(-pln.normal, ray.direction);
@@ -142,7 +124,7 @@ namespace Engine
 
 		float t = dot(Q, E2) * invDeterminant;
 
-		if (t < 0 || t > hInfo.t)
+		if (t < 0 /*|| t > hInfo.t*/)
 			return false;
 
 		float u = dot(P, T) * invDeterminant;
@@ -232,7 +214,7 @@ namespace Engine
 		return matrix;
 	}
 
-	inline mat4 viewMatrix(vec3 eye, vec3 center, vec3 upVector) // View matrix for camera like in shooter games
+	inline mat4 viewMatrix(const vec3& eye, const vec3& center, const vec3& upVector) // View matrix for camera like in shooter games
 	{
 		vec3 f((center - eye).normalized());
 		vec3 rightVector(cross(upVector, f).normalized());
@@ -240,15 +222,15 @@ namespace Engine
 		mat4 matrix;
 
 		matrix[0][0] = rightVector.x;
-		matrix[0][1] = u.x;
-		matrix[0][2] = f.x;
-
 		matrix[1][0] = rightVector.y;
-		matrix[1][1] = u.y;
-		matrix[1][2] = f.y;
-
 		matrix[2][0] = rightVector.z;
-		matrix[2][1] = upVector.z;
+
+		matrix[0][1] = u.x;
+		matrix[1][1] = u.y;
+		matrix[2][1] = u.z;
+		
+		matrix[0][2] = f.x;
+		matrix[1][2] = f.y;
 		matrix[2][2] = f.z;
 
 		matrix[3][0] = -dot(rightVector, eye);

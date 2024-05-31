@@ -7,20 +7,19 @@ namespace Engine
 	class ConstBuffer
 	{
 	public:
-		bool create(const T* ConstBufferInside)
+		bool create(D3D11_USAGE usage = D3D11_USAGE_DYNAMIC)
 		{
 			if (D3D* d3d = D3D::GetInstance())
 			{
 				D3D11_BUFFER_DESC cbd;
-				cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-				cbd.Usage = D3D11_USAGE_DYNAMIC;
+				cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;	
+				cbd.Usage = usage;
 				cbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 				cbd.MiscFlags = 0u;
-				cbd.ByteWidth = sizeof(*ConstBufferInside);
+				cbd.ByteWidth = sizeof(T);
 				cbd.StructureByteStride = 0u;
-				D3D11_SUBRESOURCE_DATA csd = {};
-				csd.pSysMem = ConstBufferInside;
-				HRESULT hr = d3d->GetDevice()->CreateBuffer(&cbd, &csd, &m_constBuffer);
+
+				HRESULT hr = d3d->GetDevice()->CreateBuffer(&cbd, nullptr, &m_constBuffer);
 				assert(SUCCEEDED(hr));
 
 				return true;
@@ -33,7 +32,6 @@ namespace Engine
 			D3D* d3d = D3D::GetInstance();
 			if (d3d && m_constBuffer.Get())
 			{
-				constBufferData = *constBufferSource;
 				D3D11_MAPPED_SUBRESOURCE mappedResource;
 				HRESULT hr = d3d->GetContext()->Map(m_constBuffer.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &mappedResource);
 				assert(SUCCEEDED(hr));
@@ -45,26 +43,8 @@ namespace Engine
 			}
 			return false;
 		}
-
-		bool updateBuffer()
-		{
-			D3D* d3d = D3D::GetInstance();
-			if (d3d && m_constBuffer.Get())
-			{
-				D3D11_MAPPED_SUBRESOURCE mappedResource;
-				HRESULT hr = d3d->GetContext()->Map(m_constBuffer.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &mappedResource);
-				assert(SUCCEEDED(hr));
-				T* data = (T*)mappedResource.pData;
-				memcpy(data, &constBufferData, sizeof(constBufferData));
-				d3d->GetContext()->Unmap(m_constBuffer.Get(), 0u);
-
-				return true;
-			}
-			return false;
-		}
 	public:
 		Microsoft::WRL::ComPtr<ID3D11Buffer> m_constBuffer;
-		T constBufferData;
 	};
 
 	template <typename T>
@@ -95,6 +75,31 @@ namespace Engine
 			return false;
 		}
 
+		bool create(UINT amountOfInstances, D3D11_USAGE usage = D3D11_USAGE_DEFAULT)
+		{
+			if (amountOfInstances <= instances)
+				return false;
+
+			if (D3D* d3d = D3D::GetInstance())
+			{
+				instances = amountOfInstances;
+
+				D3D11_BUFFER_DESC bd;
+				ZeroMemory(&bd, sizeof(bd));
+				bd.Usage = usage;
+				bd.ByteWidth = sizeof(T) * instances;
+				bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+				bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+				HRESULT hr = d3d->GetDevice()->CreateBuffer(&bd, nullptr, &m_vertexBuffer);
+				assert(SUCCEEDED(hr));
+
+				return true;
+			}
+
+			return false;
+		}
+
 		bool bind(UINT slot = 0u)
 		{
 			if (D3D* d3d = D3D::GetInstance())
@@ -107,11 +112,23 @@ namespace Engine
 			return false;
 		}
 
+		void map(D3D11_MAPPED_SUBRESOURCE& mappedResource)
+		{
+			D3D* d3d = D3D::GetInstance();
+			HRESULT hr = d3d->GetContext()->Map(m_vertexBuffer.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &mappedResource);
+		}
+
+		void unmap()
+		{
+			D3D* d3d = D3D::GetInstance();
+			d3d->GetContext()->Unmap(m_vertexBuffer.Get(), 0u);
+		}
+
 		UINT getSize() { return instances; }
 
 	private:
 		Microsoft::WRL::ComPtr<ID3D11Buffer> m_vertexBuffer;
-		UINT instances;
+		UINT instances = 0u;
 	};
 
 	class IndexBuffer

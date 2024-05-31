@@ -1,8 +1,11 @@
 #include "Graphics/ShaderManager.h"
 #include "Graphics/D3D.h"
-
 #include "assert.h"
-bool Engine::shader::CreateShader(ID3DBlob* vsBlob, ID3DBlob* psBlob, const D3D11_INPUT_ELEMENT_DESC* ied)
+
+
+
+
+bool Engine::shader::CreateShader(ID3DBlob* vsBlob, ID3DBlob* psBlob, const D3D11_INPUT_ELEMENT_DESC* ied, UINT iedSize)
 {
 	{
 		if (D3D* d3d = D3D::GetInstance())
@@ -14,7 +17,7 @@ bool Engine::shader::CreateShader(ID3DBlob* vsBlob, ID3DBlob* psBlob, const D3D1
 			hr = d3d->GetDevice()->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, &pixelShader);
 			assert(SUCCEEDED(hr));
 
-			hr = d3d->GetDevice()->CreateInputLayout(ied, 2u, vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), &inputLayout);
+			hr = d3d->GetDevice()->CreateInputLayout(ied, iedSize, vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), &inputLayout);
 			assert(SUCCEEDED(hr));
 
 			if(pixelShader && vertexShader)
@@ -38,34 +41,39 @@ void Engine::shader::BindShader()
 
 
 
-std::unordered_map<std::string, Engine::shader*> Engine::ShaderManager::shaders;
+std::unordered_map<std::string, std::shared_ptr<Engine::shader>> Engine::ShaderManager::shaders;
 
-Engine::shader* Engine::ShaderManager::CompileAndCreateShader(const char* shaderName, const wchar_t* vertexShaderSource, const wchar_t* pixelShaderSource,const D3D11_INPUT_ELEMENT_DESC* ied, const D3D_SHADER_MACRO* vertexShaderMacro,const D3D_SHADER_MACRO* pixelShaderMacro)
+std::shared_ptr<Engine::shader> Engine::ShaderManager::CompileAndCreateShader(const char* shaderName, const wchar_t* vertexShaderSource, const wchar_t* pixelShaderSource,const D3D11_INPUT_ELEMENT_DESC* ied, UINT iedSize,
+	const D3D_SHADER_MACRO* vertexShaderMacro,const D3D_SHADER_MACRO* pixelShaderMacro,const char* vsEntryPoint, const char* psEntryPoint)
 {
+	UINT flags = 0;
+#ifdef _DEBUG 
+	flags |= D3DCOMPILE_DEBUG;
+#endif
+
 	Microsoft::WRL::ComPtr<ID3DBlob> pixelBlob;
 	Microsoft::WRL::ComPtr<ID3DBlob> vertexlBlob;
 	/*ID3DBlob* vertexlBlob;*/
 
-	HRESULT hr = D3DCompileFromFile(vertexShaderSource, vertexShaderMacro, nullptr, "main", "vs_5_0", 0, 0, &vertexlBlob, nullptr);
+	HRESULT hr = D3DCompileFromFile(vertexShaderSource, vertexShaderMacro, D3D_COMPILE_STANDARD_FILE_INCLUDE, vsEntryPoint, "vs_5_0", D3DCOMPILE_DEBUG, 0, &vertexlBlob, nullptr);
 	assert(SUCCEEDED(hr));
 
-	hr = D3DCompileFromFile(pixelShaderSource, pixelShaderMacro, nullptr, "main", "ps_5_0", 0, 0, &pixelBlob, nullptr);
+	hr = D3DCompileFromFile(pixelShaderSource, pixelShaderMacro, D3D_COMPILE_STANDARD_FILE_INCLUDE, psEntryPoint, "ps_5_0", D3DCOMPILE_DEBUG, 0, &pixelBlob, nullptr);
 	assert(SUCCEEDED(hr));
 
-	shader* shader = new Engine::shader();
+	std::shared_ptr<shader>shader = std::make_shared<Engine::shader>();
 
-	if (shader->CreateShader(vertexlBlob.Get(), pixelBlob.Get(), ied))
+	if (shader->CreateShader(vertexlBlob.Get(), pixelBlob.Get(), ied, iedSize))
 	{
 		shaders.insert({ shaderName, shader });
 
 		return shader;
 	}
 
-	delete shader;
 	return nullptr;
 }
 
-Engine::shader* Engine::ShaderManager::GetShader(const char* name)
+std::shared_ptr<Engine::shader> Engine::ShaderManager::GetShader(const char* name)
 {
 	auto returnValue = shaders.find(name);
 
@@ -82,16 +90,11 @@ void Engine::ShaderManager::deleteShader(const char* name)
 
 	if (it != shaders.end())
 	{
-		delete (*it).second;
 		shaders.erase(it);
 	}
 }
 
 void Engine::ShaderManager::deleteShaders()
 {
-	for (auto& a : shaders)
-	{
-		delete a.second;
-	}
 	shaders.clear();
 }

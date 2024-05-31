@@ -92,6 +92,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(SolutionDir)assimpbins\;$(SolutionDir)assimp\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -106,6 +107,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(SolutionDir)assimpbins\;$(SolutionDir)assimp\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -120,6 +122,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(SolutionDir)assimpbins\;$(SolutionDir)assimp\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -134,6 +137,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(SolutionDir)assimpbins\;$(SolutionDir)assimp\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -143,16 +147,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="EngineSource\source\Graphics\MeshSystem.cpp" />
+    <ClCompile Include="EngineSource\source\Graphics\Model.cpp" />
+    <ClCompile Include="EngineSource\source\Graphics\Renderer.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\ShaderManager.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\D3D.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\Engine.cpp" />
-    <ClCompile Include="EngineSource\source\Math\BVH.cpp" />
     <ClCompile Include="EngineSource\source\Math\matrix.cpp" />
-    <ClCompile Include="EngineSource\source\Math\Mesh.cpp" />
     <ClCompile Include="EngineSource\source\Math\quaternion.cpp" />
     <ClCompile Include="EngineSource\source\Render\Camera.cpp" />
-    <ClCompile Include="EngineSource\source\Render\Scene.cpp" />
     <ClCompile Include="EngineSource\source\Math\vec.cpp" />
+    <ClCompile Include="EngineSource\source\Utils\TrianlgeOctree.cpp" />
     <ClCompile Include="EngineSource\source\Window\Windows.cpp" />
     <ClCompile Include="EngineSource\source\Utils\IRayDraggable.cpp" />
   </ItemGroup>
@@ -160,18 +165,19 @@
     <ClInclude Include="EngineSource\include\Graphics\Buffers.h" />
     <ClInclude Include="EngineSource\include\Graphics\D3D.h" />
     <ClInclude Include="EngineSource\include\Graphics\Engine.h" />
-    <ClInclude Include="EngineSource\include\Math\BVH.h" />
+    <ClInclude Include="EngineSource\include\Graphics\Mesh.h" />
+    <ClInclude Include="EngineSource\include\Graphics\MeshSystem.h" />
+    <ClInclude Include="EngineSource\include\Graphics\Model.h" />
+    <ClInclude Include="EngineSource\include\Graphics\Renderer.h" />
+    <ClInclude Include="EngineSource\include\Math\Box.hpp" />
     <ClInclude Include="EngineSource\include\Math\matrix.h" />
     <ClInclude Include="EngineSource\include\Math\math.h" />
-    <ClInclude Include="EngineSource\include\Math\Mesh.h" />
     <ClInclude Include="EngineSource\include\Math\quaternion.h" />
     <ClInclude Include="EngineSource\include\Math\triangle.h" />
     <ClInclude Include="EngineSource\include\Render\Camera.h" />
-    <ClInclude Include="EngineSource\include\Render\Light\Light.h" />
-    <ClInclude Include="EngineSource\include\Render\Material.h" />
-    <ClInclude Include="EngineSource\include\Render\Scene.h" />
     <ClInclude Include="EngineSource\include\Math\vec.h" />
     <ClInclude Include="EngineSource\include\Utils\Timer.h" />
+    <ClInclude Include="EngineSource\include\Utils\TriangleOctree.hpp" />
     <ClInclude Include="EngineSource\include\Window\Window.h" />
     <ClInclude Include="EngineSource\include\Math\hitable.h" />
     <ClInclude Include="EngineSource\include\Utils\IRayDraggable.h" />
