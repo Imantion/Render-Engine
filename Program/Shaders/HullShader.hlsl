@@ -24,19 +24,19 @@ HS_CONSTANT_DATA_OUTPUT CalcHSPatchConstants(
 {
     HS_CONSTANT_DATA_OUTPUT Output;
 
-    Output.EdgeTessFactor[0] = abs(distance(ip[0].vPosition, ip[1].vPosition)) * 3;
-    Output.EdgeTessFactor[1] = abs(distance(ip[1].vPosition, ip[2].vPosition)) * 3;
-    Output.EdgeTessFactor[2] = abs(distance(ip[2].vPosition, ip[0].vPosition)) * 3;
-    Output.InsideTessFactor = max(max(Output.EdgeTessFactor[0], Output.EdgeTessFactor[1]), Output.EdgeTessFactor[2]);
+    Output.EdgeTessFactor[0] = abs(distance(ip[0].vPosition, ip[1].vPosition));
+    Output.EdgeTessFactor[1] = abs(distance(ip[1].vPosition, ip[2].vPosition));
+    Output.EdgeTessFactor[2] = abs(distance(ip[2].vPosition, ip[0].vPosition));
     
+    Output.InsideTessFactor = (Output.EdgeTessFactor[0] + Output.EdgeTessFactor[1] + Output.EdgeTessFactor[2]) / 3.0f;
     //Output.EdgeTessFactor[0] = Output.EdgeTessFactor[1] = Output.EdgeTessFactor[2] = 1;
     //Output.InsideTessFactor = 0;
 
-    return Output;
+        return Output;
 }
 
 [domain("tri")]
-[partitioning("fractional_odd")]
+[partitioning("integer")]
 [outputtopology("triangle_cw")]
 [outputcontrolpoints(3)]
 [patchconstantfunc("CalcHSPatchConstants")]

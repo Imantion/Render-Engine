@@ -28,10 +28,10 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 		}
 		};
 
-	auto changescale = [](Engine::MeshSystem::Instance& inst,const float scale) {
+	auto changescale = [](Engine::MeshSystem::Instance& inst,int axis, const float scale) {
 		for (size_t i = 0; i < 3; i++)
 		{
-			inst.tranformation[i][i] *= scale;
+			inst.tranformation[axis][i] *= scale;
 		}
 		};
 
@@ -50,12 +50,17 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 	changepos(inst, Engine::vec3(3.0f, -1.0f, -2.0f));
 	Engine::MeshSystem::Init()->normVisGroup.addModel(model, knightMat, inst);
 
-	changepos(inst, Engine::vec3(2.0f, -2.0f, 4.0f));
-	Engine::MeshSystem::Init()->hologramGroup.addModel(model, knightMat, inst);
+	auto rotX = Engine::mat4::rotateX(3.14f * (-45.0f) / 360.0f);
 
-	changescale(inst, 0.5);
 	changepos(inst, Engine::vec3(-4.0f, 0.0f, 1.0f));
-	Engine::MeshSystem::Init()->hologramGroup.addModel(model, knightMat, inst);
+	Engine::MeshSystem::Init()->hologramGroup.addModel(model, knightMat, Engine::MeshSystem::Instance{ inst.tranformation * rotX });
+	
+
+	auto rotZ = Engine::mat4::rotateZ(3.14f * (-45.0f) / 360.0f);
+	changescale(inst, 0, 0.2);
+	changepos(inst, Engine::vec3(2.0f, -2.0f, 4.0f));
+	Engine::MeshSystem::Init()->hologramGroup.addModel(model, knightMat, Engine::MeshSystem::Instance{ inst.tranformation * rotZ });
+
 
 	Engine::MeshSystem::Init()->normVisGroup.updateInstanceBuffers();
 	Engine::MeshSystem::Init()->hologramGroup.updateInstanceBuffers();
