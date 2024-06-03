@@ -147,12 +147,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="EngineSource\source\Graphics\DDSTextureLoader11.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\MeshSystem.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\Model.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\Renderer.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\ShaderManager.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\D3D.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\Engine.cpp" />
+    <ClCompile Include="EngineSource\source\Graphics\SkyBox.cpp" />
+    <ClCompile Include="EngineSource\source\Graphics\TextureManager.cpp" />
     <ClCompile Include="EngineSource\source\Math\matrix.cpp" />
     <ClCompile Include="EngineSource\source\Math\quaternion.cpp" />
     <ClCompile Include="EngineSource\source\Render\Camera.cpp" />
@@ -164,11 +167,14 @@
   <ItemGroup>
     <ClInclude Include="EngineSource\include\Graphics\Buffers.h" />
     <ClInclude Include="EngineSource\include\Graphics\D3D.h" />
+    <ClInclude Include="EngineSource\include\Graphics\DDSTextureLoader11.h" />
     <ClInclude Include="EngineSource\include\Graphics\Engine.h" />
     <ClInclude Include="EngineSource\include\Graphics\Mesh.h" />
     <ClInclude Include="EngineSource\include\Graphics\MeshSystem.h" />
     <ClInclude Include="EngineSource\include\Graphics\Model.h" />
     <ClInclude Include="EngineSource\include\Graphics\Renderer.h" />
+    <ClInclude Include="EngineSource\include\Graphics\SkyBox.h" />
+    <ClInclude Include="EngineSource\include\Graphics\TextureManager.h" />
     <ClInclude Include="EngineSource\include\Math\Box.hpp" />
     <ClInclude Include="EngineSource\include\Math\matrix.h" />
     <ClInclude Include="EngineSource\include\Math\math.h" />

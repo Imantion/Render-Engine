@@ -1,6 +1,7 @@
 #pragma once
 #include "Math/matrix.h"
 #include "Math/vec.h"
+#include "vector"
 
 namespace Engine
 {
@@ -12,7 +13,7 @@ namespace Engine
 		Camera(float verticalFov, float nearPlane, float farPlane);
 
 		vec3 getRayDirection(const vec2&);
-		vec3 calculateRayDirection(const vec2&);
+		vec3 calculateRayDirection(const vec2&) const;
 		vec3 getPosition() { return position; }
 
 		void calculateProjectionMatrix(int viewportWidth, int viewportHeight);
@@ -20,11 +21,13 @@ namespace Engine
 		void calculateRayDirections();
 		void moveCamera(const vec3& direction) { position += direction; }
 
+		/*std::vector<vec3> getCameraFrustrum() const;*/
 		vec3 getForward() { return forwardDirection; }
 		vec3 getUp() { return upDirection; }
 		vec3 getRight() { return rightDirection; }
-		const mat4& getViewMatrix() { return view; }
-		const mat4& getProjectionMatrix() { return projection; }
+		const mat4& getViewMatrix() const { return view; }
+		const mat4& getInverseViewMatrix() const { return inverseView; }
+		const mat4& getProjectionMatrix() const { return projection; }
 
 		void setForward(vec3 f);
 		void setUp(vec3 u);
@@ -38,6 +41,7 @@ namespace Engine
 		float nearClip = 0.1f;
 		float farClip = 100.0f;
 		float FOV = 45.0f;
+		float aspectRatio;
 		
 		vec3 position{ 0.0f, 0.0f, -2.0f };
 		vec3 forwardDirection{ 0.0f,0.0f,1.0f };

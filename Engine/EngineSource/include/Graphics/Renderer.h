@@ -18,6 +18,8 @@ namespace Engine
 	struct PerViewCB
 	{
 		mat4 ProjectedView;
+		mat4 projection;
+		mat4 view;
 		vec3 camerPosition;
 		float padding;
 	};

@@ -80,6 +80,15 @@
     <ClCompile Include="EngineSource\source\Graphics\ShaderManager.cpp">
       <Filter>Source\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="EngineSource\source\Graphics\TextureManager.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="EngineSource\source\Graphics\DDSTextureLoader11.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="EngineSource\source\Graphics\SkyBox.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EngineSource\include\Math\math.h">
@@ -143,6 +152,15 @@
       <Filter>Include\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="EngineSource\include\Utils\EnumDefinitions.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineSource\include\Graphics\TextureManager.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineSource\include\Graphics\DDSTextureLoader11.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineSource\include\Graphics\SkyBox.h">
       <Filter>Include</Filter>
     </ClInclude>
   </ItemGroup>

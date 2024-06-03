@@ -20,7 +20,9 @@ namespace Engine
 		static mat4 rotateZ(float angle);
 		mat4& operator=(const mat4& other);
 		float* operator[](int index) { return mat[index]; }
+		float* operator[](size_t index) { return mat[index]; }
 		const float* operator[](int index) const { return mat[index]; } 
+		const float* operator[](size_t index) const { return mat[index]; }
 		mat4 operator*(float t);
 		mat4 operator*(const mat4& other) const;
 		
