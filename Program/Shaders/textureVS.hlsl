@@ -22,7 +22,7 @@ psOutput main(uint index : SV_VertexID)
     output.pos = mul(float4(position[index], 0.0f), projection);
     output.pos.z = 0.0f;
     
-    output.direction = frusts[index];
+    output.direction = mul(float4(position[index], 0), view);
     
     return output;
 }

@@ -105,7 +105,7 @@ void Engine::Renderer::Render(Camera* camera)
 	d3d->GetContext()->ClearRenderTargetView(pRenderTarget.Get(), color);
 	d3d->GetContext()->ClearDepthStencilView(pViewDepth.Get(), D3D11_CLEAR_DEPTH, 0.0f, 0u);
 
-	PerViewCB perView = PerViewCB{ camera->getViewMatrix() * camera->getProjectionMatrix(), camera->getProjectionMatrix(),camera->getViewMatrix(), camera->getPosition()};
+	PerViewCB perView = PerViewCB{ camera->getViewMatrix() * camera->getProjectionMatrix(), camera->getProjectionMatrix(),camera->getInverseViewMatrix(), camera->getPosition()};
 	perViewBuffer.updateBuffer(&perView);
 
 
