@@ -149,7 +149,7 @@ void D3DApplication::Update(float deltaTime)
 
 	test->BindSkyBox(2u);
 
-	d3d->GetContext()->Draw(4, 0);
+	d3d->GetContext()->Draw(3, 0);
 
 	pWindow->flush();
 }
