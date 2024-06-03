@@ -3,6 +3,8 @@
 cbuffer perView : register(b0)
 {
     matrix viewProjection;
+    matrix projection;
+    matrix view;
     float3 g_cameraPosition;
 }
 

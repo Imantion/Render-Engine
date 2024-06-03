@@ -8,6 +8,7 @@
 #include "D3DApp/D3DApplication.h"
 #include "Graphics/Model.h"
 #include "Graphics/MeshSystem.h"
+#include "Graphics/TextureManager.h"
 
 #define FRAME_RATE 60
 
@@ -85,6 +86,9 @@ int main(int argc, char* argv[])
 	
 	Engine::Engine::Init();
 	D3DApplication app(800, 400, WindowProc);
+
+
+	//auto b = Engine::TextureManager::Init()->AddTexture("aboba", L"skybox.dds");
 
 	
 	while (!app.isClosed())

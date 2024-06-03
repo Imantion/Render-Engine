@@ -51,6 +51,8 @@
     <None Include="Shaders\normalColor\PixelShader.hlsl" />
     <None Include="Shaders\DomainShader.hlsl" />
     <None Include="Shaders\HullShader.hlsl" />
+    <None Include="Shaders\textureVS.hlsl" />
+    <None Include="Shaders\texturePS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\declarations.hlsli">

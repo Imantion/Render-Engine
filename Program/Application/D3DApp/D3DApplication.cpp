@@ -8,11 +8,14 @@
 #include "Graphics/Renderer.h"
 #include "Math/quaternion.h"
 #include "Graphics/MeshSystem.h"
+#include "Graphics\TextureManager.h"
+#include "Graphics/SkyBox.h"
 #include <assert.h>
 
 Engine::vec2 previousMousePosition;
 static float cameraSpeed = 2.0f;
 
+static Engine::SkyBox* test;
 static void InitMeshSystem()
 {
 	D3D11_INPUT_ELEMENT_DESC ied[] = {
@@ -69,6 +72,11 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 	
 	camera->calculateProjectionMatrix(windowWidth, windowHeight);
 	InitMeshSystem();
+	
+	auto b = Engine::ShaderManager::CompileAndCreateShader("cubemap", L"shaders/textureVS.hlsl", L"shaders/texturePS.hlsl", nullptr, 0u, nullptr, nullptr, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	auto c = Engine::TextureManager::Init()->AddTexture("cubemap", L"skybox4.dds");
+
+	test = new Engine::SkyBox(c, b.get());
 
 	Engine::MeshSystem::Material knightMat = { Engine::vec3(1.0,0.0f,1.0f), 0.0f,Engine::vec3(1.0,1.0f,0.0f), 0.0f };
 
@@ -115,6 +123,8 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 
 	Engine::MeshSystem::Init()->normVisGroup.updateInstanceBuffers();
 	Engine::MeshSystem::Init()->hologramGroup.updateInstanceBuffers();
+
+	test->BindCamera(camera.get());
 }
 
 bool D3DApplication::isClosed()
@@ -128,13 +138,18 @@ void D3DApplication::Update(float deltaTime)
 	if (pWindow->wasWindowResized())
 	{
 		camera->calculateProjectionMatrix(pWindow->getWindowWidth(), pWindow->getWindowHeight());
-
 	}
 
 	Engine::D3D* d3d = Engine::D3D::GetInstance();
 	Engine::Renderer* renderer = Engine::Renderer::GetInstance();
 	renderer->updatePerFrameCB(deltaTime, (FLOAT)pWindow->getWindowWidth(), (FLOAT)pWindow->getWindowHeight());
+
+	
 	renderer->Render(camera.get());
+
+	test->BindSkyBox(2u);
+
+	d3d->GetContext()->Draw(4, 0);
 
 	pWindow->flush();
 }
