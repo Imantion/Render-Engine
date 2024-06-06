@@ -3,8 +3,7 @@
 #include "Graphics/TextureManager.h"
 #include "Graphics/ShaderManager.h"
 
-Engine::SkyBox::SkyBox(Texture* skyBoxTexture, shader* skyBoxShader) :
-	m_skyBoxTexture(skyBoxTexture), m_skyBoxShader(skyBoxShader), m_pCamera(nullptr)
+Engine::SkyBox::SkyBox()
 {
 	m_cb.create();
 
@@ -19,6 +18,22 @@ Engine::SkyBox::SkyBox(Texture* skyBoxTexture, shader* skyBoxShader) :
 	D3D::GetInstance()->GetDevice()->CreateDepthStencilState(&depthStencilDesc, &m_readOnlyDepthBuffer);
 }
 
+Engine::SkyBox::SkyBox(std::shared_ptr<Texture> skyBoxTexture, std::shared_ptr<shader> skyBoxShader) :
+	m_skyBoxTexture(skyBoxTexture), m_skyBoxShader(skyBoxShader), m_pCamera(nullptr)
+{
+	SkyBox();
+}
+
+void Engine::SkyBox::SetTexture(std::shared_ptr<Texture> text)
+{
+	m_skyBoxTexture = text;
+}
+
+void Engine::SkyBox::SetShader(std::shared_ptr<shader> shdr)
+{
+	m_skyBoxShader = shdr;
+}
+
 void Engine::SkyBox::BindCamera(const Camera* camera)
 {
 	m_pCamera = camera;
@@ -28,22 +43,20 @@ void Engine::SkyBox::BindSkyBox(UINT slot)
 {
 	if (m_pCamera)
 	{
-		cb_data.frustrums[0] = vec4(m_pCamera->calculateRayDirection(vec2(-1.0f, -1.0f)),0.0f);
-		cb_data.frustrums[1] = vec4(m_pCamera->calculateRayDirection(vec2(-1.0f, 1.0f)),0.0f);
-		cb_data.frustrums[2] = vec4(m_pCamera->calculateRayDirection(vec2(1.0f, -1.0f)),0.0f);
-		cb_data.frustrums[3] = vec4(m_pCamera->calculateRayDirection(vec2(1.0f, 1.0f)),0.0f);
-
-		//cb_data.frustrums[0] = vec4(-1, -1, 1, 0);
-		//cb_data.frustrums[1] = vec4(-1, 1, 1, 0);
-		//cb_data.frustrums[2] = vec4(1, -1, 1, 0);
+		cb_data.inverseView = m_pCamera->getInverseViewMatrix();
 
 		m_cb.updateBuffer(&cb_data);
 
-		
 		auto d3dContext = D3D::GetInstance()->GetContext();
-		m_skyBoxTexture->BindTexture(0u);
 		m_skyBoxShader->BindShader();
-		d3dContext->VSSetConstantBuffers(2u, 1u, m_cb.m_constBuffer.GetAddressOf());
-		d3dContext->OMSetDepthStencilState(m_readOnlyDepthBuffer.Get(), 1u);
+		m_skyBoxTexture->BindTexture(0u);
+		d3dContext->VSSetConstantBuffers(slot, 1u, m_cb.m_constBuffer.GetAddressOf());
 	}
+}
+
+void Engine::SkyBox::Draw()
+{
+	auto d3dContext = D3D::GetInstance()->GetContext();
+	d3dContext->OMSetDepthStencilState(m_readOnlyDepthBuffer.Get(), 1u);
+	d3dContext->Draw(3, 0);
 }

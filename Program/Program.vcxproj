@@ -213,6 +213,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Shaders\GlobalSamplers.hlsli" />
     <None Include="Shaders\normalLines\PixelShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
@@ -234,7 +235,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\declarations.hlsli" />
-    <None Include="Shaders\Hologram.shader" />
+    <None Include="Shaders\Hologram\Hologram.shader" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\normalLines\HullShader.hlsl">
@@ -263,7 +264,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\textureVS.hlsl">
+    <None Include="Shaders\skyboxShader\textureVS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
@@ -274,17 +275,31 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
       <FileType>Document</FileType>
     </None>
-    <None Include="Shaders\texturePS.hlsl">
+    <None Include="Shaders\skyboxShader\texturePS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <FileType>Document</FileType>
     </None>
-    <None Include="Shaders\DomainShader.hlsl">
+    <None Include="Shaders\Hologram\DomainShader.hlsl">
       <FileType>Document</FileType>
     </None>
-    <FxCompile Include="Shaders\GSHologram.hlsl">
+    <None Include="Shaders\crateTextMap\CratePS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\crateTextMap\CrateVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <FileType>Document</FileType>
+    </None>
+    <FxCompile Include="Shaders\Hologram\GSHologram.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Geometry</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Geometry</ShaderType>
@@ -294,7 +309,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Geometry</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
     </FxCompile>
-    <None Include="Shaders\HullShader.hlsl">
+    <None Include="Shaders\Hologram\HullShader.hlsl">
       <FileType>Document</FileType>
     </None>
     <None Include="Shaders\normalColor\PixelShader.hlsl">

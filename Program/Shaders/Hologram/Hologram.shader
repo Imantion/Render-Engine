@@ -1,4 +1,4 @@
-#include "declarations.hlsli"
+#include "..\declarations.hlsli"
 
 // BEGIN ShaderToy https://www.shadertoy.com/view/WttcRB
 float hash4d(in float4 p)

@@ -15,7 +15,6 @@
 Engine::vec2 previousMousePosition;
 static float cameraSpeed = 2.0f;
 
-static Engine::SkyBox* test;
 static void InitMeshSystem()
 {
 	D3D11_INPUT_ELEMENT_DESC ied[] = {
@@ -73,10 +72,9 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 	camera->calculateProjectionMatrix(windowWidth, windowHeight);
 	InitMeshSystem();
 	
-	auto b = Engine::ShaderManager::CompileAndCreateShader("cubemap", L"shaders/textureVS.hlsl", L"shaders/texturePS.hlsl", nullptr, 0u, nullptr, nullptr, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-	auto c = Engine::TextureManager::Init()->AddTexture("cubemap", L"skybox4.dds");
+	auto crateFirst = Engine::TextureManager::Init()->AddTexture("crate", L"Textures\\crate.dds");
+	auto crateSecond = Engine::TextureManager::Init()->AddTexture("metalCrate", L"Textures\\MetalCrate.dds");
 
-	test = new Engine::SkyBox(c, b.get());
 
 	Engine::MeshSystem::Material knightMat = { Engine::vec3(1.0,0.0f,1.0f), 0.0f,Engine::vec3(1.0,1.0f,0.0f), 0.0f };
 
@@ -102,18 +100,31 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 	changepos(inst, Engine::vec3(1.0f, -1.0f, 0.0f));
 	Engine::MeshSystem::Init()->hologramGroup.addModel(model, knightMat, inst);
 
-	model = Engine::ModelManager::GetInstance()->loadModel("Models\\cube.obj");
+	model = Engine::ModelManager::GetInstance()->loadModel("Models\\MeshCube.obj");
 	changepos(inst, Engine::vec3(1.0f, 1.0f, 5.0f));
 	Engine::MeshSystem::Init()->normVisGroup.addModel(model, knightMat, inst);
 
 	changepos(inst, Engine::vec3(3.0f, -1.0f, -2.0f));
 	Engine::MeshSystem::Init()->normVisGroup.addModel(model, knightMat, inst);
 
+	Engine::MeshSystem::Material crateMaterial;
+	crateMaterial.texture = crateFirst;
+	changepos(inst, Engine::vec3(1.0f, -4.0f, 2.0f));
+	Engine::MeshSystem::Init()->textureGroup.addModel(model, crateMaterial, inst);
+
+
+	changepos(inst, Engine::vec3(2.0f, -2.0f, 4.0f));
+	Engine::MeshSystem::Init()->hologramGroup.addModel(model, knightMat, inst);
 	auto rotX = Engine::mat4::rotateX(3.14f * (-45.0f) / 360.0f);
 
 	changepos(inst, Engine::vec3(-4.0f, 0.0f, 1.0f));
 	Engine::MeshSystem::Init()->hologramGroup.addModel(model, knightMat, Engine::MeshSystem::Instance{ inst.tranformation * rotX });
 	
+
+	changescale(inst, 5);
+	crateMaterial.texture = crateSecond;
+	changepos(inst, Engine::vec3(-10.0f, -4.0f, 2.0f));
+	Engine::MeshSystem::Init()->textureGroup.addModel(model, crateMaterial, inst);
 
 	auto rotZ = Engine::mat4::rotateZ(3.14f * (-45.0f) / 360.0f);
 	changescale(inst, 0, 0.2f);
@@ -123,8 +134,15 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 
 	Engine::MeshSystem::Init()->normVisGroup.updateInstanceBuffers();
 	Engine::MeshSystem::Init()->hologramGroup.updateInstanceBuffers();
+	Engine::MeshSystem::Init()->textureGroup.updateInstanceBuffers();
 
-	test->BindCamera(camera.get());
+	auto skyboxShader = Engine::ShaderManager::CompileAndCreateShader("skybox", L"shaders/skyboxShader/textureVS.hlsl", 
+		L"shaders/skyboxShader/texturePS.hlsl", nullptr, 0u, nullptr, nullptr, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	auto skyboxTexture = Engine::TextureManager::Init()->AddTexture("skybox", L"Textures\\skybox4.dds");
+
+	skybox.SetShader(skyboxShader);
+	skybox.SetTexture(skyboxTexture);
+	skybox.BindCamera(camera.get());
 }
 
 bool D3DApplication::isClosed()
@@ -144,12 +162,12 @@ void D3DApplication::Update(float deltaTime)
 	Engine::Renderer* renderer = Engine::Renderer::GetInstance();
 	renderer->updatePerFrameCB(deltaTime, (FLOAT)pWindow->getWindowWidth(), (FLOAT)pWindow->getWindowHeight());
 
-	
+	Engine::TextureManager::Init()->BindSamplers();
+
 	renderer->Render(camera.get());
 
-	test->BindSkyBox(2u);
-
-	d3d->GetContext()->Draw(3, 0);
+	skybox.BindSkyBox(2u);
+	skybox.Draw();
 
 	pWindow->flush();
 }

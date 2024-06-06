@@ -15,15 +15,21 @@ namespace Engine
 	{
 	public:
 
-		SkyBox(Texture* skyBoxTexture, shader* skyBoxShader);
-		void BindCamera(const Camera* camera);
+		SkyBox();
+		SkyBox(std::shared_ptr<Texture> skyBoxTexture, std::shared_ptr<shader> skyBoxShader);
 
+		void SetTexture(std::shared_ptr<Texture>);
+		void SetShader(std::shared_ptr<shader>);
+
+		void BindCamera(const Camera* camera);
 		void BindSkyBox(UINT slot);
+
+		void Draw();
 
 	private:
 		struct cameraFrustrum
 		{
-			vec4 frustrums[4];
+			mat4 inverseView;
 		} cb_data;
 
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_readOnlyDepthBuffer;

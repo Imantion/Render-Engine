@@ -43,7 +43,7 @@ void Engine::TextureManager::Deinit()
 	m_textures.clear();
 }
 
-Engine::Texture* Engine::TextureManager::AddTexture(const char* name, const wchar_t* path)
+std::shared_ptr<Engine::Texture> Engine::TextureManager::AddTexture(const char* name, const wchar_t* path)
 {
 	if (m_textures.find(name) != m_textures.end())
 		throw std::runtime_error("Texture with name '" + std::string(name) + "' already exists");
@@ -51,16 +51,52 @@ Engine::Texture* Engine::TextureManager::AddTexture(const char* name, const wcha
 	auto texture = std::make_shared<Texture>(path);
 	m_textures.emplace(name, texture);
 
-	return texture.get();
+	return texture;
 }
 
-Engine::Texture* Engine::TextureManager::GetTexture(const char* name)
+std::shared_ptr<Engine::Texture> Engine::TextureManager::GetTexture(const char* name)
 {
 	auto iter = m_textures.find(name);
 
 	if(iter == m_textures.end())
 		return nullptr;
 
-	return (*iter).second.get();
+	return (*iter).second;
+}
+
+void Engine::TextureManager::BindSamplers()
+{
+	auto context = D3D::GetInstance()->GetContext();
+
+	static ID3D11SamplerState* samplers[3] = { m_pointSamplareState.Get(), m_linearSamplareState.Get(), m_anisotropicSamplareState.Get() };
+
+	context->PSSetSamplers(0, 3, samplers);
+}
+
+Engine::TextureManager::TextureManager()
+{
+	auto d3d = D3D::GetInstance();
+
+	D3D11_SAMPLER_DESC desc;
+	ZeroMemory(&desc, sizeof(desc));
+	desc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	desc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	desc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	desc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+	desc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	desc.MinLOD = 0;
+	desc.MaxLOD = D3D11_FLOAT32_MAX;
+
+	HRESULT hr =  d3d->GetDevice()->CreateSamplerState(&desc, &m_pointSamplareState);
+	assert(SUCCEEDED(hr));
+
+	desc.Filter = D3D11_FILTER_MIN_POINT_MAG_MIP_LINEAR;
+	hr = d3d->GetDevice()->CreateSamplerState(&desc, &m_linearSamplareState);
+	assert(SUCCEEDED(hr));
+
+	desc.Filter = D3D11_FILTER_ANISOTROPIC;
+	desc.MaxAnisotropy = 8;
+	hr = d3d->GetDevice()->CreateSamplerState(&desc, &m_anisotropicSamplareState);
+	assert(SUCCEEDED(hr));
 }
 

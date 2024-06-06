@@ -28,18 +28,24 @@ namespace Engine
 		static TextureManager* Init();
 		static void Deinit();
 
-		Texture* AddTexture(const char* name, const wchar_t* path);
+		std::shared_ptr<Texture> AddTexture(const char* name, const wchar_t* path);
 
-		Texture* GetTexture(const char* name);
+		std::shared_ptr<Texture> GetTexture(const char* name);
+		
+		void BindSamplers();
 
 	protected:
-		TextureManager() = default;
+		TextureManager();
 
 	private:
 		static TextureManager* m_Instance;
 
 		static std::unordered_map<std::string, std::shared_ptr<Texture>> m_textures;
 		static std::mutex m_mutex;
+
+		Microsoft::WRL::ComPtr<ID3D11SamplerState> m_pointSamplareState;
+		Microsoft::WRL::ComPtr<ID3D11SamplerState> m_linearSamplareState;
+		Microsoft::WRL::ComPtr<ID3D11SamplerState> m_anisotropicSamplareState;
 
 	private:
 		TextureManager(TextureManager& other) = delete;

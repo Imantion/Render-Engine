@@ -1,5 +1,6 @@
+#include "..\GlobalSamplers.hlsli"
+
 TextureCube text : register(t0);
-SamplerState samp : register(s0);
 
 struct psOutput
 {
@@ -10,5 +11,5 @@ struct psOutput
 
 float4 main(psOutput direction) : SV_TARGET
 {
-    return text.Sample(samp, direction.direction);
+    return text.Sample(g_pointWrap, direction.direction);
 }

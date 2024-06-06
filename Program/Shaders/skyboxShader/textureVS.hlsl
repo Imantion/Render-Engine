@@ -1,8 +1,8 @@
-#include "declarations.hlsli"
+#include "..\declarations.hlsli"
 
 cbuffer frust : register(b2)
 {
-    float3 frusts[4];
+    float4x4 inverseView;
 };
 
 struct psOutput
@@ -22,7 +22,7 @@ psOutput main(uint index : SV_VertexID)
     output.pos = mul(float4(position[index], 0.0f), projection);
     output.pos.z = 0.0f;
     
-    output.direction = mul(float4(position[index], 0), view);
+    output.direction = mul(float4(position[index], 0), inverseView);
     
     return output;
 }

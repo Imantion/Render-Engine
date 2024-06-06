@@ -7,6 +7,7 @@
 #include "Graphics/Buffers.h"
 #include "Graphics/Model.h"
 #include "Graphics/ShaderManager.h"
+#include "Graphics/TextureManager.h"
 
 namespace Engine
 {
@@ -263,7 +264,8 @@ namespace Engine
 							// ... update shader local per-draw uniform buffer
 							materialData.updateBuffer(&data);
 
-							// ... bind each material texture, we don't have it in HW4
+							if(material.texture)
+								material.texture->BindTexture(0u);
 
 							uint32_t numInstances = uint32_t(perMaterial.instances.size());
 							d3d->GetContext()->DrawIndexedInstanced(meshRange.indexNum, numInstances, meshRange.indexOffset, meshRange.vertexOffset, renderedInstances);
@@ -286,11 +288,13 @@ namespace Engine
 			vec3 longWaveColor;
 			float padding1;
 
+			std::shared_ptr<Texture> texture;
 			bool operator==(const Material& other) const
 			{
-				return shortWaveColor == other.shortWaveColor && longWaveColor == other.longWaveColor;
+				return shortWaveColor == other.shortWaveColor && longWaveColor == other.longWaveColor && texture == other.texture;
 			}
 		};
+
 
 		struct Instance // all other template instances must inherit this one
 		{
@@ -299,6 +303,7 @@ namespace Engine
 
 		OpaqueInstances<Instance, Material> hologramGroup;
 		OpaqueInstances<Instance, Material> normVisGroup;
+		OpaqueInstances<Instance, Material> textureGroup;
 
 		std::vector<mat4*> intersect(const ray& r, hitInfo& hInfo);
 
