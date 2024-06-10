@@ -31,18 +31,9 @@ void Engine::Renderer::InitDepthWithRTV(ID3D11Resource* RenderBuffer, UINT wWidt
 		assert(SUCCEEDED(hr));
 		InitDepth(wWidth, wHeight);
 
-		d3d->GetContext()->PSSetConstantBuffers(0, 1, perViewBuffer.m_constBuffer.GetAddressOf());
-		d3d->GetContext()->PSSetConstantBuffers(1, 1, perFrameBuffer.m_constBuffer.GetAddressOf());
 
-		d3d->GetContext()->VSSetConstantBuffers(0, 1, perViewBuffer.m_constBuffer.GetAddressOf());
-		d3d->GetContext()->VSSetConstantBuffers(1, 1, perFrameBuffer.m_constBuffer.GetAddressOf());
-
-		d3d->GetContext()->DSSetConstantBuffers(0, 1, perViewBuffer.m_constBuffer.GetAddressOf());
-
-		d3d->GetContext()->GSSetConstantBuffers(0, 1, perViewBuffer.m_constBuffer.GetAddressOf());
-		d3d->GetContext()->GSSetConstantBuffers(1, 1, perFrameBuffer.m_constBuffer.GetAddressOf());
-
-		d3d->GetContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
+		perViewBuffer.bind(0u, shaderTypes::VS | shaderTypes::PS | shaderTypes::DS | shaderTypes::GS);
+		perFrameBuffer.bind(1u, shaderTypes::VS | shaderTypes::PS | shaderTypes::GS);
 	}
 }
 

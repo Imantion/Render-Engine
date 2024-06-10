@@ -13,11 +13,62 @@
 Engine::vec2 previousMousePosition;
 static float cameraSpeed = 2.0f;
 
-D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc windowEvent)
+static void InitMeshSystem()
+{
+	D3D11_INPUT_ELEMENT_DESC ied[] = {
+	{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	{"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	{"TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	{"BITANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	{"TC", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	{"TOWORLD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+	{"TOWORLD", 1, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+	{"TOWORLD", 2, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+	{"TOWORLD", 3, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1}
+	};
+
+
+	auto NormalVisColor = Engine::ShaderManager::CompileAndCreateShader("NormalVisColor", L"Shaders\\normalColor\\VertexShader.hlsl",
+		L"Shaders\\normalColor\\PixelShader.hlsl", nullptr, nullptr);
+
+	auto inputLayout = Engine::ShaderManager::CreateInputLayout("Default", NormalVisColor->vertexBlob.Get(), ied, 9u);
+
+
+
+	auto NormalVisLines = Engine::ShaderManager::CompileAndCreateShader("NormalVisLines", L"Shaders\\normalLines\\VertexShader.hlsl",
+		L"Shaders\\normalLines\\PixelShader.hlsl", L"Shaders\\normalLines\\HullShader.hlsl", L"Shaders\\normalLines\\DomainShader.hlsl",
+		L"Shaders\\normalLines\\GSnormal.hlsl", nullptr, nullptr, D3D_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
+
+	NormalVisLines->DisableShader();
+	if (!NormalVisColor)
+		throw std::runtime_error("Failed to compile and create shader!");
+
+	auto HologramGroup = Engine::ShaderManager::CompileAndCreateShader("HologramGroup", L"Shaders\\Hologram.shader",
+		L"Shaders\\Hologram.shader", L"Shaders\\HullShader.hlsl", L"Shaders\\DomainShader.hlsl", L"Shaders\\GSHologram.hlsl",
+		nullptr, nullptr, D3D_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST, "vsMain", "psMain");
+
+	if (!HologramGroup)
+		throw std::runtime_error("Failed to compile and create shader!");
+
+	NormalVisColor->BindInputLyout(inputLayout);
+	NormalVisLines->BindInputLyout(inputLayout);
+	HologramGroup->BindInputLyout(inputLayout);
+
+	auto ms = Engine::MeshSystem::Init();
+
+	ms->normVisGroup.addShader(NormalVisLines);
+	ms->normVisGroup.addShader(NormalVisColor);
+	ms->hologramGroup.addShader(HologramGroup);
+	ms->hologramGroup.addShader(NormalVisLines);
+}
+
+D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc windowEvent) :
+	pWindow(new Engine::Window(windowWidth, windowHeight, windowEvent))
 {
 	camera.reset(new Engine::Camera(45.0f, 0.1f, 100.0f));
-	pWindow.reset(new Engine::Window(windowWidth, windowHeight, windowEvent));
+	
 	camera->calculateProjectionMatrix(windowWidth, windowHeight);
+	InitMeshSystem();
 
 	Engine::MeshSystem::Material knightMat = { Engine::vec3(1.0,0.0f,1.0f), 0.0f,Engine::vec3(1.0,1.0f,0.0f), 0.0f };
 

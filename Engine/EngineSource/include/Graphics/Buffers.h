@@ -1,5 +1,6 @@
 #pragma once
 #include "Graphics/D3D.h"
+#include "Utils\EnumDefinitions.h"
 
 namespace Engine
 {
@@ -7,6 +8,7 @@ namespace Engine
 	class ConstBuffer
 	{
 	public:
+		
 		bool create(D3D11_USAGE usage = D3D11_USAGE_DYNAMIC)
 		{
 			if (D3D* d3d = D3D::GetInstance())
@@ -42,6 +44,21 @@ namespace Engine
 				return true;
 			}
 			return false;
+		}
+
+		void bind(UINT slot, UINT typeOfShader)
+		{
+			auto context = D3D::GetInstance()->GetContext();
+			if(typeOfShader & shaderTypes::VS)
+				context->VSSetConstantBuffers(slot, 1, m_constBuffer.GetAddressOf());
+			if(typeOfShader & shaderTypes::PS)
+				context->PSSetConstantBuffers(slot, 1, m_constBuffer.GetAddressOf());
+			if(typeOfShader & shaderTypes::HS)
+				context->HSSetConstantBuffers(slot, 1, m_constBuffer.GetAddressOf());
+			if(typeOfShader & shaderTypes::DS)
+				context->DSSetConstantBuffers(slot, 1, m_constBuffer.GetAddressOf());
+			if(typeOfShader & shaderTypes::GS)
+				context->GSSetConstantBuffers(slot, 1, m_constBuffer.GetAddressOf());
 		}
 	public:
 		Microsoft::WRL::ComPtr<ID3D11Buffer> m_constBuffer;

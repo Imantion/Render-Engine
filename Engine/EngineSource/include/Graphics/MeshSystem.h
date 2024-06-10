@@ -233,9 +233,11 @@ namespace Engine
 					continue;
 				m_shaders[i]->BindShader();
 				instanceBuffer.bind(1u);
-				d3d->GetContext()->VSSetConstantBuffers(2u, 1, meshData.m_constBuffer.GetAddressOf());
-				d3d->GetContext()->PSSetConstantBuffers(3u, 1, meshData.m_constBuffer.GetAddressOf());
-				d3d->GetContext()->PSSetConstantBuffers(2u, 1, materialData.m_constBuffer.GetAddressOf());
+				meshData.bind(2u, shaderTypes::VS);
+
+				materialData.bind(2u, shaderTypes::PS);
+				meshData.bind(3u, shaderTypes::PS);
+
 
 				uint32_t renderedInstances = 0;
 				for (const auto& perModel : perModel)
@@ -309,7 +311,7 @@ namespace Engine
 
 		static void Deinit();
 	private:
-		MeshSystem();
+		MeshSystem() = default;
 
 	protected:
 		static std::mutex mutex_;

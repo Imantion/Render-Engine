@@ -48,11 +48,6 @@ public:
 private:
 	std::shared_ptr<Engine::Camera> camera;
 	std::unique_ptr<Engine::Window> pWindow;
-	Engine::VertexBuffer<Vertex> vertexBuffer;
-	Engine::IndexBuffer indexBuffer;
-	Microsoft::WRL::ComPtr<ID3D11InputLayout> pLayout;
-	Engine::ConstBuffer<ConstantBuffer> PSConstBuffer;
-	Engine::ConstBuffer<Projection> VSConstBuffer;
 	
 	std::unique_ptr<Engine::IRayDraggable> dragger;
 };

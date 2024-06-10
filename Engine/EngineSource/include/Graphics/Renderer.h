@@ -42,9 +42,6 @@ namespace Engine
 		ConstBuffer<PerFrameCB> perFrameBuffer;
 		PerFrameCB perFrameData;
 
-		Microsoft::WRL::ComPtr<ID3D11HullShader> hullShader;
-		Microsoft::WRL::ComPtr<ID3D11DomainShader> domainShader;
-		Microsoft::WRL::ComPtr<ID3D11GeometryShader> geometryShader;
 		ConstBuffer<PerViewCB> perViewBuffer;
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pRenderTarget;
 		Microsoft::WRL::ComPtr <ID3D11DepthStencilView> pViewDepth;
