@@ -64,7 +64,8 @@ void Engine::shader::BindShader()
 		d3d->GetContext()->HSSetShader(hullShader.Get(), nullptr, 0u);
 		d3d->GetContext()->DSSetShader(domainShader.Get(), nullptr, 0u);
 		d3d->GetContext()->GSSetShader(geometryShader.Get(), nullptr, 0u);
-		d3d->GetContext()->IASetInputLayout(inputLayout);
+		if(inputLayout != nullptr)
+			d3d->GetContext()->IASetInputLayout(inputLayout);
 		d3d->GetContext()->IASetPrimitiveTopology(topology);
 	}
 }

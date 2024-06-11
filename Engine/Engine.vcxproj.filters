@@ -151,9 +151,6 @@
     <ClInclude Include="EngineSource\include\Graphics\Renderer.h">
       <Filter>Include\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="EngineSource\include\Utils\EnumDefinitions.h">
-      <Filter>Include</Filter>
-    </ClInclude>
     <ClInclude Include="EngineSource\include\Graphics\TextureManager.h">
       <Filter>Include</Filter>
     </ClInclude>
@@ -165,6 +162,9 @@
     </ClInclude>
     <ClInclude Include="EngineSource\include\Graphics\TextureManager.h">
       <Filter>Include\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineSource\include\Utils\EnumDefinitions.h">
+      <Filter>Include\Utils</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

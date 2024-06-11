@@ -60,7 +60,7 @@ namespace Engine
 			if(typeOfShader & shaderTypes::GS)
 				context->GSSetConstantBuffers(slot, 1, m_constBuffer.GetAddressOf());
 		}
-	public:
+	private:
 		Microsoft::WRL::ComPtr<ID3D11Buffer> m_constBuffer;
 	};
 

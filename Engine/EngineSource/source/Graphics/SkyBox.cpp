@@ -3,7 +3,10 @@
 #include "Graphics/TextureManager.h"
 #include "Graphics/ShaderManager.h"
 
-Engine::SkyBox::SkyBox()
+
+
+Engine::SkyBox::SkyBox(std::shared_ptr<Texture> skyBoxTexture, std::shared_ptr<shader> skyBoxShader) :
+	m_skyBoxTexture(skyBoxTexture), m_skyBoxShader(skyBoxShader), m_pCamera(nullptr)
 {
 	m_cb.create();
 
@@ -18,11 +21,7 @@ Engine::SkyBox::SkyBox()
 	D3D::GetInstance()->GetDevice()->CreateDepthStencilState(&depthStencilDesc, &m_readOnlyDepthBuffer);
 }
 
-Engine::SkyBox::SkyBox(std::shared_ptr<Texture> skyBoxTexture, std::shared_ptr<shader> skyBoxShader) :
-	m_skyBoxTexture(skyBoxTexture), m_skyBoxShader(skyBoxShader), m_pCamera(nullptr)
-{
-	SkyBox();
-}
+Engine::SkyBox::SkyBox() : SkyBox(nullptr, nullptr) {}
 
 void Engine::SkyBox::SetTexture(std::shared_ptr<Texture> text)
 {
@@ -50,7 +49,7 @@ void Engine::SkyBox::BindSkyBox(UINT slot)
 		auto d3dContext = D3D::GetInstance()->GetContext();
 		m_skyBoxShader->BindShader();
 		m_skyBoxTexture->BindTexture(0u);
-		d3dContext->VSSetConstantBuffers(slot, 1u, m_cb.m_constBuffer.GetAddressOf());
+		m_cb.bind(slot, shaderTypes::VS);
 	}
 }
 

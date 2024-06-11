@@ -35,7 +35,8 @@ static void InitMeshSystem()
 
 	auto inputLayout = Engine::ShaderManager::CreateInputLayout("Default", NormalVisColor->vertexBlob.Get(), ied, 9u);
 
-
+	auto textureMap = Engine::ShaderManager::CompileAndCreateShader("texture", L"Shaders\\crateTextMap\\CrateVS.hlsl",
+		L"Shaders\\crateTextMap\\CratePS.hlsl", nullptr, nullptr);
 
 	auto NormalVisLines = Engine::ShaderManager::CompileAndCreateShader("NormalVisLines", L"Shaders\\normalLines\\VertexShader.hlsl",
 		L"Shaders\\normalLines\\PixelShader.hlsl", L"Shaders\\normalLines\\HullShader.hlsl", L"Shaders\\normalLines\\DomainShader.hlsl",
@@ -45,8 +46,8 @@ static void InitMeshSystem()
 	if (!NormalVisColor)
 		throw std::runtime_error("Failed to compile and create shader!");
 
-	auto HologramGroup = Engine::ShaderManager::CompileAndCreateShader("HologramGroup", L"Shaders\\Hologram.shader",
-		L"Shaders\\Hologram.shader", L"Shaders\\HullShader.hlsl", L"Shaders\\DomainShader.hlsl", L"Shaders\\GSHologram.hlsl",
+	auto HologramGroup = Engine::ShaderManager::CompileAndCreateShader("HologramGroup", L"Shaders\\Hologram\\Hologram.shader",
+		L"Shaders\\Hologram\\Hologram.shader", L"Shaders\\Hologram\\HullShader.hlsl", L"Shaders\\Hologram\\DomainShader.hlsl", L"Shaders\\Hologram\\GSHologram.hlsl",
 		nullptr, nullptr, D3D_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST, "vsMain", "psMain");
 
 	if (!HologramGroup)
@@ -62,6 +63,9 @@ static void InitMeshSystem()
 	ms->normVisGroup.addShader(NormalVisColor);
 	ms->hologramGroup.addShader(HologramGroup);
 	ms->hologramGroup.addShader(NormalVisLines);
+
+	ms->textureGroup.addShader(textureMap);
+	ms->textureGroup.addShader(NormalVisLines);
 }
 
 D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc windowEvent) :
@@ -112,21 +116,18 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 	changepos(inst, Engine::vec3(1.0f, -4.0f, 2.0f));
 	Engine::MeshSystem::Init()->textureGroup.addModel(model, crateMaterial, inst);
 
-
-	changepos(inst, Engine::vec3(2.0f, -2.0f, 4.0f));
-	Engine::MeshSystem::Init()->hologramGroup.addModel(model, knightMat, inst);
 	auto rotX = Engine::mat4::rotateX(3.14f * (-45.0f) / 360.0f);
 
 	changepos(inst, Engine::vec3(-4.0f, 0.0f, 1.0f));
 	Engine::MeshSystem::Init()->hologramGroup.addModel(model, knightMat, Engine::MeshSystem::Instance{ inst.tranformation * rotX });
 	
-
-	changescale(inst, 5);
+	auto rotZ = Engine::mat4::rotateZ(3.14f * (-45.0f) / 360.0f);
+	changescale(inst,0, 5);
 	crateMaterial.texture = crateSecond;
 	changepos(inst, Engine::vec3(-10.0f, -4.0f, 2.0f));
-	Engine::MeshSystem::Init()->textureGroup.addModel(model, crateMaterial, inst);
+	Engine::MeshSystem::Init()->textureGroup.addModel(model, crateMaterial, Engine::MeshSystem::Instance{ inst.tranformation * rotZ });
 
-	auto rotZ = Engine::mat4::rotateZ(3.14f * (-45.0f) / 360.0f);
+	
 	changescale(inst, 0, 0.2f);
 	changepos(inst, Engine::vec3(2.0f, -2.0f, 4.0f));
 	Engine::MeshSystem::Init()->hologramGroup.addModel(model, knightMat, Engine::MeshSystem::Instance{ inst.tranformation * rotZ });
@@ -137,7 +138,7 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 	Engine::MeshSystem::Init()->textureGroup.updateInstanceBuffers();
 
 	auto skyboxShader = Engine::ShaderManager::CompileAndCreateShader("skybox", L"shaders/skyboxShader/textureVS.hlsl", 
-		L"shaders/skyboxShader/texturePS.hlsl", nullptr, 0u, nullptr, nullptr, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		L"shaders/skyboxShader/texturePS.hlsl", nullptr, nullptr, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 	auto skyboxTexture = Engine::TextureManager::Init()->AddTexture("skybox", L"Textures\\skybox4.dds");
 
 	skybox.SetShader(skyboxShader);
