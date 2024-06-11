@@ -31,13 +31,9 @@ void Engine::Renderer::InitDepthWithRTV(ID3D11Resource* RenderBuffer, UINT wWidt
 		assert(SUCCEEDED(hr));
 		InitDepth(wWidth, wHeight);
 
-		d3d->GetContext()->PSSetConstantBuffers(0, 1, perViewBuffer.m_constBuffer.GetAddressOf());
-		d3d->GetContext()->PSSetConstantBuffers(1, 1, perFrameBuffer.m_constBuffer.GetAddressOf());
 
-		d3d->GetContext()->VSSetConstantBuffers(0, 1, perViewBuffer.m_constBuffer.GetAddressOf());
-		d3d->GetContext()->VSSetConstantBuffers(1, 1, perFrameBuffer.m_constBuffer.GetAddressOf());
-
-		d3d->GetContext()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		perViewBuffer.bind(0u, shaderTypes::VS | shaderTypes::PS | shaderTypes::DS | shaderTypes::GS);
+		perFrameBuffer.bind(1u, shaderTypes::VS | shaderTypes::PS | shaderTypes::GS);
 	}
 }
 
@@ -97,6 +93,8 @@ void Engine::Renderer::updatePerFrameCB(float deltaTime, float wWidth, float wHe
 void Engine::Renderer::Render(Camera* camera)
 {
 	Engine::D3D* d3d = Engine::D3D::GetInstance();
+
+
 	d3d->GetContext()->OMSetRenderTargets(1u, pRenderTarget.GetAddressOf(), pViewDepth.Get());
 
 	const float color[] = { 0.5f, 0.5f,0.5f,1.0f };
@@ -107,7 +105,6 @@ void Engine::Renderer::Render(Camera* camera)
 	PerViewCB perView = PerViewCB{ camera->getViewMatrix() * camera->getProjectionMatrix(), camera->getPosition()};
 	perViewBuffer.updateBuffer(&perView);
 
-	/*d3d->GetContext()->DrawIndexed(162678,0,0);*/
 
 	MeshSystem::Init()->render();
 }

@@ -49,16 +49,16 @@ namespace Engine
 			std::vector<PerMesh> perMesh;
 		};
 
-		std::shared_ptr<shader> m_shader;
+		std::vector<std::shared_ptr<shader>> m_shaders;
 		std::vector<PerModel> perModel;
 		VertexBuffer<I> instanceBuffer;
 		ConstBuffer<MeshData> meshData;
 		ConstBuffer<MaterialData> materialData;
 	public:
 
-		void updateShader(std::shared_ptr<shader> shdr)
+		void addShader(std::shared_ptr<shader> shdr)
 		{
-			m_shader = shdr;
+			m_shaders.push_back(shdr);
 		}
 
 		OpaqueInstances() { meshData.create(); materialData.create(); }
@@ -85,14 +85,15 @@ namespace Engine
 						for (uint32_t index = 0; index < numModelInstances; ++index)
 						{
 							transformedRay.origin = vec4(r.origin, 1.0f) * mat4::Inverse(instances[index].tranformation) * mesh.invInstances[0];
-							transformedRay.direction = vec4(r.direction, 0.0f) * mesh.invInstances[0];
+							transformedRay.direction = vec4(r.direction, 0.0f) * mat4::Inverse(instances[index].tranformation)  * mesh.invInstances[0];
 							
 							if (mesh.intersect(transformedRay, hInfo))
 							{
 								inst.modelIndex = (int)i;
 								inst.perMaterialIndex = (int)j;
 								inst.materialIndex = (int)index;
-								hInfo.p = r.point_at_parameter(hInfo.t);
+								hInfo.p = vec4(transformedRay.point_at_parameter(hInfo.t),1.0f) * mesh.instances[0] * instances[index].tranformation;
+								/*hInfo.p = r.point_at_parameter(hInfo.t);*/
 							}
 						}
 					}
@@ -226,45 +227,53 @@ namespace Engine
 				return;
 
 			D3D* d3d = D3D::GetInstance();
-			m_shader->BindShader();
-			instanceBuffer.bind(1u);
-			d3d->GetContext()->VSSetConstantBuffers(2u, 1, meshData.m_constBuffer.GetAddressOf());
-			d3d->GetContext()->PSSetConstantBuffers(3u, 1, meshData.m_constBuffer.GetAddressOf());
-			d3d->GetContext()->PSSetConstantBuffers(2u, 1, materialData.m_constBuffer.GetAddressOf());
-
-			uint32_t renderedInstances = 0;
-			for (const auto& perModel : perModel)
+			for (size_t i = 0; i < m_shaders.size(); i++)
 			{
-				if (perModel.model.get() == nullptr) continue;
+				if (!m_shaders[i]->isEnabled)
+					continue;
+				m_shaders[i]->BindShader();
+				instanceBuffer.bind(1u);
+				meshData.bind(2u, shaderTypes::VS);
 
-				perModel.model->m_vertices.bind();
-				perModel.model->m_indices.bind();
+				materialData.bind(2u, shaderTypes::PS);
+				meshData.bind(3u, shaderTypes::PS);
 
-				for (uint32_t meshIndex = 0; meshIndex < perModel.perMesh.size(); ++meshIndex)
+
+				uint32_t renderedInstances = 0;
+				for (const auto& perModel : perModel)
 				{
-					const Mesh& mesh = perModel.model->m_meshes[meshIndex];
-					const auto& meshRange = perModel.model->m_ranges[meshIndex];
+					if (perModel.model.get() == nullptr) continue;
 
-					meshData.updateBuffer(reinterpret_cast<const MeshData*>(mesh.instances.data())); // ... update shader local per-mesh uniform buffer
+					perModel.model->m_vertices.bind();
+					perModel.model->m_indices.bind();
 
-					for (const auto& perMaterial : perModel.perMesh[meshIndex].perMaterial)
+					for (uint32_t meshIndex = 0; meshIndex < perModel.perMesh.size(); ++meshIndex)
 					{
-						if (perMaterial.instances.empty()) continue;
+						const Mesh& mesh = perModel.model->m_meshes[meshIndex];
+						const auto& meshRange = perModel.model->m_ranges[meshIndex];
 
-						const auto& material = perMaterial.material;
-						MaterialData data = { material };
-						// ... update shader local per-draw uniform buffer
-						 materialData.updateBuffer(&data);
+						meshData.updateBuffer(reinterpret_cast<const MeshData*>(mesh.instances.data())); // ... update shader local per-mesh uniform buffer
 
-						// ... bind each material texture, we don't have it in HW4
+						for (const auto& perMaterial : perModel.perMesh[meshIndex].perMaterial)
+						{
+							if (perMaterial.instances.empty()) continue;
 
-						uint32_t numInstances = uint32_t(perMaterial.instances.size());
-						d3d->GetContext()->DrawIndexedInstanced(meshRange.indexNum, numInstances, meshRange.indexOffset, meshRange.vertexOffset, renderedInstances);
-						renderedInstances += numInstances;
+							const auto& material = perMaterial.material;
+							MaterialData data = { material };
+							// ... update shader local per-draw uniform buffer
+							materialData.updateBuffer(&data);
+
+							// ... bind each material texture, we don't have it in HW4
+
+							uint32_t numInstances = uint32_t(perMaterial.instances.size());
+							d3d->GetContext()->DrawIndexedInstanced(meshRange.indexNum, numInstances, meshRange.indexOffset, meshRange.vertexOffset, renderedInstances);
+							renderedInstances += numInstances;
+						}
 					}
 				}
 			}
-		}
+			}
+			
 	};
 
 	class MeshSystem
@@ -302,7 +311,7 @@ namespace Engine
 
 		static void Deinit();
 	private:
-		MeshSystem();
+		MeshSystem() = default;
 
 	protected:
 		static std::mutex mutex_;

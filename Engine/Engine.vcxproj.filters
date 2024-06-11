@@ -142,5 +142,8 @@
     <ClInclude Include="EngineSource\include\Graphics\Renderer.h">
       <Filter>Include\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="EngineSource\include\Utils\EnumDefinitions.h">
+      <Filter>Include</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -141,10 +141,15 @@ struct VIn
 
 struct VOut
 {
-    float4 position : SV_POSITION;
-    float3 spacePosition : SPACE_POS;
+    float3 spacePosition : WORLDPOS;
     float3 normal : NORMAL;
-    float4 color : COLOR;
+};
+
+struct GSOut
+{
+    float4 pos : SV_POSITION;
+    float3 spacePosition : SPACEPOS;
+    float3 normal : VERTEXNORMAL;
 };
 
 // called in vertex shader
@@ -163,17 +168,16 @@ VOut vsMain(VIn input)
     output.normal = N;
     
     float offset = 0.0;
-    offset += output.normal * 0.025 * wave(output.spacePosition, BLUE_WAVE_INTERVAL, BLUE_WAVE_SPEED, BLUE_WAVE_THICKNESS, true);
-    offset += output.normal * 0.05 * wave(output.spacePosition, RED_WAVE_INTERVAL, RED_WAVE_SPEED, RED_WAVE_THICKNESS, false);
+    offset += float3(1,1,1) * 0.025 * wave(output.spacePosition, BLUE_WAVE_INTERVAL, BLUE_WAVE_SPEED, BLUE_WAVE_THICKNESS, true);
+    offset +=  float3(1,1,1) * 0.05 * wave(output.spacePosition, RED_WAVE_INTERVAL, RED_WAVE_SPEED, RED_WAVE_THICKNESS, false);
     
-    output.position = mul(float4(output.spacePosition + offset ,1.0f), viewProjection);
+    // output.position = mul(float4(output.spacePosition + offset ,1.0f), viewProjection);
 
-    output.color = float4(1.0f, 1.0f, 1.0f, 1.0f);
     return output;
 }
 
 // called in pixel shader
-float3 psMain(VOut input) : SV_TARGET
+float3 psMain(GSOut input) : SV_TARGET
 {
     float3 pos = input.spacePosition;
     float blueWave = wave(pos, BLUE_WAVE_INTERVAL, BLUE_WAVE_SPEED, BLUE_WAVE_THICKNESS, true);

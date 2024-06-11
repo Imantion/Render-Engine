@@ -8,24 +8,6 @@
 #include <DirectXMath.h>
 
 namespace dx = DirectX;
-struct Vertex
-{
-	FLOAT x, y, z;
-	FLOAT color[4];
-};
-
-struct ConstantBuffer
-{
-	float g_resolution[4];
-	float g_time;
-
-	float padding[3];
-};
-
-struct Projection
-{
-	Engine::mat4 matrix;
-};
 
 namespace Engine
 {
@@ -48,11 +30,6 @@ public:
 private:
 	std::shared_ptr<Engine::Camera> camera;
 	std::unique_ptr<Engine::Window> pWindow;
-	Engine::VertexBuffer<Vertex> vertexBuffer;
-	Engine::IndexBuffer indexBuffer;
-	Microsoft::WRL::ComPtr<ID3D11InputLayout> pLayout;
-	Engine::ConstBuffer<ConstantBuffer> PSConstBuffer;
-	Engine::ConstBuffer<Projection> VSConstBuffer;
 	
 	std::unique_ptr<Engine::IRayDraggable> dragger;
 };
