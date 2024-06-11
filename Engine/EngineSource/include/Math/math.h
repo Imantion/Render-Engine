@@ -109,20 +109,20 @@ namespace Engine
 	{
 		vec3 E1 = tr.C - tr.A;
 		vec3 E2 = tr.B - tr.A;
-		vec3 P = cross(r.direction, E2);
+		vec3 P = cross(r.direction, E1);
 
 
-		float determinant = dot(P, E1);
+		float determinant = dot(P, E2);
 
 		if (determinant < 1e-6)
 			return false;
 
 		vec3 T = r.origin - tr.A;
-		vec3 Q = cross(T, E1);
+		vec3 Q = cross(T, E2);
 
 		float invDeterminant = 1.0f / determinant;
 
-		float t = dot(Q, E2) * invDeterminant;
+		float t = dot(Q, E1) * invDeterminant;
 
 		if (t < 0 /*|| t > hInfo.t*/)
 			return false;
@@ -139,7 +139,7 @@ namespace Engine
 
 		hInfo.p = r.point_at_parameter(t);
 		hInfo.t = t;
-		hInfo.normal = cross(E1, E2).normalized();
+		hInfo.normal = cross(E2, E1).normalized();
 
 		return true;
 

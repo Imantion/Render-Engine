@@ -8,24 +8,6 @@
 #include <DirectXMath.h>
 
 namespace dx = DirectX;
-struct Vertex
-{
-	FLOAT x, y, z;
-	FLOAT color[4];
-};
-
-struct ConstantBuffer
-{
-	float g_resolution[4];
-	float g_time;
-
-	float padding[3];
-};
-
-struct Projection
-{
-	Engine::mat4 matrix;
-};
 
 namespace Engine
 {

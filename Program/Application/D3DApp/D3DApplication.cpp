@@ -108,7 +108,7 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 	
 
 	auto rotZ = Engine::mat4::rotateZ(3.14f * (-45.0f) / 360.0f);
-	changescale(inst, 0, 0.2);
+	changescale(inst, 0, 0.2f);
 	changepos(inst, Engine::vec3(2.0f, -2.0f, 4.0f));
 	Engine::MeshSystem::Init()->hologramGroup.addModel(model, knightMat, Engine::MeshSystem::Instance{ inst.tranformation * rotZ });
 
