@@ -15,13 +15,13 @@ namespace Engine
 	class IInstanceDragger : public IRayDraggable
 	{
 	public:
-		IInstanceDragger(std::vector<mat4*>&& transformationInstances, const hitInfo& hInfo);
+		IInstanceDragger(uint32_t hitId, const hitInfo& hInfo);
 
 		virtual void drag(const ray& r);
 	
 
 	private:
-		std::vector<mat4*> instances;
+		uint32_t hittedObjectID;
 		hitInfo grabbedInfo;
 		std::vector<vec3> grabbedVectors;
 	};

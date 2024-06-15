@@ -8,6 +8,7 @@
 #include "Graphics/Model.h"
 #include "Graphics/ShaderManager.h"
 #include "Graphics/TextureManager.h"
+#include "Graphics/TransformSystem.h"
 
 namespace Engine
 {
@@ -23,6 +24,18 @@ namespace Engine
 			int materialIndex;
 		};
 
+		struct instanceBufferData
+		{
+			TransformSystem::transforms transformData;
+			I instanceData;
+		};
+
+		struct PerInstance
+		{
+			uint32_t transformsId;
+			I instanceData;
+		};
+
 		struct MeshData
 		{
 			mat4 meshToModel;
@@ -36,7 +49,7 @@ namespace Engine
 		struct PerMaterial
 		{
 			M material;
-			std::vector<I> instances;
+			std::vector<PerInstance> instances;
 		};
 
 		struct PerMesh
@@ -52,7 +65,7 @@ namespace Engine
 
 		std::vector<std::shared_ptr<shader>> m_shaders;
 		std::vector<PerModel> perModel;
-		VertexBuffer<I> instanceBuffer;
+		VertexBuffer<instanceBufferData> instanceBuffer;
 		ConstBuffer<MeshData> meshData;
 		ConstBuffer<MaterialData> materialData;
 	public:
@@ -64,13 +77,10 @@ namespace Engine
 
 		OpaqueInstances() { meshData.create(); materialData.create(); }
 
-		instanceOfModel intersect(const ray& r, hitInfo& hInfo)
+		uint32_t intersect(const ray& r, hitInfo& hInfo)
 		{
-			instanceOfModel inst;
-			inst.modelIndex = -1;
-			inst.perMaterialIndex = -1;
-			inst.materialIndex = -1;
-
+			uint32_t transformId = -1;
+			auto TS = TransformSystem::Init();
 			ray transformedRay = r;
 			for (size_t i = 0; i < perModel.size(); i++)
 			{
@@ -85,15 +95,16 @@ namespace Engine
 						uint32_t numModelInstances = (uint32_t)instances.size();
 						for (uint32_t index = 0; index < numModelInstances; ++index)
 						{
-							transformedRay.origin = vec4(r.origin, 1.0f) * mat4::Inverse(instances[index].tranformation) * mesh.invInstances[0];
-							transformedRay.direction = vec4(r.direction, 0.0f) * mat4::Inverse(instances[index].tranformation)  * mesh.invInstances[0];
+							uint32_t currentId = instances[index].transformsId;
+							auto& meshInstanceTransform = TS->GetModelTransforms(currentId)[meshIndex].modelToWold;
+
+							transformedRay.origin = vec4(r.origin, 1.0f) * mat4::Inverse(meshInstanceTransform) * mesh.invInstances[0];
+							transformedRay.direction = vec4(r.direction, 0.0f) * mat4::Inverse(meshInstanceTransform)  * mesh.invInstances[0];
 							
 							if (mesh.intersect(transformedRay, hInfo))
 							{
-								inst.modelIndex = (int)i;
-								inst.perMaterialIndex = (int)j;
-								inst.materialIndex = (int)index;
-								hInfo.p = vec4(transformedRay.point_at_parameter(hInfo.t),1.0f) * mesh.instances[0] * instances[index].tranformation;
+								transformId = currentId;
+								hInfo.p = vec4(transformedRay.point_at_parameter(hInfo.t),1.0f) * mesh.instances[0] * meshInstanceTransform;
 								/*hInfo.p = r.point_at_parameter(hInfo.t);*/
 							}
 						}
@@ -101,26 +112,14 @@ namespace Engine
 				}
 			}
 
-			return inst;
-		}
-
-		void getInstanceTransform(int modelIndex, int perMaterialIndex,int materalIndex, std::vector<mat4*>& transforms)
-		{
-			if (modelIndex < 0 || modelIndex > perModel.size())
-				return;
-
-			transforms.reserve(perModel[modelIndex].model->m_meshes.size());
-
-			for (size_t i = 0; i < perModel[modelIndex].model->m_meshes.size(); i++)
-			{
-				auto& instances = perModel[modelIndex].perMesh[i].perMaterial[perMaterialIndex].instances;
-					transforms.push_back(&instances[materalIndex].tranformation);
-			}
+			return transformId;
 		}
 
 
-		void addModel(std::shared_ptr<Model> model, const M& material, const I& instance)
+		void addModel(std::shared_ptr<Model> model, const M& material, const TransformSystem::transforms& modelTransforms, const I& instance = {})
 		{
+			auto TS = TransformSystem::Init();
+			uint32_t modelTransformsId = TS->AddModelTransform(modelTransforms, (uint32_t)model->m_meshes.size());
 
 			auto it = perModel.end();
 			for (auto i = perModel.begin(); i != perModel.end(); i++)
@@ -131,7 +130,7 @@ namespace Engine
 
 			if (it == perModel.end())
 			{
-				std::vector<I> inst(1, instance);
+				std::vector<PerInstance> inst(1, PerInstance{modelTransformsId, instance});
 
 				PerMaterial perMat = { material,inst };
 
@@ -152,15 +151,15 @@ namespace Engine
 					{
 						if (material == perMaterial.material)
 						{
-							perMaterial.instances.push_back(instance);
+							perMaterial.instances.push_back(PerInstance{ modelTransformsId, instance });
 							inserted = true;
 						}
 					}
 
 					if (!inserted)
 					{
-						std::vector<I> inst;
-						inst.push_back(instance);
+						std::vector<PerInstance> inst;
+						inst.push_back(PerInstance{ modelTransformsId, instance });
 						pModel->perMesh[meshIndex].perMaterial.push_back(PerMaterial{ material, inst });
 					}
 				}
@@ -168,15 +167,6 @@ namespace Engine
 
 		}
 
-		void updateInstanceBufferData(int index, const I* instance)
-		{
-			D3D11_MAPPED_SUBRESOURCE mapping;
-			instanceBuffer.map(mapping);
-			I* dst = static_cast<I*>(mapping.pData);
-
-			dst[index] = instance;
-			instanceBuffer.unmap();
-		}
 		void updateInstanceBuffers()
 		{
 			uint32_t totalInstances = 0;
@@ -192,9 +182,10 @@ namespace Engine
 
 			D3D11_MAPPED_SUBRESOURCE mapping;
 			instanceBuffer.map(mapping);
-			I* dst = static_cast<I*>(mapping.pData);
+			instanceBufferData* dst = static_cast<instanceBufferData*>(mapping.pData);
 
 			uint32_t copiedNum = 0;
+			auto TS = TransformSystem::Init();
 			for (const auto& perModel : perModel)
 			{
 				for (uint32_t meshIndex = 0; meshIndex < perModel.perMesh.size(); ++meshIndex)
@@ -208,7 +199,7 @@ namespace Engine
 						uint32_t numModelInstances = (uint32_t)instances.size();
 						for (uint32_t index = 0; index < numModelInstances; ++index)
 						{
-							dst[copiedNum++] = instances[index];
+							dst[copiedNum++] = instanceBufferData{ TS->GetModelTransforms(instances[index].transformsId)[meshIndex],  instances[index].instanceData};
 						}
 					}
 				}
@@ -294,14 +285,13 @@ namespace Engine
 
 		struct Instance // all other template instances must inherit this one
 		{
-			mat4 tranformation;
 		};
 
 		OpaqueInstances<Instance, Material> hologramGroup;
 		OpaqueInstances<Instance, Material> normVisGroup;
 		OpaqueInstances<Instance, Material> textureGroup;
 
-		std::vector<mat4*> intersect(const ray& r, hitInfo& hInfo);
+		uint32_t intersect(const ray& r, hitInfo& hInfo);
 
 		void updateInstanceBuffers();
 		void render();

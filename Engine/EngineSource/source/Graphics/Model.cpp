@@ -24,6 +24,7 @@ Engine::ModelManager* Engine::ModelManager::Init()
 void Engine::ModelManager::Deinit()
 {
 	delete pInstance;
+	pInstance = nullptr;
 }
 
 std::shared_ptr<Engine::Model> Engine::ModelManager::loadModel(std::string path)

@@ -83,22 +83,22 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 
 	Engine::MeshSystem::Material knightMat = { Engine::vec3(1.0,0.0f,1.0f), 0.0f,Engine::vec3(1.0,1.0f,0.0f), 0.0f };
 
-	auto changepos = [](Engine::MeshSystem::Instance& inst, const Engine::vec3& pos) {
+	auto changepos = [](Engine::TransformSystem::transforms& inst, const Engine::vec3& pos) {
 		for (size_t i = 0; i < 3; i++)
 		{
-			inst.tranformation[3][i] = pos[i];
+			inst.modelToWold[3][i] = pos[i];
 		}
 		};
 
-	auto changescale = [](Engine::MeshSystem::Instance& inst,int axis, const float scale) {
+	auto changescale = [](Engine::TransformSystem::transforms& inst,int axis, const float scale) {
 		for (size_t i = 0; i < 3; i++)
 		{
-			inst.tranformation[axis][i] *= scale;
+			inst.modelToWold[axis][i] *= scale;
 		}
 		};
 
 	auto model = Engine::ModelManager::GetInstance()->loadModel("Models\\Samurai.fbx");
-	Engine::MeshSystem::Instance inst = { Engine::transformMatrix(Engine::vec3(0.0f, -1.0f, 0.0f), Engine::vec3(0.0f, 0.0f, 1.0f), Engine::vec3(1.0f, 0.0f, 0.0f), Engine::vec3(0.0f, 1.0f, 0.0f)) };
+	Engine::TransformSystem::transforms inst = { Engine::transformMatrix(Engine::vec3(0.0f, -1.0f, 0.0f), Engine::vec3(0.0f, 0.0f, 1.0f), Engine::vec3(1.0f, 0.0f, 0.0f), Engine::vec3(0.0f, 1.0f, 0.0f)) };
 	Engine::MeshSystem::Init()->hologramGroup.addModel(model, knightMat, inst);
 
 	knightMat = { Engine::vec3(0.0,1.0f,1.0f), 0.0f,Engine::vec3(1.0,0.0f,0.0f), 0.0f };
@@ -120,18 +120,18 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 	auto rotX = Engine::mat4::rotateX(3.14f * (-45.0f) / 360.0f);
 
 	changepos(inst, Engine::vec3(-4.0f, 0.0f, 1.0f));
-	Engine::MeshSystem::Init()->hologramGroup.addModel(model, knightMat, Engine::MeshSystem::Instance{ inst.tranformation * rotX });
+	Engine::MeshSystem::Init()->hologramGroup.addModel(model, knightMat, Engine::TransformSystem::transforms{ inst.modelToWold * rotX });
 	
 	auto rotZ = Engine::mat4::rotateZ(3.14f * (-45.0f) / 360.0f);
 	changescale(inst,0, 5);
 	crateMaterial.texture = crateSecond;
 	changepos(inst, Engine::vec3(-10.0f, -4.0f, 2.0f));
-	Engine::MeshSystem::Init()->textureGroup.addModel(model, crateMaterial, Engine::MeshSystem::Instance{ inst.tranformation * rotZ });
+	Engine::MeshSystem::Init()->textureGroup.addModel(model, crateMaterial, Engine::TransformSystem::transforms{ inst.modelToWold * rotZ });
 
 	
 	changescale(inst, 0, 0.2f);
 	changepos(inst, Engine::vec3(2.0f, -2.0f, 4.0f));
-	Engine::MeshSystem::Init()->hologramGroup.addModel(model, knightMat, Engine::MeshSystem::Instance{ inst.tranformation * rotZ });
+	Engine::MeshSystem::Init()->hologramGroup.addModel(model, knightMat, Engine::TransformSystem::transforms{ inst.modelToWold * rotZ });
 
 
 	Engine::MeshSystem::Init()->normVisGroup.updateInstanceBuffers();
@@ -248,10 +248,10 @@ void D3DApplication::UpdateInput(float deltaTime)
 		r.direction = camera->calculateRayDirection(screenCoord).normalized();
 
 		Engine::hitInfo hInfo; hInfo.reset_parameter_t();
-		auto instances = Engine::MeshSystem::Init()->intersect(r, hInfo);
+		uint32_t hitId = Engine::MeshSystem::Init()->intersect(r, hInfo);
 
-		if(instances.size() > 0)
-			dragger = std::make_unique<Engine::IInstanceDragger>(std::move(instances), hInfo);
+		if(hitId != -1)
+			dragger = std::make_unique<Engine::IInstanceDragger>(hitId, hInfo);
 				
 	}
 	else if (!Input::mouseIsDown(Input::MouseButtons::RIGHT))

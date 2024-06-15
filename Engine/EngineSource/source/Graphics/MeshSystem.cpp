@@ -5,27 +5,13 @@
 std::mutex Engine::MeshSystem::mutex_;
 Engine::MeshSystem* Engine::MeshSystem::pInstance = nullptr;
 
-std::vector<Engine::mat4*> Engine::MeshSystem::intersect(const ray& r, hitInfo& hInfo)
+uint32_t Engine::MeshSystem::intersect(const ray& r, hitInfo& hInfo)
 {
-	auto firstPair = hologramGroup.intersect(r, hInfo);
-	auto secondPair = normVisGroup.intersect(r, hInfo);
-	auto thirdPair = textureGroup.intersect(r, hInfo);
+	uint32_t first = hologramGroup.intersect(r, hInfo);
+	uint32_t second = normVisGroup.intersect(r, hInfo);
+	uint32_t third = textureGroup.intersect(r, hInfo);
 	
-	std::vector<mat4*> transforms;
-	if (thirdPair.modelIndex != -1)
-	{
-		textureGroup.getInstanceTransform(thirdPair.modelIndex, thirdPair.perMaterialIndex, thirdPair.materialIndex, transforms);
-	}
-	else if (secondPair.modelIndex != -1)
-	{
-		normVisGroup.getInstanceTransform(secondPair.modelIndex, secondPair.perMaterialIndex, secondPair.materialIndex, transforms);
-	}
-	else if (firstPair.modelIndex != -1)
-	{
-		hologramGroup.getInstanceTransform(firstPair.modelIndex, firstPair.perMaterialIndex, firstPair.materialIndex, transforms);
-	}
-
-	return transforms;
+	return third != -1? third: (second != -1? second: first);
 }
 
 void Engine::MeshSystem::updateInstanceBuffers()
@@ -56,5 +42,6 @@ Engine::MeshSystem* Engine::MeshSystem::Init()
 void Engine::MeshSystem::Deinit()
 {
 	delete pInstance;
+	pInstance = nullptr;
 }
 

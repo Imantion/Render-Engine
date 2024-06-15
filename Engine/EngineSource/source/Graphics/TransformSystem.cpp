@@ -19,6 +19,7 @@ Engine::TransformSystem* Engine::TransformSystem::Init()
 void Engine::TransformSystem::Deinit()
 {
 	delete m_Instance;
+	m_Instance = nullptr;
 }
 
 uint32_t Engine::TransformSystem::AddModelTransform(std::vector<transforms>& transf)
@@ -26,7 +27,7 @@ uint32_t Engine::TransformSystem::AddModelTransform(std::vector<transforms>& tra
 	return m_transforms.insert(transf);
 }
 
-uint32_t Engine::TransformSystem::AddModelTransform(transforms& transf, uint32_t meshesAmount)
+uint32_t Engine::TransformSystem::AddModelTransform(const transforms& transf, uint32_t meshesAmount)
 {
 	return m_transforms.insert(std::vector<transforms>(meshesAmount, transf));
 }
@@ -36,14 +37,26 @@ void Engine::TransformSystem::RemoveModelTransform(uint32_t id)
 	m_transforms.erase(id);
 }
 
-void Engine::TransformSystem::SetModelPosition(uint32_t id, vec3 position)
+std::vector<Engine::TransformSystem::transforms>& Engine::TransformSystem::GetModelTransforms(uint32_t ID)
+{
+	return m_transforms.at(ID);
+}
+
+void Engine::TransformSystem::SetModelPosition(uint32_t id, const std::vector<vec3>& position)
 {
 	auto transformations = m_transforms.at(id);
 
+	DEV_ASSERT(!(transformations.size() != position.size()))
+
 	for (size_t i = 0; i < transformations.size(); i++)
 	{
-		reinterpret_cast<vec3&>(*transformations[i].modelToWold[3]) = position;
+		reinterpret_cast<vec3&>(*transformations[i].modelToWold[3]) = position[i];
 	}
+}
+
+void Engine::TransformSystem::SetModelMeshPosition(uint32_t id, uint32_t meshIndex, const vec3& position)
+{
+	reinterpret_cast<vec3&>(*m_transforms.at(id)[meshIndex].modelToWold[3]) = position;
 }
 
 void Engine::TransformSystem::TranslateModel(uint32_t id, vec3 position)

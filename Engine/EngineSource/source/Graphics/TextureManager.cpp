@@ -38,6 +38,7 @@ Engine::TextureManager* Engine::TextureManager::Init()
 void Engine::TextureManager::Deinit()
 {
 	delete m_Instance;
+	m_Instance = nullptr;
 }
 
 std::shared_ptr<Engine::Texture> Engine::TextureManager::AddTexture(const char* name, const wchar_t* path)

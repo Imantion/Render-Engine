@@ -4,6 +4,7 @@
 #include "Graphics/Model.h"
 #include "Graphics/MeshSystem.h"
 #include "Graphics/TextureManager.h"
+#include "Graphics/TransformSystem.h"
 #include "Window/Window.h"
 #include <assert.h>
 
@@ -17,6 +18,7 @@ void Engine::Engine::Init()
 	ModelManager::Init();
 	MeshSystem::Init();
 	TextureManager::Init();
+	TransformSystem::Init();
 
 	isInitialized = true;
 }
@@ -29,4 +31,5 @@ void Engine::Engine::Deinit()
 	MeshSystem::Deinit();
 	ShaderManager::deleteShaders();
 	TextureManager::Deinit();
+	TransformSystem::Deinit();
 }

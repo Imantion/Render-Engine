@@ -19,10 +19,13 @@ namespace Engine
 		static void Deinit();
 
 		uint32_t AddModelTransform(std::vector<transforms>& transf);
-		uint32_t AddModelTransform(transforms& transf, uint32_t meshesAmount);
+		uint32_t AddModelTransform(const transforms& transf, uint32_t meshesAmount);
+
+		std::vector<transforms>& GetModelTransforms(uint32_t ID);
 
 		void RemoveModelTransform(uint32_t id);
-		void SetModelPosition(uint32_t id, vec3 position);
+		void SetModelPosition(uint32_t id, const std::vector<vec3>& position);
+		void SetModelMeshPosition(uint32_t id, uint32_t meshIndex, const vec3& position);
 		void TranslateModel(uint32_t id, vec3 position);
 
 	private:

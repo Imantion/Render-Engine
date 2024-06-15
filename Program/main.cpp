@@ -86,16 +86,9 @@ int main(int argc, char* argv[])
 	Engine::Timer timer;
 	
 	Engine::Engine::Init();
-	auto a = Engine::TransformSystem::Init();
-	auto s = Engine::TransformSystem::transforms{ Engine::mat4(1.0f) };
-	a->AddModelTransform(s, 4);
-	a->SetModelPosition(0, Engine::vec3(1, 2, 3));
+	
 	D3DApplication app(800, 400, WindowProc);
 
-
-	//auto b = Engine::TextureManager::Init()->AddTexture("aboba", L"skybox.dds");
-
-	
 	while (!app.isClosed())
 	{
 		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
