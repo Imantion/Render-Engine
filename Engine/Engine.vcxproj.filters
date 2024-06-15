@@ -89,6 +89,9 @@
     <ClCompile Include="EngineSource\source\Graphics\TextureManager.cpp">
       <Filter>Source\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="EngineSource\source\Graphics\TransformSystem.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EngineSource\include\Math\math.h">
@@ -165,6 +168,12 @@
     </ClInclude>
     <ClInclude Include="EngineSource\include\Utils\EnumDefinitions.h">
       <Filter>Include\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineSource\include\Utils\solid_vector.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineSource\include\Graphics\TransformSystem.h">
+      <Filter>Include</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

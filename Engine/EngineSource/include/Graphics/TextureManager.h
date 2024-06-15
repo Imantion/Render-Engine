@@ -40,8 +40,8 @@ namespace Engine
 
 	private:
 		static TextureManager* m_Instance;
+		std::unordered_map<std::string, std::shared_ptr<Texture>> m_textures;
 
-		static std::unordered_map<std::string, std::shared_ptr<Texture>> m_textures;
 		static std::mutex m_mutex;
 
 		Microsoft::WRL::ComPtr<ID3D11SamplerState> m_pointSamplareState;

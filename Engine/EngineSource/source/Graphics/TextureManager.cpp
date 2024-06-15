@@ -20,8 +20,6 @@ void Engine::Texture::BindTexture(UINT slot) const
 
 /// ////////////////////////////////////////////////////// Texture Manager
 
-
-std::unordered_map<std::string, std::shared_ptr<Engine::Texture>> Engine::TextureManager::m_textures;
 std::mutex Engine::TextureManager::m_mutex;
 Engine::TextureManager* Engine::TextureManager::m_Instance;
 
@@ -40,7 +38,6 @@ Engine::TextureManager* Engine::TextureManager::Init()
 void Engine::TextureManager::Deinit()
 {
 	delete m_Instance;
-	m_textures.clear();
 }
 
 std::shared_ptr<Engine::Texture> Engine::TextureManager::AddTexture(const char* name, const wchar_t* path)

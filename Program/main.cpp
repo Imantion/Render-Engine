@@ -9,6 +9,7 @@
 #include "Graphics/Model.h"
 #include "Graphics/MeshSystem.h"
 #include "Graphics/TextureManager.h"
+#include "Graphics/TransformSystem.h"
 
 #define FRAME_RATE 60
 
@@ -85,6 +86,10 @@ int main(int argc, char* argv[])
 	Engine::Timer timer;
 	
 	Engine::Engine::Init();
+	auto a = Engine::TransformSystem::Init();
+	auto s = Engine::TransformSystem::transforms{ Engine::mat4(1.0f) };
+	a->AddModelTransform(s, 4);
+	a->SetModelPosition(0, Engine::vec3(1, 2, 3));
 	D3DApplication app(800, 400, WindowProc);
 
 

@@ -119,12 +119,8 @@ namespace Engine
 		}
 
 
-		void addModel(std::shared_ptr<Model> model, const M& material, const I& instance) // rotation order means!
+		void addModel(std::shared_ptr<Model> model, const M& material, const I& instance)
 		{
-			//float pi = 3.14159265359f;
-			//auto rotX = mat4::rotateX(pi * (-xRotation) / 360.0f);
-			//auto rotY = mat4::rotateY(pi * (-yRotation) / 360.0f);
-			//auto rotZ = mat4::rotateZ(pi * (-zRotation) / 360.0f);
 
 			auto it = perModel.end();
 			for (auto i = perModel.begin(); i != perModel.end(); i++)
