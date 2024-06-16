@@ -24,7 +24,9 @@ namespace Engine
 	class TextureManager
 	{
 	public:
-
+		TextureManager(const TextureManager& other) = delete;
+		void operator=(const TextureManager& other) = delete;
+		
 		static TextureManager* Init();
 		static void Deinit();
 
@@ -37,9 +39,10 @@ namespace Engine
 
 	protected:
 		TextureManager();
+		~TextureManager() = default;
 
 	private:
-		static TextureManager* m_Instance;
+		static TextureManager* m_instance;
 		std::unordered_map<std::string, std::shared_ptr<Texture>> m_textures;
 
 		static std::mutex m_mutex;
@@ -47,10 +50,6 @@ namespace Engine
 		Microsoft::WRL::ComPtr<ID3D11SamplerState> m_pointSamplareState;
 		Microsoft::WRL::ComPtr<ID3D11SamplerState> m_linearSamplareState;
 		Microsoft::WRL::ComPtr<ID3D11SamplerState> m_anisotropicSamplareState;
-
-	private:
-		TextureManager(TextureManager& other) = delete;
-		void operator=(const TextureManager&) = delete;
 
 	};
 

@@ -5,6 +5,7 @@
 #include "Graphics/MeshSystem.h"
 #include "Graphics/TextureManager.h"
 #include "Graphics/TransformSystem.h"
+#include "Graphics/PostProcess.h"
 #include "Window/Window.h"
 #include <assert.h>
 
@@ -19,6 +20,7 @@ void Engine::Engine::Init()
 	MeshSystem::Init();
 	TextureManager::Init();
 	TransformSystem::Init();
+	PostProcess::Init();
 
 	isInitialized = true;
 }
@@ -32,4 +34,5 @@ void Engine::Engine::Deinit()
 	ShaderManager::deleteShaders();
 	TextureManager::Deinit();
 	TransformSystem::Deinit();
+	PostProcess::Deinit();
 }

@@ -2,7 +2,7 @@
 #include "Math/vec.h"
 #include <windowsx.h>
 
-std::array<Input::KeyState, 14> Input::keyboard;
+std::array<Input::KeyState, 16> Input::keyboard;
 std::array<Input::KeyState, 3> Input::mouse;
 int Input::scrolledDistance = 0;
 
@@ -58,6 +58,13 @@ void Input::processKeyboardInput(uint32_t keycode, bool isDown, bool wasKeyDown)
 	case 0x34:
 		keyboard[Input::KeyboardButtons::FOUR].isDown = isDown;
 		keyboard[Input::KeyboardButtons::FOUR].wasDown = wasKeyDown;
+	case VK_OEM_PLUS:
+		keyboard[Input::KeyboardButtons::PLUS].isDown = isDown;
+		keyboard[Input::KeyboardButtons::PLUS].wasDown = wasKeyDown;
+		break;
+	case VK_OEM_MINUS:
+		keyboard[Input::KeyboardButtons::MINUS].isDown = isDown;
+		keyboard[Input::KeyboardButtons::MINUS].wasDown = wasKeyDown;
 		break;
 	default:
 		break;

@@ -101,4 +101,14 @@
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Shaders\Hologram\GSHologram.hlsl">
+      <Filter>Shaders\Hologram</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\normalLines\GSnormal.hlsl">
+      <Filter>Shaders\NormalVis</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\PostProcess\PostProcessVS.hlsl" />
+    <FxCompile Include="Shaders\PostProcess\PostProcessPS.hlsl" />
+  </ItemGroup>
 </Project>

@@ -8,7 +8,8 @@
 #include "Graphics/Renderer.h"
 #include "Math/quaternion.h"
 #include "Graphics/MeshSystem.h"
-#include "Graphics\TextureManager.h"
+#include "Graphics/TextureManager.h"
+#include "Graphics/PostProcess.h"
 #include "Graphics/SkyBox.h"
 #include <assert.h>
 
@@ -140,7 +141,12 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 
 	auto skyboxShader = Engine::ShaderManager::CompileAndCreateShader("skybox", L"shaders/skyboxShader/skyboxVS.hlsl", 
 		L"shaders/skyboxShader/skyboxPS.hlsl", nullptr, nullptr, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-	auto skyboxTexture = Engine::TextureManager::Init()->AddTexture("skybox", L"Textures\\skybox.dds");
+	auto skyboxTexture = Engine::TextureManager::Init()->AddTexture("skybox", L"Textures\\night_street.dds");
+
+	auto postshader = Engine::ShaderManager::CompileAndCreateShader("PostProcess", L"shaders/PostProcess/PostProcessVS.hlsl", L"shaders/PostProcess/PostProcessPS.hlsl",
+		nullptr, nullptr, D3D10_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+
+	Engine::PostProcess::Init()->SetLightToColorShader(postshader);
 
 	skybox.SetShader(skyboxShader);
 	skybox.SetTexture(skyboxTexture);
@@ -171,6 +177,8 @@ void D3DApplication::Update(float deltaTime)
 	skybox.BindSkyBox(2u);
 	skybox.Draw();
 
+	renderer->PostProcess();
+
 	pWindow->flush();
 }
 
@@ -195,6 +203,10 @@ void D3DApplication::UpdateInput(float deltaTime)
 		cameraMoveDirection *= 5;
 	if (Input::mouseWasPressed(Input::MouseButtons::LEFT))
 		previousMousePosition = mousePosition;
+	if (Input::keyIsDown(Input::KeyboardButtons::PLUS))
+		Engine::PostProcess::Init()->AddEV100(deltaTime * 2.0f);
+	if (Input::keyIsDown(Input::KeyboardButtons::MINUS))
+		Engine::PostProcess::Init()->AddEV100(-deltaTime * 2.0f);
 
 	if (Input::keyPresseed(Input::KeyboardButtons::ONE))
 		Engine::TextureManager::Init()->BindSampleByFilter(D3D11_FILTER_MIN_MAG_MIP_POINT, 3u);

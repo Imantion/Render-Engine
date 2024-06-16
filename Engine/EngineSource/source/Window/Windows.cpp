@@ -107,7 +107,9 @@ void Window::onResize()
 
 		hr = swapchain->GetBuffer(0, __uuidof(ID3D11Texture2D), &backBuffer);
 		assert(SUCCEEDED(hr));
-
+		D3D11_TEXTURE2D_DESC dsc;
+		backBuffer->GetDesc(&dsc);
+		auto aboba = dsc.Format;
 		Renderer::GetInstance()->InitDepthWithRTV(backBuffer.Get(), (UINT)width, (UINT)height);
 
 		viewport.Width = (FLOAT)width;

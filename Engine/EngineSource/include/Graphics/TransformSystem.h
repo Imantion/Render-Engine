@@ -10,6 +10,10 @@ namespace Engine
 	class TransformSystem
 	{
 	public:
+
+		TransformSystem(const TransformSystem&) = delete;
+		void operator=(const TransformSystem&) = delete;
+
 		struct transforms
 		{
 			mat4 modelToWold;
@@ -28,8 +32,13 @@ namespace Engine
 		void SetModelMeshPosition(uint32_t id, uint32_t meshIndex, const vec3& position);
 		void TranslateModel(uint32_t id, vec3 position);
 
+	protected:
+		TransformSystem() = default;
+
+		~TransformSystem() = default;
+
 	private:
-		static TransformSystem* m_Instance;
+		static TransformSystem* m_instance;
 		SolidVector<std::vector<transforms>> m_transforms;
 		static std::mutex m_mutex;
 

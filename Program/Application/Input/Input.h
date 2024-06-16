@@ -57,13 +57,15 @@ public:
 		E,
 		SHIFT,
 		N,
+		PLUS,
+		MINUS
 	};
 
 
 
 
 private:
-	static std::array<KeyState, 14> keyboard;
+	static std::array<KeyState, 16> keyboard;
 	static std::array<KeyState, 3> mouse;
 	static int scrolledDistance;
 	static Engine::vec2 mousePosition;

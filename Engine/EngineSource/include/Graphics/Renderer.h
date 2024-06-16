@@ -36,6 +36,7 @@ namespace Engine
 		void updatePerFrameCB(float deltaTime,float wWidth,float wHeight);
 
 		void Render(Camera* camera);
+		void PostProcess();
 
 	protected:
 		Renderer();
@@ -44,6 +45,9 @@ namespace Engine
 		PerFrameCB perFrameData;
 
 		ConstBuffer<PerViewCB> perViewBuffer;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pHDRtextureResource;
+		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pHDRRenderTarget;
+
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pRenderTarget;
 		Microsoft::WRL::ComPtr <ID3D11DepthStencilView> pViewDepth;
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> pDepthStencil;

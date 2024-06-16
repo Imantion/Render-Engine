@@ -1,25 +1,25 @@
 #include "Graphics/TransformSystem.h"
 
 
-Engine::TransformSystem* Engine::TransformSystem::m_Instance;
+Engine::TransformSystem* Engine::TransformSystem::m_instance;
 std::mutex Engine::TransformSystem::m_mutex;
 
 Engine::TransformSystem* Engine::TransformSystem::Init()
 {
 	std::lock_guard<std::mutex> lock(m_mutex);
 
-	if (m_Instance == nullptr)
+	if (m_instance == nullptr)
 	{
-		m_Instance = new TransformSystem();
+		m_instance = new TransformSystem();
 	}
 
-	return m_Instance;
+	return m_instance;
 }
 
 void Engine::TransformSystem::Deinit()
 {
-	delete m_Instance;
-	m_Instance = nullptr;
+	delete m_instance;
+	m_instance = nullptr;
 }
 
 uint32_t Engine::TransformSystem::AddModelTransform(std::vector<transforms>& transf)

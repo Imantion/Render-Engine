@@ -23,7 +23,7 @@ void Engine::IInstanceDragger::drag(const ray& r)
 	{
 		vec3 translatedPosition = r.point_at_parameter(grabbedInfo.t);
 		vec3 newPosition = (translatedPosition - grabbedVectors[i]);
-		TS->SetModelMeshPosition(hittedObjectID, i, newPosition);
+		TS->SetModelMeshPosition(hittedObjectID, (uint32_t)i, newPosition);
 	}
 
 	MeshSystem::Init()->updateInstanceBuffers();

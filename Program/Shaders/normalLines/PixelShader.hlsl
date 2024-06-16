@@ -1,10 +1,5 @@
 #include "../declarations.hlsli"
 
-cbuffer MeshData : register(b3)
-{
-    float4x4 meshToModel;
-};
-
 struct VOut
 {
     float4 position : SV_POSITION;

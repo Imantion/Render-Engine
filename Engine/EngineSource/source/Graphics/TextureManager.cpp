@@ -21,24 +21,24 @@ void Engine::Texture::BindTexture(UINT slot) const
 /// ////////////////////////////////////////////////////// Texture Manager
 
 std::mutex Engine::TextureManager::m_mutex;
-Engine::TextureManager* Engine::TextureManager::m_Instance;
+Engine::TextureManager* Engine::TextureManager::m_instance;
 
 Engine::TextureManager* Engine::TextureManager::Init()
 {
 	std::lock_guard<std::mutex> m(m_mutex);
 
-	if (!m_Instance)
+	if (!m_instance)
 	{
-		m_Instance = new TextureManager();
+		m_instance = new TextureManager();
 	}
 
-	return m_Instance;
+	return m_instance;
 }
 
 void Engine::TextureManager::Deinit()
 {
-	delete m_Instance;
-	m_Instance = nullptr;
+	delete m_instance;
+	m_instance = nullptr;
 }
 
 std::shared_ptr<Engine::Texture> Engine::TextureManager::AddTexture(const char* name, const wchar_t* path)

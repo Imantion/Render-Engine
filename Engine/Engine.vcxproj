@@ -147,6 +147,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="EngineSource\include\Graphics\PostProcess.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\DDSTextureLoader11.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\MeshSystem.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\Model.cpp" />
@@ -173,6 +174,7 @@
     <ClInclude Include="EngineSource\include\Graphics\Mesh.h" />
     <ClInclude Include="EngineSource\include\Graphics\MeshSystem.h" />
     <ClInclude Include="EngineSource\include\Graphics\Model.h" />
+    <ClInclude Include="EngineSource\include\Graphics\PostProcess.h" />
     <ClInclude Include="EngineSource\include\Graphics\Renderer.h" />
     <ClInclude Include="EngineSource\include\Graphics\SkyBox.h" />
     <ClInclude Include="EngineSource\include\Graphics\TextureManager.h" />

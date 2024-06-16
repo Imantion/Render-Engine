@@ -44,6 +44,7 @@ void Engine::SkyBox::BindSkyBox(UINT slot)
 
 		auto d3dContext = D3D::GetInstance()->GetContext();
 		m_skyBoxShader->BindShader();
+		m_skyBoxShader->BindInputLyout(nullptr);
 		m_skyBoxTexture->BindTexture(0u);
 	}
 }
