@@ -19,6 +19,7 @@ void Engine::MeshSystem::updateInstanceBuffers()
 	normVisGroup.updateInstanceBuffers();
 	hologramGroup.updateInstanceBuffers();
 	textureGroup.updateInstanceBuffers();
+	opaqueGroup.updateInstanceBuffers();
 }
 
 void Engine::MeshSystem::render()
@@ -26,6 +27,7 @@ void Engine::MeshSystem::render()
 	normVisGroup.render();
 	hologramGroup.render();
 	textureGroup.render();
+	opaqueGroup.render();
 }
 
 Engine::MeshSystem* Engine::MeshSystem::Init()

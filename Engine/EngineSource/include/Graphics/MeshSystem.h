@@ -166,6 +166,62 @@ namespace Engine
 			}
 
 		}
+		
+		void addModel(std::shared_ptr<Model> model, const std::vector<M>& material, const TransformSystem::transforms& modelTransforms, const I& instance = {})
+		{
+			auto TS = TransformSystem::Init();
+			uint32_t modelTransformsId = TS->AddModelTransform(modelTransforms, (uint32_t)model->m_meshes.size());
+
+			auto it = perModel.end();
+			for (auto i = perModel.begin(); i != perModel.end(); i++)
+			{
+				if (i->model.get() == model.get())
+					it = i;
+			}
+
+			PerModel perMod;
+			if (it == perModel.end())
+			{
+				perMod.perMesh.resize(model->m_meshes.size());
+				perMod.model = model;
+
+				for (size_t i = 0; i < model->m_meshes.size(); i++)
+				{
+					std::vector<PerInstance> inst(1, PerInstance{ modelTransformsId, instance });
+					PerMaterial perMat = { material[i],inst};
+					PerMesh perMes = { std::vector<PerMaterial>(1,perMat) };
+					
+					perMod.perMesh[i] = perMes;
+				}
+
+				perModel.push_back(perMod);
+			}
+			else
+			{
+				auto pModel = it;
+				for (uint32_t meshIndex = 0; meshIndex < pModel->perMesh.size(); ++meshIndex)
+				{
+
+					bool inserted = false;
+					for (auto& perMaterial : pModel->perMesh[meshIndex].perMaterial)
+					{
+						if (material[meshIndex] == perMaterial.material)
+						{
+							perMaterial.instances.push_back(PerInstance{ modelTransformsId, instance });
+							inserted = true;
+						}
+					}
+
+					if (!inserted)
+					{
+						std::vector<PerInstance> inst;
+						inst.push_back(PerInstance{ modelTransformsId, instance });
+						pModel->perMesh[meshIndex].perMaterial.push_back(PerMaterial{ material[meshIndex], inst});
+					}
+				}
+			}
+
+		}
 
 		void updateInstanceBuffers()
 		{
@@ -274,11 +330,20 @@ namespace Engine
 			float padding0;
 			vec3 longWaveColor;
 			float padding1;
-
 			std::shared_ptr<Texture> texture;
 			bool operator==(const Material& other) const
 			{
-				return shortWaveColor == other.shortWaveColor && longWaveColor == other.longWaveColor && texture == other.texture;
+				return shortWaveColor == other.shortWaveColor && longWaveColor == other.longWaveColor;
+			}
+		};
+
+		struct TextureMaterial
+		{
+			std::shared_ptr<Texture> texture;
+
+			bool operator==(const TextureMaterial& other) const
+			{
+				return texture.get() == other.texture.get();
 			}
 		};
 
@@ -289,7 +354,8 @@ namespace Engine
 
 		OpaqueInstances<Instance, Material> hologramGroup;
 		OpaqueInstances<Instance, Material> normVisGroup;
-		OpaqueInstances<Instance, Material> textureGroup;
+		OpaqueInstances<Instance, TextureMaterial> textureGroup;
+		OpaqueInstances<Instance, TextureMaterial> opaqueGroup;
 
 		uint32_t intersect(const ray& r, hitInfo& hInfo);
 

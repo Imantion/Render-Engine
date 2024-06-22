@@ -30,7 +30,7 @@ namespace Engine
 		static TextureManager* Init();
 		static void Deinit();
 
-		std::shared_ptr<Texture> AddTexture(const char* name, const wchar_t* path);
+		std::shared_ptr<Texture> LoadFromFile(const char* name, const wchar_t* path);
 
 		std::shared_ptr<Texture> GetTexture(const char* name);
 		

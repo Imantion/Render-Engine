@@ -39,6 +39,9 @@ static void InitMeshSystem()
 	auto textureMap = Engine::ShaderManager::CompileAndCreateShader("texture", L"Shaders\\crateTextMap\\CrateVS.hlsl",
 		L"Shaders\\crateTextMap\\CratePS.hlsl", nullptr, nullptr);
 
+	auto opaqueShader = Engine::ShaderManager::CompileAndCreateShader("opaque", L"Shaders\\opaqueShader\\opaqueVS.hlsl",
+		L"Shaders\\opaqueShader\\opaquePS.hlsl", nullptr, nullptr);
+
 	auto NormalVisLines = Engine::ShaderManager::CompileAndCreateShader("NormalVisLines", L"Shaders\\normalLines\\VertexShader.hlsl",
 		L"Shaders\\normalLines\\PixelShader.hlsl", L"Shaders\\normalLines\\HullShader.hlsl", L"Shaders\\normalLines\\DomainShader.hlsl",
 		L"Shaders\\normalLines\\GSnormal.hlsl", nullptr, nullptr, D3D_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
@@ -57,6 +60,8 @@ static void InitMeshSystem()
 	NormalVisColor->BindInputLyout(inputLayout);
 	NormalVisLines->BindInputLyout(inputLayout);
 	HologramGroup->BindInputLyout(inputLayout);
+	textureMap->BindInputLyout(inputLayout);
+	opaqueShader->BindInputLyout(inputLayout);
 
 	auto ms = Engine::MeshSystem::Init();
 
@@ -67,6 +72,9 @@ static void InitMeshSystem()
 
 	ms->textureGroup.addShader(textureMap);
 	ms->textureGroup.addShader(NormalVisLines);
+
+	ms->opaqueGroup.addShader(opaqueShader);
+	ms->opaqueGroup.addShader(NormalVisLines);
 }
 
 D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc windowEvent) :
@@ -78,8 +86,9 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 	camera->calculateRayDirections();
 	InitMeshSystem();
 	
-	auto crateFirst = Engine::TextureManager::Init()->AddTexture("crate", L"Textures\\crate.dds");
-	auto crateSecond = Engine::TextureManager::Init()->AddTexture("metalCrate", L"Textures\\MetalCrate.dds");
+	auto TM = Engine::TextureManager::Init();
+	auto crateFirst = TM->LoadFromFile("crate", L"Textures\\crate.dds");
+	auto crateSecond = TM->LoadFromFile("metalCrate", L"Textures\\MetalCrate.dds");
 
 
 	Engine::MeshSystem::Material knightMat = { Engine::vec3(1.0,0.0f,1.0f), 0.0f,Engine::vec3(1.0,1.0f,0.0f), 0.0f };
@@ -97,51 +106,59 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 			inst.modelToWold[axis][i] *= scale;
 		}
 		};
+	std::vector<Engine::MeshSystem::TextureMaterial> samuraiTextures;
+	samuraiTextures.push_back(Engine::MeshSystem::TextureMaterial{ TM->LoadFromFile("samurai_sword", L"Textures\\Samurai\\Sword_BaseColor.dds") });
+	samuraiTextures.push_back(Engine::MeshSystem::TextureMaterial{ TM->LoadFromFile("samurai_head", L"Textures\\Samurai\\Head_BaseColor.dds") });
+	samuraiTextures.push_back(Engine::MeshSystem::TextureMaterial{ TM->LoadFromFile("samurai_eyes", L"Textures\\Samurai\\Eyes_BaseColor.dds") });
+	samuraiTextures.push_back(Engine::MeshSystem::TextureMaterial{ TM->LoadFromFile("samurai_helmet", L"Textures\\Samurai\\Helmet_BaseColor.dds") });
+	samuraiTextures.push_back(Engine::MeshSystem::TextureMaterial{ TM->LoadFromFile("samurai_decor", L"Textures\\Samurai\\Decor_BaseColor.dds") });
+	samuraiTextures.push_back(Engine::MeshSystem::TextureMaterial{ TM->LoadFromFile("samurai_pants", L"Textures\\Samurai\\Pants_BaseColor.dds") });
+	samuraiTextures.push_back(Engine::MeshSystem::TextureMaterial{ TM->LoadFromFile("samurai_hands", L"Textures\\Samurai\\Hands_BaseColor.dds") });
+	samuraiTextures.push_back(Engine::MeshSystem::TextureMaterial{ TM->LoadFromFile("samurai_torso", L"Textures\\Samurai\\Torso_BaseColor.dds") });
 
 	auto model = Engine::ModelManager::GetInstance()->loadModel("Models\\Samurai.fbx");
 	Engine::TransformSystem::transforms inst = { Engine::transformMatrix(Engine::vec3(0.0f, -1.0f, 0.0f), Engine::vec3(0.0f, 0.0f, 1.0f), Engine::vec3(1.0f, 0.0f, 0.0f), Engine::vec3(0.0f, 1.0f, 0.0f)) };
-	Engine::MeshSystem::Init()->hologramGroup.addModel(model, knightMat, inst);
+	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, samuraiTextures, inst);
 
-	knightMat = { Engine::vec3(0.0,1.0f,1.0f), 0.0f,Engine::vec3(1.0,0.0f,0.0f), 0.0f };
+
+	//knightMat = { Engine::vec3(0.0,1.0f,1.0f), 0.0f,Engine::vec3(1.0,0.0f,0.0f), 0.0f };
 	changepos(inst, Engine::vec3(1.0f, -1.0f, 0.0f));
-	Engine::MeshSystem::Init()->hologramGroup.addModel(model, knightMat, inst);
+	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, samuraiTextures, inst);
 
 	model = Engine::ModelManager::GetInstance()->loadModel("Models\\cube.obj");
-	changepos(inst, Engine::vec3(1.0f, 1.0f, 5.0f));
-	Engine::MeshSystem::Init()->normVisGroup.addModel(model, knightMat, inst);
+	//changepos(inst, Engine::vec3(1.0f, 1.0f, 5.0f));
+	//Engine::MeshSystem::Init()->normVisGroup.addModel(model, knightMat, inst);
 
-	changepos(inst, Engine::vec3(3.0f, -1.0f, -2.0f));
-	Engine::MeshSystem::Init()->normVisGroup.addModel(model, knightMat, inst);
+	//changepos(inst, Engine::vec3(3.0f, -1.0f, -2.0f));
+	//Engine::MeshSystem::Init()->normVisGroup.addModel(model, knightMat, inst);
 
-	Engine::MeshSystem::Material crateMaterial;
-	crateMaterial.texture = crateFirst;
+	Engine::MeshSystem::TextureMaterial crateMaterial;
+	crateMaterial = Engine::MeshSystem::TextureMaterial{ crateFirst };
 	changepos(inst, Engine::vec3(1.0f, -4.0f, 2.0f));
-	Engine::MeshSystem::Init()->textureGroup.addModel(model, crateMaterial, inst);
+	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, crateMaterial, inst);
 
-	auto rotX = Engine::mat4::rotateX(3.14f * (-45.0f) / 360.0f);
+	//auto rotX = Engine::mat4::rotateX(3.14f * (-45.0f) / 360.0f);
 
-	changepos(inst, Engine::vec3(-4.0f, 0.0f, 1.0f));
-	Engine::MeshSystem::Init()->hologramGroup.addModel(model, knightMat, Engine::TransformSystem::transforms{ inst.modelToWold * rotX });
+	//changepos(inst, Engine::vec3(-4.0f, 0.0f, 1.0f));
+	//Engine::MeshSystem::Init()->hologramGroup.addModel(model, knightMat, Engine::TransformSystem::transforms{ inst.modelToWold * rotX });
 	
-	auto rotZ = Engine::mat4::rotateZ(3.14f * (-45.0f) / 360.0f);
-	changescale(inst,0, 5);
-	crateMaterial.texture = crateSecond;
-	changepos(inst, Engine::vec3(-10.0f, -4.0f, 2.0f));
-	Engine::MeshSystem::Init()->textureGroup.addModel(model, crateMaterial, Engine::TransformSystem::transforms{ inst.modelToWold * rotZ });
+	//auto rotZ = Engine::mat4::rotateZ(3.14f * (-45.0f) / 360.0f);
+	//changescale(inst,0, 5);
+	//crateMaterial.textures[0] = crateSecond;
+	//changepos(inst, Engine::vec3(-10.0f, -4.0f, 2.0f));
+	//Engine::MeshSystem::Init()->textureGroup.addModel(model, crateMaterial, Engine::TransformSystem::transforms{ inst.modelToWold * rotZ });
 
 	
-	changescale(inst, 0, 0.2f);
-	changepos(inst, Engine::vec3(2.0f, -2.0f, 4.0f));
-	Engine::MeshSystem::Init()->hologramGroup.addModel(model, knightMat, Engine::TransformSystem::transforms{ inst.modelToWold * rotZ });
+	//changescale(inst, 0, 0.2f);
+	//changepos(inst, Engine::vec3(2.0f, -2.0f, 4.0f));
+	//Engine::MeshSystem::Init()->hologramGroup.addModel(model, knightMat, Engine::TransformSystem::transforms{ inst.modelToWold * rotZ });
 
 
-	Engine::MeshSystem::Init()->normVisGroup.updateInstanceBuffers();
-	Engine::MeshSystem::Init()->hologramGroup.updateInstanceBuffers();
-	Engine::MeshSystem::Init()->textureGroup.updateInstanceBuffers();
+	Engine::MeshSystem::Init()->updateInstanceBuffers();
 
 	auto skyboxShader = Engine::ShaderManager::CompileAndCreateShader("skybox", L"shaders/skyboxShader/skyboxVS.hlsl", 
 		L"shaders/skyboxShader/skyboxPS.hlsl", nullptr, nullptr, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-	auto skyboxTexture = Engine::TextureManager::Init()->AddTexture("skybox", L"Textures\\night_street.dds");
+	auto skyboxTexture = Engine::TextureManager::Init()->LoadFromFile("skybox", L"Textures\\night_street.dds");
 
 	auto postshader = Engine::ShaderManager::CompileAndCreateShader("PostProcess", L"shaders/PostProcess/PostProcessVS.hlsl", L"shaders/PostProcess/PostProcessPS.hlsl",
 		nullptr, nullptr, D3D10_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);

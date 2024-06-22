@@ -181,5 +181,8 @@
     <ClInclude Include="EngineSource\include\Graphics\PostProcess.h">
       <Filter>Include</Filter>
     </ClInclude>
+    <ClInclude Include="EngineSource\include\Math\Light.h">
+      <Filter>Include</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

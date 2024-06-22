@@ -95,6 +95,8 @@
     <None Include="Shaders\normalLines\GSnormal.hlsl">
       <Filter>Shaders\NormalVis</Filter>
     </None>
+    <None Include="Shaders\opaqueShader\opaquePS.hlsl" />
+    <None Include="Shaders\opaqueShader\opaqueVS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\declarations.hlsli">

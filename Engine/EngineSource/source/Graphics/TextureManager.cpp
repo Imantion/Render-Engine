@@ -41,7 +41,7 @@ void Engine::TextureManager::Deinit()
 	m_instance = nullptr;
 }
 
-std::shared_ptr<Engine::Texture> Engine::TextureManager::AddTexture(const char* name, const wchar_t* path)
+std::shared_ptr<Engine::Texture> Engine::TextureManager::LoadFromFile(const char* name, const wchar_t* path)
 {
 	if (m_textures.find(name) != m_textures.end())
 		throw std::runtime_error("Texture with name '" + std::string(name) + "' already exists");
