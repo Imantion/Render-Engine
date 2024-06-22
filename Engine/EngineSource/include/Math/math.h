@@ -214,11 +214,10 @@ namespace Engine
 		return matrix;
 	}
 
-	inline mat4 viewMatrix(const vec3& eye, const vec3& center, const vec3& upVector) // View matrix for camera like in shooter games
+	inline mat4 viewMatrix(const vec3& eye, const vec3& forward, const vec3& upVector) // View matrix for camera like in shooter games
 	{
-		vec3 f((center - eye).normalized());
-		vec3 rightVector(cross(upVector, f).normalized());
-		vec3 u(cross(f, rightVector));
+		vec3 rightVector(cross(upVector, forward).normalized());
+		vec3 u(cross(forward, rightVector));
 		mat4 matrix;
 
 		matrix[0][0] = rightVector.x;
@@ -229,13 +228,13 @@ namespace Engine
 		matrix[1][1] = u.y;
 		matrix[2][1] = u.z;
 		
-		matrix[0][2] = f.x;
-		matrix[1][2] = f.y;
-		matrix[2][2] = f.z;
+		matrix[0][2] = forward.x;
+		matrix[1][2] = forward.y;
+		matrix[2][2] = forward.z;
 
 		matrix[3][0] = -dot(rightVector, eye);
 		matrix[3][1] = -dot(u, eye);
-		matrix[3][2] = -dot(f, eye);
+		matrix[3][2] = -dot(forward, eye);
 		matrix[3][3] = 1;
 
 		return matrix;
