@@ -8,9 +8,10 @@
 
 namespace Engine
 {
-	#define MAX_SPOTLIGHTS 10
-	#define MAX_POINTLIGHTS 10
-	#define MAX_DIRECTIONALLIGHTS 1
+	#define MAX_SPOT_LIGHTS 10
+	#define MAX_POINT_LIGHTS 10
+	#define MAX_DIRECTIONAL_LIGHTS 1
+
 	class  Light
 	{
 	public:
@@ -93,9 +94,9 @@ namespace Engine
 
 		struct LightsData
 		{
-			DirectionalLight directionalLights[MAX_DIRECTIONALLIGHTS];
-			PointLight pointLights[MAX_POINTLIGHTS];
-			SpotLight spotLights[MAX_SPOTLIGHTS];
+			DirectionalLight directionalLights[MAX_DIRECTIONAL_LIGHTS];
+			PointLight pointLights[MAX_POINT_LIGHTS];
+			SpotLight spotLights[MAX_SPOT_LIGHTS];
 			int dlSize = 0;
 			int plSize = 0;
 			int spSize = 0;

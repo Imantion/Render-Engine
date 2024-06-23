@@ -19,11 +19,12 @@ Engine::LightSystem* Engine::LightSystem::Init()
 void Engine::LightSystem::Deinit()
 {
     delete m_instance;
+    m_instance = nullptr;
 }
 
 void Engine::LightSystem::AddDirectionalLight(const DirectionalLight& other)
 {
-    if (m_directionalLights.size() > MAX_DIRECTIONALLIGHTS)
+    if (m_directionalLights.size() > MAX_DIRECTIONAL_LIGHTS)
         throw "Too many directional lights";
 
     m_directionalLights.push_back(other);
@@ -38,7 +39,7 @@ void Engine::LightSystem::AddDirectionalLight(const vec3& direction, const vec3&
 
 void Engine::LightSystem::AddPointLight(const PointLight& other)
 {
-    if (m_pointLights.size() > MAX_POINTLIGHTS)
+    if (m_pointLights.size() > MAX_POINT_LIGHTS)
         throw "Too many point lights";
 
     m_pointLights.push_back(other);
@@ -53,7 +54,7 @@ void Engine::LightSystem::AddPointLight(const vec3& col, const vec3& pos, float 
 
 void Engine::LightSystem::AddSpotLight(const SpotLight& spotLight)
 {
-    if (m_spotLights.size() > MAX_SPOTLIGHTS)
+    if (m_spotLights.size() > MAX_SPOT_LIGHTS)
         throw "Too many spot lights";
 
     m_spotLights.push_back(spotLight);
@@ -63,6 +64,10 @@ void Engine::LightSystem::UpdateLightsBuffer()
 {
     LightsData bufferData;
     auto TS = TransformSystem::Init();
+
+    bufferData.dlSize = m_directionalLights.size();
+    bufferData.spSize = m_spotLights.size();
+    bufferData.plSize = m_pointLights.size();
 
     for (size_t i = 0; i < m_directionalLights.size(); i++)
     {
@@ -91,6 +96,7 @@ void Engine::LightSystem::UpdateLightsBuffer()
             auto bindedTransform = TS->GetModelTransforms(m_spotLights[i].bindedObjectId)[0].modelToWold;
             bufferData.spotLights[i].position = m_spotLights[i].position + (vec3&)(*bindedTransform[3]);
             bufferData.spotLights[i].direction = vec4(m_spotLights[i].direction, 0.0f) * bindedTransform;
+            bufferData.spotLights[i].direction = bufferData.spotLights[i].direction.normalized();
         }
         else
         {
@@ -109,6 +115,11 @@ void Engine::LightSystem::UpdateLightsBuffer()
 void Engine::LightSystem::BindLigtsBuffer(UINT slot, UINT typeOfShader)
 {
     m_lighsBuffer.bind(slot, typeOfShader);
+}
+
+Engine::LightSystem::LightSystem()
+{
+    m_lighsBuffer.create();
 }
 
 

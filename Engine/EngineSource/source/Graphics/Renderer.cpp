@@ -2,6 +2,7 @@
 #include "Graphics/Model.h"
 #include "Graphics/MeshSystem.h"
 #include "Graphics/PostProcess.h"
+#include "Graphics/LightSystem.h"
 #include "Render/Camera.h"
 
 std::mutex Engine::Renderer::mutex_;
@@ -139,7 +140,8 @@ void Engine::Renderer::Render(Camera* camera)
 		camera->getPosition()};
 
 	perViewBuffer.updateBuffer(&perView);
-
+	LightSystem::Init()->BindLigtsBuffer(3u, shaderTypes::PS);
+	Engine::LightSystem::Init()->UpdateLightsBuffer();
 
 	MeshSystem::Init()->render();
 }

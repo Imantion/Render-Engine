@@ -6,6 +6,7 @@
 #include "Graphics/TextureManager.h"
 #include "Graphics/TransformSystem.h"
 #include "Graphics/PostProcess.h"
+#include "Graphics/LightSystem.h"
 #include "Window/Window.h"
 #include <assert.h>
 
@@ -21,6 +22,7 @@ void Engine::Engine::Init()
 	TextureManager::Init();
 	TransformSystem::Init();
 	PostProcess::Init();
+	LightSystem::Init();
 
 	isInitialized = true;
 }
@@ -35,4 +37,5 @@ void Engine::Engine::Deinit()
 	TextureManager::Deinit();
 	TransformSystem::Deinit();
 	PostProcess::Deinit();
+	LightSystem::Deinit();
 }

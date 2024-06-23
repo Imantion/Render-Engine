@@ -11,7 +11,14 @@
 #include "Graphics/TextureManager.h"
 #include "Graphics/PostProcess.h"
 #include "Graphics/SkyBox.h"
+#include "Graphics/LightSystem.h"
 #include <assert.h>
+
+#ifdef UNICODE
+typedef std::wostringstream tstringstream;
+#else
+typedef std::ostringstream tstringstream;
+#endif
 
 Engine::vec2 previousMousePosition;
 static float cameraSpeed = 2.0f;
@@ -39,7 +46,11 @@ static void InitMeshSystem()
 	auto textureMap = Engine::ShaderManager::CompileAndCreateShader("texture", L"Shaders\\crateTextMap\\CrateVS.hlsl",
 		L"Shaders\\crateTextMap\\CratePS.hlsl", nullptr, nullptr);
 
-	D3D_SHADER_MACRO shaders[] = { "MAX_DIRECTIONAL_LIGHTS", "10", NULL,NULL };
+	D3D_SHADER_MACRO shaders[] = { "MAX_DIRECTIONAL_LIGHTS", "1",
+		"MAX_POINT_LIGHTS", "10",
+		"MAX_SPOT_LIGHTS","10",
+		NULL,NULL};
+
 	auto opaqueShader = Engine::ShaderManager::CompileAndCreateShader("opaque", L"Shaders\\opaqueShader\\opaqueVS.hlsl",
 		L"Shaders\\opaqueShader\\opaquePS.hlsl", nullptr, shaders);
 
@@ -121,6 +132,14 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 	Engine::TransformSystem::transforms inst = { Engine::transformMatrix(Engine::vec3(0.0f, -1.0f, 0.0f), Engine::vec3(0.0f, 0.0f, 1.0f), Engine::vec3(1.0f, 0.0f, 0.0f), Engine::vec3(0.0f, 1.0f, 0.0f)) };
 	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, samuraiTextures, inst);
 
+	Engine::PointLight pointLight(Engine::vec3(1.0f, 1.0f, 1.0f), Engine::vec3(0.0f), 10.0f);
+	Engine::DirectionalLight directionalLight(Engine::vec3(0.707f, -0.707f, 0.0f), Engine::vec3(1.0f), 25.0f);
+	Engine::TransformSystem::transforms pointTransfom = { Engine::transformMatrix(Engine::vec3(0.0f, 1.0f, 0.0f), Engine::vec3(0.0f, 0.0f, 1.0f), Engine::vec3(1.0f, 0.0f, 0.0f), Engine::vec3(0.0f, 1.0f, 0.0f)) };
+	uint32_t id = Engine::TransformSystem::Init()->AddModelTransform(pointTransfom, 1.0f);
+	pointLight.bindedObjectId = id;
+	Engine::LightSystem::Init()->AddPointLight(pointLight);
+	Engine::LightSystem::Init()->AddDirectionalLight(directionalLight);
+	Engine::LightSystem::Init()->UpdateLightsBuffer();
 
 	//knightMat = { Engine::vec3(0.0,1.0f,1.0f), 0.0f,Engine::vec3(1.0,0.0f,0.0f), 0.0f };
 	changepos(inst, Engine::vec3(1.0f, -1.0f, 0.0f));

@@ -280,7 +280,7 @@ namespace Engine
 				meshData.bind(2u, shaderTypes::VS);
 
 				materialData.bind(2u, shaderTypes::PS);
-				meshData.bind(3u, shaderTypes::PS);
+				
 
 
 				uint32_t renderedInstances = 0;

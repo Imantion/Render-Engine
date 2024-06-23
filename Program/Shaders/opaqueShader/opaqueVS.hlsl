@@ -30,7 +30,7 @@ VOut main(VIn input)
     output.worldPos = mul(mul(float4(input.pos, 1.0f), meshToModel), toWorld);
     output.pos = mul(float4(output.worldPos,1.0f), viewProjection);
     output.normal = mul(float4(input.normal, 1.0f), meshToModel);
-    output.normal = mul(output.normal, (float3x3)toWorld);
+    output.normal = normalize(mul(output.normal, (float3x3) toWorld));
     output.tc = input.tc;
     
     return output;
