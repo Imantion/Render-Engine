@@ -1,4 +1,5 @@
 #include "..\GlobalSamplers.hlsli"
+#include "..\Lights.hlsli"
 
 Texture2D text : register(t0);
 

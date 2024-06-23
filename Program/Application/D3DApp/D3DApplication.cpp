@@ -39,8 +39,9 @@ static void InitMeshSystem()
 	auto textureMap = Engine::ShaderManager::CompileAndCreateShader("texture", L"Shaders\\crateTextMap\\CrateVS.hlsl",
 		L"Shaders\\crateTextMap\\CratePS.hlsl", nullptr, nullptr);
 
+	D3D_SHADER_MACRO shaders[] = { "MAX_DIRECTIONAL_LIGHTS", "10", NULL,NULL };
 	auto opaqueShader = Engine::ShaderManager::CompileAndCreateShader("opaque", L"Shaders\\opaqueShader\\opaqueVS.hlsl",
-		L"Shaders\\opaqueShader\\opaquePS.hlsl", nullptr, nullptr);
+		L"Shaders\\opaqueShader\\opaquePS.hlsl", nullptr, shaders);
 
 	auto NormalVisLines = Engine::ShaderManager::CompileAndCreateShader("NormalVisLines", L"Shaders\\normalLines\\VertexShader.hlsl",
 		L"Shaders\\normalLines\\PixelShader.hlsl", L"Shaders\\normalLines\\HullShader.hlsl", L"Shaders\\normalLines\\DomainShader.hlsl",
@@ -142,11 +143,11 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 	//changepos(inst, Engine::vec3(-4.0f, 0.0f, 1.0f));
 	//Engine::MeshSystem::Init()->hologramGroup.addModel(model, knightMat, Engine::TransformSystem::transforms{ inst.modelToWold * rotX });
 	
-	//auto rotZ = Engine::mat4::rotateZ(3.14f * (-45.0f) / 360.0f);
-	//changescale(inst,0, 5);
-	//crateMaterial.textures[0] = crateSecond;
-	//changepos(inst, Engine::vec3(-10.0f, -4.0f, 2.0f));
-	//Engine::MeshSystem::Init()->textureGroup.addModel(model, crateMaterial, Engine::TransformSystem::transforms{ inst.modelToWold * rotZ });
+	auto rotZ = Engine::mat4::rotateZ(3.14f * (-45.0f) / 360.0f);
+	changescale(inst,0, 5);
+	crateMaterial.texture = crateSecond;
+	changepos(inst, Engine::vec3(-10.0f, -4.0f, 2.0f));
+	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, crateMaterial, Engine::TransformSystem::transforms{ inst.modelToWold * rotZ });
 
 	
 	//changescale(inst, 0, 0.2f);

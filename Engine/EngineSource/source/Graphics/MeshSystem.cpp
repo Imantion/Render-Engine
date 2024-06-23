@@ -10,7 +10,9 @@ uint32_t Engine::MeshSystem::intersect(const ray& r, hitInfo& hInfo)
 	uint32_t first = hologramGroup.intersect(r, hInfo);
 	uint32_t second = normVisGroup.intersect(r, hInfo);
 	uint32_t third = textureGroup.intersect(r, hInfo);
-	
+	uint32_t firth = opaqueGroup.intersect(r, hInfo);
+	if (firth != -1)
+		return firth;
 	return third != -1? third: (second != -1? second: first);
 }
 

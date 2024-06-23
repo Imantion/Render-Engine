@@ -95,6 +95,9 @@
     <ClCompile Include="EngineSource\include\Graphics\PostProcess.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="EngineSource\include\Graphics\LightSystem.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EngineSource\include\Math\math.h">
@@ -182,6 +185,9 @@
       <Filter>Include</Filter>
     </ClInclude>
     <ClInclude Include="EngineSource\include\Math\Light.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineSource\include\Graphics\LightSystem.h">
       <Filter>Include</Filter>
     </ClInclude>
   </ItemGroup>
