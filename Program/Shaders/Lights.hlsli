@@ -66,7 +66,7 @@ float3 SpotLightContribution(float3 normal, float3 position, float3 cameraPositi
         float distancSquaredToLight = dot(directionToLight, directionToLight);
         directionToLight = normalize(directionToLight);
         
-        if (dot(directionToLight, spotLights[i].direction) < spotLights[i].cutoffAngle)
+        if (dot(directionToLight, spotLights[i].direction) < cos(spotLights[i].cutoffAngle))
         {
             finalColor += spotLights[i].color * 0.001f;
             continue;

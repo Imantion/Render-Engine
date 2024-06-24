@@ -21,6 +21,11 @@ namespace Engine
 			vec3 tangent;
 			vec3 bitangent;
 			vec2 tc;
+
+			static vertex initial()
+			{
+				return vertex();
+			}
 		};
 
 		struct triangle
@@ -45,6 +50,19 @@ namespace Engine
 		{
 			octree.initialize(*this);
 		}
+
+		Mesh(Mesh&& other) noexcept
+			: instances(std::move(other.instances)),
+			invInstances(std::move(other.invInstances)),
+			box(std::move(other.box)),
+			vertices(std::move(other.vertices)),
+			triangles(std::move(other.triangles)),
+			name(std::move(other.name)),
+			octree(std::move(other.octree))
+		{
+		}
+
+		
 
 		bool intersect(const ray& r, hitInfo& info) const
 		{

@@ -5,12 +5,16 @@
 std::mutex Engine::MeshSystem::mutex_;
 Engine::MeshSystem* Engine::MeshSystem::pInstance = nullptr;
 
-uint32_t Engine::MeshSystem::intersect(const ray& r, hitInfo& hInfo)
+int Engine::MeshSystem::intersect(const ray& r, hitInfo& hInfo)
 {
-	uint32_t first = hologramGroup.intersect(r, hInfo);
-	uint32_t second = normVisGroup.intersect(r, hInfo);
-	uint32_t third = textureGroup.intersect(r, hInfo);
-	uint32_t firth = opaqueGroup.intersect(r, hInfo);
+	int first = hologramGroup.intersect(r, hInfo);
+	int second = normVisGroup.intersect(r, hInfo);
+	int third = textureGroup.intersect(r, hInfo);
+	int firth = opaqueGroup.intersect(r, hInfo);
+	int fifth = emmisiveGroup.intersect(r, hInfo);
+	if (fifth != -1)
+		return fifth;
+
 	if (firth != -1)
 		return firth;
 	return third != -1? third: (second != -1? second: first);
@@ -22,6 +26,7 @@ void Engine::MeshSystem::updateInstanceBuffers()
 	hologramGroup.updateInstanceBuffers();
 	textureGroup.updateInstanceBuffers();
 	opaqueGroup.updateInstanceBuffers();
+	emmisiveGroup.updateInstanceBuffers();
 }
 
 void Engine::MeshSystem::render()
@@ -30,6 +35,7 @@ void Engine::MeshSystem::render()
 	hologramGroup.render();
 	textureGroup.render();
 	opaqueGroup.render();
+	emmisiveGroup.render();
 }
 
 Engine::MeshSystem* Engine::MeshSystem::Init()

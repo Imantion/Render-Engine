@@ -27,6 +27,49 @@ void Engine::ModelManager::Deinit()
 	pInstance = nullptr;
 }
 
+std::shared_ptr<Engine::Model> Engine::ModelManager::AddModel(std::string name, Model&& model_)
+{
+	if (models.find(name) != models.end())
+		throw "Model with this name alredy exists!";
+
+	models[name] = std::make_shared<Model>(std::move(model_));
+	auto& model = *models[name].get();
+	int vertexAmout = 0;
+	int trianglesAmount = 0;
+	for (size_t i = 0; i <  model.m_meshes.size(); i++)
+	{
+		vertexAmout += model.m_meshes[i].vertices.size();
+	}
+	for (size_t i = 0; i < model.m_meshes.size(); i++)
+	{
+		trianglesAmount += model.m_meshes[i].triangles.size();
+	}
+
+
+	std::vector<Engine::Mesh::vertex> vertecies; vertecies.reserve(vertexAmout);
+	std::vector<Engine::Mesh::triangle> triangles; triangles.reserve(trianglesAmount);
+
+	for (size_t i = 0; i < model.m_meshes.size(); i++)
+	{
+		for (size_t j = 0; j < model.m_meshes[i].vertices.size(); j++)
+		{
+			vertecies.push_back(model.m_meshes[i].vertices[j]);
+		}
+	}
+	for (size_t i = 0; i < model.m_meshes.size(); i++)
+	{
+		for (size_t j = 0; j < model.m_meshes[i].triangles.size(); j++)
+		{
+			triangles.push_back(model.m_meshes[i].triangles[j]);
+		}
+	}
+
+	auto m = models[name];
+	m->m_vertices.create(vertecies.data(), (UINT)(vertexAmout));
+	m->m_indices.create((unsigned int*)triangles.data(), (UINT)(trianglesAmount) * 3u);
+	return models[name];
+}
+
 std::shared_ptr<Engine::Model> Engine::ModelManager::loadModel(std::string path)
 {
 	if (models.find(path) != models.end())
@@ -160,4 +203,209 @@ bool Engine::Model::intersect(const ray& r, hitInfo& info)
 	}
 
 	return intersected;
+}
+
+void Engine::ModelManager::initUnitSphere()
+{
+	const uint32_t SIDES = 6;
+	const uint32_t GRID_SIZE = 12;
+	const uint32_t TRIS_PER_SIDE = GRID_SIZE * GRID_SIZE * 2;
+	const uint32_t VERT_PER_SIZE = (GRID_SIZE + 1) * (GRID_SIZE + 1);
+
+	Engine::Model model;
+	model.m_ranges.resize(1);
+	model.m_ranges[0].indexOffset = 0;
+	model.m_ranges[0].vertexOffset = 0;
+	model.m_ranges[0].vertexNum = VERT_PER_SIZE * SIDES;
+	model.m_ranges[0].indexNum = TRIS_PER_SIDE * SIDES * 3u;
+
+	model.name = "UNIT_SPHERE";
+	model.box = Engine::Box::unit();
+	model.m_meshes.emplace_back();
+	Engine::Mesh& mesh = model.m_meshes.back();
+	mesh.name = "UNIT_SPHERE";
+	mesh.box = model.box;
+	mesh.instances = { Engine::mat4::Identity() };
+	mesh.invInstances = { Engine::mat4::Identity() };
+
+	mesh.vertices.resize(VERT_PER_SIZE * SIDES);
+	Mesh::vertex* vertex = mesh.vertices.data();
+
+	int sideMasks[6][3] =
+	{
+		{ 2, 1, 0 },
+		{ 0, 1, 2 },
+		{ 2, 1, 0 },
+		{ 0, 1, 2 },
+		{ 0, 2, 1 },
+		{ 0, 2, 1 }
+	};
+
+	float sideSigns[6][3] =
+	{
+		{ +1, +1, +1 },
+		{ -1, +1, +1 },
+		{ -1, +1, -1 },
+		{ +1, +1, -1 },
+		{ +1, -1, -1 },
+		{ +1, +1, +1 }
+	};
+
+	for (int side = 0; side < SIDES; ++side)
+	{
+		for (int row = 0; row < GRID_SIZE + 1; ++row)
+		{
+			for (int col = 0; col < GRID_SIZE + 1; ++col)
+			{
+				Engine::vec3 v;
+				v.x = col / float(GRID_SIZE) * 2.f - 1.f;
+				v.y = row / float(GRID_SIZE) * 2.f - 1.f;
+				v.z = 1.f;
+
+				vertex[0] = Engine::Mesh::vertex::initial();
+
+				vertex[0].pos[sideMasks[side][0]] = v.x * sideSigns[side][0];
+				vertex[0].pos[sideMasks[side][1]] = v.y * sideSigns[side][1];
+				vertex[0].pos[sideMasks[side][2]] = v.z * sideSigns[side][2];
+				vertex[0].normal = vertex[0].pos = vertex[0].pos.normalized();
+
+				vertex += 1;
+			}
+		}
+	}
+
+	mesh.triangles.resize(TRIS_PER_SIDE * SIDES);
+	auto* triangle = mesh.triangles.data();
+
+	for (int side = 0; side < SIDES; ++side)
+	{
+		uint32_t sideOffset = VERT_PER_SIZE * side;
+
+		for (int row = 0; row < GRID_SIZE; ++row)
+		{
+			for (int col = 0; col < GRID_SIZE; ++col)
+			{
+				triangle[0].indices[0] = sideOffset + (row + 0) * (GRID_SIZE + 1) + col + 0;
+				triangle[0].indices[1] = sideOffset + (row + 1) * (GRID_SIZE + 1) + col + 0;
+				triangle[0].indices[2] = sideOffset + (row + 0) * (GRID_SIZE + 1) + col + 1;
+
+				triangle[1].indices[0] = sideOffset + (row + 1) * (GRID_SIZE + 1) + col + 0;
+				triangle[1].indices[1] = sideOffset + (row + 1) * (GRID_SIZE + 1) + col + 1;
+				triangle[1].indices[2] = sideOffset + (row + 0) * (GRID_SIZE + 1) + col + 1;
+
+				triangle += 2;
+			}
+		}
+	}
+
+	mesh.updateOctree();
+
+	AddModel("UNIT_SPHERE", std::move(model));
+}
+
+void Engine::ModelManager::initUnitSphereFlat()
+{
+	const uint32_t SIDES = 6;
+	const uint32_t GRID_SIZE = 12;
+	const uint32_t TRIS_PER_SIDE = GRID_SIZE * GRID_SIZE * 2;
+	const uint32_t VERT_PER_SIZE = 3 * TRIS_PER_SIDE;
+
+	Engine::Model model;
+	model.name = "UNIT_SPHERE_FLAT";
+	model.box = Engine::Box::empty();
+	model.m_ranges.resize(1);
+	model.m_ranges[0].indexOffset = 0;
+	model.m_ranges[0].vertexOffset = 0;
+	model.m_ranges[0].vertexNum = VERT_PER_SIZE * SIDES;
+	model.m_ranges[0].indexNum = TRIS_PER_SIDE * SIDES * 3u;
+
+	model.m_meshes.emplace_back();
+	Engine::Mesh& mesh = model.m_meshes.back();
+	mesh.name = "UNIT_SPHERE_FLAT";
+	mesh.box = model.box;
+	mesh.instances = { Engine::mat4::Identity() };
+	mesh.invInstances = { Engine::mat4::Identity() };
+
+	mesh.vertices.resize(VERT_PER_SIZE * SIDES);
+	Engine::Mesh::vertex* vertex = mesh.vertices.data();
+
+	int sideMasks[6][3] =
+	{
+		{ 2, 1, 0 },
+		{ 0, 1, 2 },
+		{ 2, 1, 0 },
+		{ 0, 1, 2 },
+		{ 0, 2, 1 },
+		{ 0, 2, 1 }
+	};
+
+	float sideSigns[6][3] =
+	{
+		{ +1, +1, +1 },
+		{ -1, +1, +1 },
+		{ -1, +1, -1 },
+		{ +1, +1, -1 },
+		{ +1, -1, -1 },
+		{ +1, +1, +1 }
+	};
+
+	for (int side = 0; side < SIDES; ++side)
+	{
+		for (int row = 0; row < GRID_SIZE; ++row)
+		{
+			for (int col = 0; col < GRID_SIZE; ++col)
+			{
+				float left = (col + 0) / float(GRID_SIZE) * 2.f - 1.f;
+				float right = (col + 1) / float(GRID_SIZE) * 2.f - 1.f;
+				float bottom = (row + 0) / float(GRID_SIZE) * 2.f - 1.f;
+				float top = (row + 1) / float(GRID_SIZE) * 2.f - 1.f;
+
+				Engine::vec3 quad[4] =
+				{
+					{ left, bottom, 1.f },
+					{ left, top, 1.f },
+					{ right, bottom, 1.f },
+					{ right, top, 1.f }
+				};
+
+				vertex[0] = vertex[1] = vertex[2] = vertex[3] = Engine::Mesh::vertex::initial();
+
+				auto setPos = [sideMasks, sideSigns](int side, Engine::Mesh::vertex& dst, const  Engine::vec3& pos)
+					{
+						dst.pos[sideMasks[side][0]] = pos.x * sideSigns[side][0];
+						dst.pos[sideMasks[side][1]] = pos.y * sideSigns[side][1];
+						dst.pos[sideMasks[side][2]] = pos.z * sideSigns[side][2];
+						dst.pos = dst.pos.normalized();
+					};
+
+				setPos(side, vertex[0], quad[0]);
+				setPos(side, vertex[1], quad[1]);
+				setPos(side, vertex[2], quad[2]);
+
+				{
+					Engine::vec3 AB = vertex[1].pos - vertex[0].pos;
+					Engine::vec3 AC = vertex[2].pos - vertex[0].pos;
+					vertex[0].normal = vertex[1].normal = vertex[2].normal = Engine::cross(AB,AC).normalized();
+				}
+
+				vertex += 3;
+
+				setPos(side, vertex[0], quad[1]);
+				setPos(side, vertex[1], quad[3]);
+				setPos(side, vertex[2], quad[2]);
+
+				{
+					Engine::vec3 AB = vertex[1].pos - vertex[0].pos;
+					Engine::vec3 AC = vertex[2].pos - vertex[0].pos;
+					vertex[0].normal = vertex[1].normal = vertex[2].normal = Engine::cross(AB,AC).normalized();
+				}
+
+				vertex += 3;
+			}
+		}
+	}
+
+	mesh.updateOctree();
+
+	AddModel("UNIT_SPHERE_FLAT", std::move(model));
 }

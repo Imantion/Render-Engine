@@ -37,11 +37,27 @@ static void InitMeshSystem()
 	{"TOWORLD", 3, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1}
 	};
 
+	D3D11_INPUT_ELEMENT_DESC secondIed[] = {
+	{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	{"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	{"TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	{"BITANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	{"TC", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	{"TOWORLD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+	{"TOWORLD", 1, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+	{"TOWORLD", 2, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+	{"TOWORLD", 3, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+	{"EMISSION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1}
+	};
+
+	auto emissiveShader = Engine::ShaderManager::CompileAndCreateShader("NormalVisColor", L"Shaders\\emissive\\emissiveVS.hlsl",
+		L"Shaders\\emissive\\emissivePS.hlsl", nullptr, nullptr);
 
 	auto NormalVisColor = Engine::ShaderManager::CompileAndCreateShader("NormalVisColor", L"Shaders\\normalColor\\VertexShader.hlsl",
 		L"Shaders\\normalColor\\PixelShader.hlsl", nullptr, nullptr);
 
 	auto inputLayout = Engine::ShaderManager::CreateInputLayout("Default", NormalVisColor->vertexBlob.Get(), ied, 9u);
+	auto secondInputLayout = Engine::ShaderManager::CreateInputLayout("Default", emissiveShader->vertexBlob.Get(), secondIed, 10u);
 
 	auto textureMap = Engine::ShaderManager::CompileAndCreateShader("texture", L"Shaders\\crateTextMap\\CrateVS.hlsl",
 		L"Shaders\\crateTextMap\\CratePS.hlsl", nullptr, nullptr);
@@ -74,6 +90,7 @@ static void InitMeshSystem()
 	HologramGroup->BindInputLyout(inputLayout);
 	textureMap->BindInputLyout(inputLayout);
 	opaqueShader->BindInputLyout(inputLayout);
+	emissiveShader->BindInputLyout(secondInputLayout);
 
 	auto ms = Engine::MeshSystem::Init();
 
@@ -87,6 +104,8 @@ static void InitMeshSystem()
 
 	ms->opaqueGroup.addShader(opaqueShader);
 	ms->opaqueGroup.addShader(NormalVisLines);
+
+	ms->emmisiveGroup.addShader(emissiveShader);
 }
 
 D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc windowEvent) :
@@ -130,20 +149,28 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 
 	auto model = Engine::ModelManager::GetInstance()->loadModel("Models\\Samurai.fbx");
 	Engine::TransformSystem::transforms inst = { Engine::transformMatrix(Engine::vec3(0.0f, -1.0f, 0.0f), Engine::vec3(0.0f, 0.0f, 1.0f), Engine::vec3(1.0f, 0.0f, 0.0f), Engine::vec3(0.0f, 1.0f, 0.0f)) };
-	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, samuraiTextures, inst);
+	/*Engine::MeshSystem::Init()->opaqueGroup.addModel(model, samuraiTextures, inst);*/
 
 	Engine::PointLight pointLight(Engine::vec3(1.0f, 1.0f, 1.0f), Engine::vec3(0.0f), 10.0f);
-	Engine::DirectionalLight directionalLight(Engine::vec3(0.707f, -0.707f, 0.0f), Engine::vec3(1.0f), 25.0f);
-	Engine::TransformSystem::transforms pointTransfom = { Engine::transformMatrix(Engine::vec3(0.0f, 1.0f, 0.0f), Engine::vec3(0.0f, 0.0f, 1.0f), Engine::vec3(1.0f, 0.0f, 0.0f), Engine::vec3(0.0f, 1.0f, 0.0f)) };
+	Engine::SpotLight spotLight(Engine::vec3(1.0f, 1.0f, 1.0f), Engine::vec3(0.0f), Engine::vec3(1.0f,0.0f,0.0f), 3.14 / 2, 10.0f);
+	Engine::DirectionalLight directionalLight(Engine::vec3(0.707f, -0.707f, 0.0f), Engine::vec3(0.84f,0.86264f,0.89019f), 1.0f);
+	Engine::TransformSystem::transforms pointTransfom = { Engine::transformMatrix(Engine::vec3(0.0f, 1.0f, 0.0f), Engine::vec3(0.0f, 0.0f, 1.0f), Engine::vec3(1.0f, 0.0f, 0.0f),Engine::vec3(0.25f, 1.5f, 0.0f)) };
 	uint32_t id = Engine::TransformSystem::Init()->AddModelTransform(pointTransfom, 1.0f);
 	pointLight.bindedObjectId = id;
-	Engine::LightSystem::Init()->AddPointLight(pointLight);
+	spotLight.bindedObjectId = id;
+	/*Engine::LightSystem::Init()->AddPointLight(pointLight);*/
+	Engine::LightSystem::Init()->AddSpotLight(spotLight);
 	Engine::LightSystem::Init()->AddDirectionalLight(directionalLight);
 	Engine::LightSystem::Init()->UpdateLightsBuffer();
 
 	//knightMat = { Engine::vec3(0.0,1.0f,1.0f), 0.0f,Engine::vec3(1.0,0.0f,0.0f), 0.0f };
-	changepos(inst, Engine::vec3(1.0f, -1.0f, 0.0f));
-	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, samuraiTextures, inst);
+	/*changepos(inst, Engine::vec3(1.0f, -1.0f, 0.0f));
+	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, samuraiTextures, inst);*/
+	Engine::ModelManager::GetInstance()->initUnitSphere();
+
+	model = Engine::ModelManager::GetInstance()->GetModel("UNIT_SPHERE");
+	Engine::MeshSystem::Init()->emmisiveGroup.addModel(model, samuraiTextures[0], inst, Engine::MeshSystem::EmmisiveInstance{Engine::vec3(0.0f, 5.0f, 0.0f)});
+
 
 	model = Engine::ModelManager::GetInstance()->loadModel("Models\\cube.obj");
 	//changepos(inst, Engine::vec3(1.0f, 1.0f, 5.0f));
@@ -152,21 +179,21 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 	//changepos(inst, Engine::vec3(3.0f, -1.0f, -2.0f));
 	//Engine::MeshSystem::Init()->normVisGroup.addModel(model, knightMat, inst);
 
-	Engine::MeshSystem::TextureMaterial crateMaterial;
-	crateMaterial = Engine::MeshSystem::TextureMaterial{ crateFirst };
-	changepos(inst, Engine::vec3(1.0f, -4.0f, 2.0f));
-	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, crateMaterial, inst);
+	//Engine::MeshSystem::TextureMaterial crateMaterial;
+	//crateMaterial = Engine::MeshSystem::TextureMaterial{ crateFirst };
+	//changepos(inst, Engine::vec3(1.0f, -4.0f, 2.0f));
+	//Engine::MeshSystem::Init()->opaqueGroup.addModel(model, crateMaterial, inst);
 
 	//auto rotX = Engine::mat4::rotateX(3.14f * (-45.0f) / 360.0f);
 
 	//changepos(inst, Engine::vec3(-4.0f, 0.0f, 1.0f));
 	//Engine::MeshSystem::Init()->hologramGroup.addModel(model, knightMat, Engine::TransformSystem::transforms{ inst.modelToWold * rotX });
 	
-	auto rotZ = Engine::mat4::rotateZ(3.14f * (-45.0f) / 360.0f);
+	/*auto rotZ = Engine::mat4::rotateZ(3.14f * (-45.0f) / 360.0f);
 	changescale(inst,0, 5);
 	crateMaterial.texture = crateSecond;
 	changepos(inst, Engine::vec3(-10.0f, -4.0f, 2.0f));
-	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, crateMaterial, Engine::TransformSystem::transforms{ inst.modelToWold * rotZ });
+	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, crateMaterial, Engine::TransformSystem::transforms{ inst.modelToWold * rotZ });*/
 
 	
 	//changescale(inst, 0, 0.2f);

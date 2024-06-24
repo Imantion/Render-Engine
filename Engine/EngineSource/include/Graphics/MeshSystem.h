@@ -255,7 +255,9 @@ namespace Engine
 						uint32_t numModelInstances = (uint32_t)instances.size();
 						for (uint32_t index = 0; index < numModelInstances; ++index)
 						{
-							dst[copiedNum++] = instanceBufferData{ TS->GetModelTransforms(instances[index].transformsId)[meshIndex],  instances[index].instanceData};
+							auto b = sizeof(instanceBufferData);
+							auto a = instanceBufferData{ TS->GetModelTransforms(instances[index].transformsId)[meshIndex],  instances[index].instanceData };
+							dst[copiedNum++] = a;
 						}
 					}
 				}
@@ -352,12 +354,24 @@ namespace Engine
 		{
 		};
 
+		struct EmmisiveInstance
+		{
+			vec3 emmisiveColor;
+			float padding;
+		};
+
+		struct EmmisiveMaterial
+		{
+
+		};
+
 		OpaqueInstances<Instance, Material> hologramGroup;
 		OpaqueInstances<Instance, Material> normVisGroup;
 		OpaqueInstances<Instance, TextureMaterial> textureGroup;
 		OpaqueInstances<Instance, TextureMaterial> opaqueGroup;
+		OpaqueInstances<EmmisiveInstance, TextureMaterial> emmisiveGroup;
 
-		uint32_t intersect(const ray& r, hitInfo& hInfo);
+		int intersect(const ray& r, hitInfo& hInfo);
 
 		void updateInstanceBuffers();
 		void render();
