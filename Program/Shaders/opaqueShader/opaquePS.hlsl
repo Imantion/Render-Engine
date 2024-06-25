@@ -15,9 +15,22 @@ struct PSInput
 
 float4 main(PSInput input) : SV_TARGET
 {
-    float3 finalColor = SpotLightContribution(input.normal, input.worldPos, g_cameraPosition);
-    finalColor += PointLightContribution(input.normal, input.worldPos, g_cameraPosition);
-    finalColor += DirectionalLightsContibution(input.normal, input.worldPos, g_cameraPosition);
+    float3 finalColor = float3(0, 0, 0);
+    for (int i = 0; i < slSize; ++i)
+    {
+        finalColor += SpotLightContribution(spotLights[i], input.normal, input.worldPos, g_cameraPosition);
+    }
+    for (i = 0; i < plSize; ++i)
+    {
+        finalColor += PointLightContribution(pointLights[i],input.normal, input.worldPos, g_cameraPosition);
+    }
+    
+    for (i = 0; i < dlSize; ++i)
+    {
+        finalColor += DirectionalLightsContibution(directionalLights[i], input.normal, input.worldPos, g_cameraPosition);
+    }
+    finalColor += FlashLight(flashLight, input.normal, input.worldPos, g_cameraPosition);
+   
     
     finalColor += ambient;
     float3 textureColor = text.Sample(g_anisotropicWrap, input.tc);

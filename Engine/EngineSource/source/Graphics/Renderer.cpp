@@ -142,6 +142,7 @@ void Engine::Renderer::Render(Camera* camera)
 	perViewBuffer.updateBuffer(&perView);
 	LightSystem::Init()->BindLigtsBuffer(3u, shaderTypes::PS);
 	Engine::LightSystem::Init()->UpdateLightsBuffer();
+	Engine::LightSystem::Init()->BindLightTextures();
 
 	MeshSystem::Init()->render();
 }

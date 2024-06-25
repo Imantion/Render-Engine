@@ -53,87 +53,89 @@ cbuffer LightData : register(b3)
     DirectionalLight directionalLights[MAX_DL];
     PointLight pointLights[MAX_PL];
     SpotLight spotLights[MAX_SL];
+    SpotLight flashLight;
     float4x4 lightViewProjection;
     int dlSize;
     int plSize;
     int slSize;
 }
 
-float3 SpotLightContribution(float3 normal, float3 position, float3 cameraPosition)
+float3 SpotLightContribution(SpotLight spotLight, float3 normal, float3 position, float3 cameraPosition)
 {
     float3 finalColor = float3(0.0f, 0.0f, 0.0f);
     
-    for (int i = 0; i < slSize; ++i)
+    float3 directionToLight = position - spotLight.position;
+    float distancSquaredToLight = dot(directionToLight, directionToLight);
+    directionToLight = normalize(directionToLight);
+        
+    float cosAngle = dot(directionToLight, spotLight.direction);
+    if (cosAngle < spotLight.cutoffAngle)
     {
-        float3 directionToLight = position - spotLights[i].position;
-        float distancSquaredToLight = dot(directionToLight, directionToLight);
-        directionToLight = normalize(directionToLight);
-        
-        float cosAngle = dot(directionToLight, spotLights[i].direction);
-        if (cosAngle < spotLights[i].cutoffAngle)
-        {
-            finalColor += spotLights[i].color * 0.001f;
-            continue;
-        }
-        float3 viewDir = normalize(cameraPosition - position);
-        float3 halfwayDir = normalize(viewDir - directionToLight);
-        
-        float diff = max(dot(normal, -directionToLight), 0.001f);
-        float spec = pow(max(dot(halfwayDir, normal), 0.001f), 32);
-        
-        float4 proj = mul(float4(position, 1.0f), lightViewProjection);
-        float2 uv = (proj.xy) / proj.w;
-        float I = 1 - (1 - cosAngle) / (1 - spotLights[i].cutoffAngle);
-        
-        //float3 maskPos = normalize(directionToLight - spotLights[i].direction);
-        //float2 uv = float2(0.0f, 0.0f);
-        //uv.x = (dot(maskPos, float3(1.0f, 0.0f, 0.0f)) + 1.0f) * 0.5f;
-        //uv.y = (dot(maskPos, float3(0.0f, 1.0f, 0.0f)) + 1.0f) * 0.5f;
-        
-        float3 mask = flashlighTexture.Sample(samplerstateFlash, uv * 0.5 + 0.5).rgb;
-        finalColor += spotLights[i].color * ((diff + spec) * (spotLights[i].intensity / distancSquaredToLight) * I * mask);
+        return spotLight.color * 0.001f;
     }
+    float3 viewDir = normalize(cameraPosition - position);
+    float3 halfwayDir = normalize(viewDir - directionToLight);
+        
+    float diff = max(dot(normal, -directionToLight), 0.001f);
+    float spec = pow(max(dot(halfwayDir, normal), 0.001f), 32);
+       
+    float I = 1 - (1 - cosAngle) / (1 - spotLight.cutoffAngle);
+        
+    //float3 maskPos = normalize(directionToLight - spotLights[i].direction);
+    //float2 uv = float2(0.0f, 0.0f);
+    //uv.x = (dot(maskPos, float3(1.0f, 0.0f, 0.0f)) + 1.0f) * 0.5f;
+    //uv.y = (dot(maskPos, float3(0.0f, 1.0f, 0.0f)) + 1.0f) * 0.5f;
+        
+        
+    finalColor += spotLight.color * ((diff + spec) * (spotLight.intensity / distancSquaredToLight) * I);
     
     return finalColor;
 }
 
-float3 PointLightContribution(float3 normal, float3 position, float3 cameraPosition)
+float3 FlashLight(SpotLight flashLight, float3 normal, float3 position, float3 cameraPosition)
+{
+    float3 finalColor = SpotLightContribution(flashLight, normal, position, cameraPosition);
+    float4 proj = mul(float4(position, 1.0f), lightViewProjection);
+    float2 uv = (proj.xy) / proj.w;
+    float3 mask = flashlighTexture.Sample(samplerstateFlash, uv * 0.5 + 0.5).rgb;
+    
+    return finalColor * mask;
+}
+
+float3 PointLightContribution(PointLight pointLight, float3 normal, float3 position, float3 cameraPosition)
 {
     float3 finalColor = float3(0.0f, 0.0f, 0.0f);
     
-    for (int i = 0; i < plSize; ++i)
-    {
-        float3 directionToLight = position - pointLights[i].position;
-        float distancSquaredToLight = dot(directionToLight, directionToLight);
-        directionToLight = normalize(directionToLight);
+
+    float3 directionToLight = position - pointLight.position;
+    float distancSquaredToLight = dot(directionToLight, directionToLight);
+    directionToLight = normalize(directionToLight);
         
-        float3 viewDir = normalize(cameraPosition - position);
-        float3 halfwayDir = normalize(viewDir - directionToLight);
+    float3 viewDir = normalize(cameraPosition - position);
+    float3 halfwayDir = normalize(viewDir - directionToLight);
         
-        float diff = max(dot(normal, -directionToLight), 0.001f);
-        float spec = pow(max(dot(halfwayDir, normal), 0.001f), 32);
+    float diff = max(dot(normal, -directionToLight), 0.001f);
+    float spec = pow(max(dot(halfwayDir, normal), 0.001f), 32);
         
-        finalColor += pointLights[i].color * ((diff + spec) * (pointLights[i].intensity / distancSquaredToLight));
-    }
+    finalColor += pointLight.color * ((diff + spec) * (pointLight.intensity / distancSquaredToLight));
     
     return finalColor;
 }
 
-float3 DirectionalLightsContibution(float3 normal, float3 position, float3 cameraPosition)
+float3 DirectionalLightsContibution(DirectionalLight directionalLight, float3 normal, float3 position, float3 cameraPosition)
 {
     float3 finalColor = float3(0.0f, 0.0f, 0.0f);
     
-    for (int i = 0; i < dlSize; ++i)
-    {
+    
         
-        float3 viewDir = normalize(cameraPosition - position);
-        float3 halfwayDir = normalize(viewDir - directionalLights[i].direction);
+    float3 viewDir = normalize(cameraPosition - position);
+    float3 halfwayDir = normalize(viewDir - directionalLight.direction);
         
-        float diff = max(dot(normal, -directionalLights[i].direction), 0.001f);
-        float spec = pow(max(dot(halfwayDir, normal), 0.001f), 32);
+    float diff = max(dot(normal, -directionalLight.direction), 0.001f);
+    float spec = pow(max(dot(halfwayDir, normal), 0.001f), 32);
         
-        finalColor += directionalLights[i].color * ((diff + spec) * directionalLights[i].intensity);
-    }
+    finalColor += directionalLight.color * ((diff + spec) * directionalLight.intensity);
+    
     
     return finalColor;
 }

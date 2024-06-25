@@ -156,19 +156,18 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 
 	Engine::PointLight pointLight(Engine::vec3(0.0f, 5.0f, 0.0f), Engine::vec3(0.0f), 10.0f);
 	Engine::PointLight pointLight2(Engine::vec3(5.0f, 0.0f, 3.0f), Engine::vec3(0.0f), 10.0f);
-	Engine::SpotLight spotLight(Engine::vec3(1.0f), Engine::vec3(0.0f, 0.0f, 0.0f), Engine::vec3(.0f, .0f, 1.0f), cosf(0.5 / 2.0f), 200.0f);
+	Engine::SpotLight spotLight(Engine::vec3(1.0f), Engine::vec3(0.0f, 0.0f, 0.0f), Engine::vec3(.0f, .0f, 1.0f), 0.5 / 2.0f, 200.0f);
 	spotLight.bindedObjectId = camera->getCameraTransformId();
 	Engine::DirectionalLight directionalLight(Engine::vec3(0.707f, -0.707f, 0.0f), Engine::vec3(0.84f,0.86264f,0.89019f), 1.0f);
 
 	Engine::ModelManager::GetInstance()->initUnitSphere();
 	model = Engine::ModelManager::GetInstance()->GetModel("UNIT_SPHERE");
-	TM->LoadFromFile("flashlight", L"Textures\\flashlightMask.dds")->BindTexture(1);
 	changepos(inst, Engine::vec3(2.0f, -1.0f, 0.0f));
 	pointLight.bindedObjectId = Engine::MeshSystem::Init()->emmisiveGroup.addModel(model, samuraiTextures[0], inst, Engine::MeshSystem::EmmisiveInstance{ Engine::vec3(0.0f, 5.0f, 0.0f) });;
 	changepos(inst, Engine::vec3(-5.0f, 0.0f, 2.0f));
 	pointLight2.bindedObjectId = Engine::MeshSystem::Init()->emmisiveGroup.addModel(model, samuraiTextures[0], inst, Engine::MeshSystem::EmmisiveInstance{ Engine::vec3(5.0f, 0.0f, 3.0f) });;
 
-	Engine::LightSystem::Init()->AddSpotLight(spotLight);
+	Engine::LightSystem::Init()->AddFlashLight(spotLight, TM->LoadFromFile("flashlight", L"Textures\\flashlightMask.dds"));
 	Engine::LightSystem::Init()->AddPointLight(pointLight);
 	Engine::LightSystem::Init()->AddPointLight(pointLight2);
 	Engine::LightSystem::Init()->AddDirectionalLight(directionalLight);
@@ -267,19 +266,8 @@ void D3DApplication::UpdateInput(float deltaTime)
 		Engine::PostProcess::Init()->AddEV100(-deltaTime * 2.0f);
 	if (Input::keyPresseed(Input::KeyboardButtons::F))
 	{
-		Engine::SpotLight& spotLight = Engine::LightSystem::Init()->GetSpotLight(0);
-		if (spotLight.bindedObjectId != -1)
-		{
-			spotLight.position = camera->getPosition() + spotLight.position;
-			spotLight.direction = camera->getForward();
-			spotLight.bindedObjectId = -1;
-		}
-		else
-		{
-			spotLight.bindedObjectId = camera->getCameraTransformId();
-			spotLight.position = Engine::vec3(0.0f, 0.0f, 0.0f);
-			spotLight.direction = Engine::vec3(0.0f, 0.0f, 1.0f);
-		}
+		auto ls = Engine::LightSystem::Init();
+		ls->SetFlashLightAttachedState(!ls->IsFlashLightAttached());
 	}
 
 	if (Input::keyPresseed(Input::KeyboardButtons::ONE))

@@ -70,6 +70,9 @@ namespace Engine
 		void operator=(const LightSystem& other) = delete;
 		LightSystem(const LightSystem& other) = delete;
 
+		void AddFlashLight(const SpotLight& spotLight, std::shared_ptr<Texture> texture);
+
+
 		void AddDirectionalLight(const vec3& direction, const vec3& color, float intensity);
 		void AddDirectionalLight(const DirectionalLight& othe);
 
@@ -83,6 +86,10 @@ namespace Engine
 
 		void UpdateLightsBuffer();
 		void BindLigtsBuffer(UINT slot, UINT typeOfShader);
+		void BindLightTextures();
+
+		void SetFlashLightAttachedState(bool attach);
+		bool IsFlashLightAttached() { return m_flashLight.isAttached; }
 
 
 	private:
@@ -95,9 +102,13 @@ namespace Engine
 		struct FlashLight
 		{
 			SpotLight light;
+			vec3 worldPosition;
+			vec3 worldDirection;
 			std::shared_ptr<Texture> flashLightMask;
-			mat4 spotLightsViewProjection;
-		};
+			mat4 flashLightsViewProjection;
+			bool isAttached = false;
+
+		} m_flashLight;
 
 		mat4 projectionLight;
 		std::vector <DirectionalLight> m_directionalLights;
@@ -110,7 +121,8 @@ namespace Engine
 			DirectionalLight directionalLights[MAX_DIRECTIONAL_LIGHTS];
 			PointLight pointLights[MAX_POINT_LIGHTS];
 			SpotLight spotLights[MAX_SPOT_LIGHTS];
-			mat4 spotLightsViewProjection;
+			SpotLight flashLight;
+			mat4 flashLightsViewProjection;
 			int dlSize = 0;
 			int plSize = 0;
 			int spSize = 0;

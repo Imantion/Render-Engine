@@ -1,5 +1,6 @@
 #include "LightSystem.h"
 #include "Graphics/TransformSystem.h"
+#include "Graphics/TextureManager.h"
 
 Engine::LightSystem* Engine::LightSystem::m_instance;
 std::mutex Engine::LightSystem::m_mutex; 
@@ -28,6 +29,29 @@ void Engine::LightSystem::AddDirectionalLight(const DirectionalLight& other)
         throw "Too many directional lights";
 
     m_directionalLights.push_back(other);
+}
+
+void Engine::LightSystem::AddFlashLight(const SpotLight& spotLight, std::shared_ptr<Texture> texture)
+{
+    m_flashLight.light = spotLight;
+    m_flashLight.flashLightMask = texture;
+
+    if (m_flashLight.light.bindedObjectId == -1)
+    {
+        throw "Spotlight must be attached!";
+    }
+
+    m_flashLight.isAttached = true;
+}
+
+void Engine::LightSystem::BindLightTextures()
+{
+    m_flashLight.flashLightMask->BindTexture(1u);
+}
+
+void Engine::LightSystem::SetFlashLightAttachedState(bool attach)
+{
+    m_flashLight.isAttached = attach;
 }
 
 void Engine::LightSystem::AddDirectionalLight(const vec3& direction, const vec3& color, float intensity)
@@ -103,7 +127,6 @@ void Engine::LightSystem::UpdateLightsBuffer()
             bufferData.spotLights[i].position = m_spotLights[i].position + (vec3&)(*bindedTransform[3]);
             bufferData.spotLights[i].direction = vec4(m_spotLights[i].direction, 0.0f) * bindedTransform;
             bufferData.spotLights[i].direction = bufferData.spotLights[i].direction.normalized();
-            bufferData.spotLightsViewProjection = mat4::Inverse(bindedTransform) * projectionMatrix(0.5f, 0.1f, 10.0f, 100, 100);;
         }
         else
         {
@@ -112,8 +135,27 @@ void Engine::LightSystem::UpdateLightsBuffer()
         }
         
         bufferData.spotLights[i].color = m_spotLights[i].color;
-        bufferData.spotLights[i].cutoffAngle = m_spotLights[i].cutoffAngle;
+        bufferData.spotLights[i].cutoffAngle = cosf(m_spotLights[i].cutoffAngle);
         bufferData.spotLights[i].intensity = m_spotLights[i].intensity;
+    }
+
+    if (m_flashLight.light.bindedObjectId != -1)
+    {
+        if (m_flashLight.isAttached)
+        {
+            auto bindedTransform = TS->GetModelTransforms(m_flashLight.light.bindedObjectId)[0].modelToWold;
+            m_flashLight.worldPosition = m_flashLight.light.position + (vec3&)(*bindedTransform[3]);
+            m_flashLight.worldDirection = (vec4(m_flashLight.light.direction, 0.0f) * bindedTransform).normalized();
+            m_flashLight.flashLightsViewProjection = mat4::Inverse(bindedTransform) * projectionMatrix(m_flashLight.light.cutoffAngle * 2.0f, 0.1f, 10.0f, 100, 100);;
+        }
+           
+        bufferData.flashLight.direction = m_flashLight.worldDirection;
+        bufferData.flashLight.position = m_flashLight.worldPosition;
+        bufferData.flashLight.color = m_flashLight.light.color;
+        bufferData.flashLight.cutoffAngle = cosf(m_flashLight.light.cutoffAngle);
+        bufferData.flashLight.intensity = m_flashLight.light.intensity;
+        bufferData.flashLightsViewProjection = m_flashLight.flashLightsViewProjection;
+
     }
 
     m_lighsBuffer.updateBuffer(&bufferData);
