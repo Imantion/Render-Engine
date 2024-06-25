@@ -60,8 +60,14 @@ void Engine::LightSystem::AddSpotLight(const SpotLight& spotLight)
     m_spotLights.push_back(spotLight);
 }
 
+Engine::SpotLight& Engine::LightSystem::GetSpotLight(uint32_t index)
+{
+    return m_spotLights[index];
+}
+
 void Engine::LightSystem::UpdateLightsBuffer()
 {
+
     LightsData bufferData;
     auto TS = TransformSystem::Init();
 
@@ -97,6 +103,7 @@ void Engine::LightSystem::UpdateLightsBuffer()
             bufferData.spotLights[i].position = m_spotLights[i].position + (vec3&)(*bindedTransform[3]);
             bufferData.spotLights[i].direction = vec4(m_spotLights[i].direction, 0.0f) * bindedTransform;
             bufferData.spotLights[i].direction = bufferData.spotLights[i].direction.normalized();
+            bufferData.spotLightsViewProjection = mat4::Inverse(bindedTransform) * projectionMatrix(0.5f, 0.1f, 10.0f, 100, 100);;
         }
         else
         {

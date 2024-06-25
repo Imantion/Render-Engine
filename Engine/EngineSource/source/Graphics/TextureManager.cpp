@@ -96,9 +96,9 @@ Engine::TextureManager::TextureManager()
 
 	D3D11_SAMPLER_DESC desc;
 	ZeroMemory(&desc, sizeof(desc));
-	desc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	desc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	desc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	desc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	desc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	desc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
 	desc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
 	desc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
 	desc.MinLOD = 0;

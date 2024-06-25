@@ -12,6 +12,8 @@ namespace Engine
 	#define MAX_POINT_LIGHTS 10
 	#define MAX_DIRECTIONAL_LIGHTS 1
 
+	class Texture;
+
 	class  Light
 	{
 	public:
@@ -52,7 +54,7 @@ namespace Engine
 			this->cutoffAngle = cutoffAngle;
 		}
 		vec3 direction;
-		float cutoffAngle; // in Radians
+		float cutoffAngle;
 		vec3 position;
 		int bindedObjectId = -1;
 	};
@@ -77,6 +79,8 @@ namespace Engine
 		void AddSpotLight(const vec3& col, const vec3& pos, const vec3& direction, float cutoffAngle, float intens, int objectToBindID);
 		void AddSpotLight(const SpotLight& spotLight);
 
+		SpotLight& GetSpotLight(uint32_t index);
+
 		void UpdateLightsBuffer();
 		void BindLigtsBuffer(UINT slot, UINT typeOfShader);
 
@@ -88,15 +92,25 @@ namespace Engine
 		static LightSystem* m_instance;
 		static std::mutex m_mutex;
 
+		struct FlashLight
+		{
+			SpotLight light;
+			std::shared_ptr<Texture> flashLightMask;
+			mat4 spotLightsViewProjection;
+		};
+
+		mat4 projectionLight;
 		std::vector <DirectionalLight> m_directionalLights;
 		std::vector <PointLight> m_pointLights;
 		std::vector <SpotLight> m_spotLights;
+		std::vector <mat4> m_spotLigtsViewProjection;
 
 		struct LightsData
 		{
 			DirectionalLight directionalLights[MAX_DIRECTIONAL_LIGHTS];
 			PointLight pointLights[MAX_POINT_LIGHTS];
 			SpotLight spotLights[MAX_SPOT_LIGHTS];
+			mat4 spotLightsViewProjection;
 			int dlSize = 0;
 			int plSize = 0;
 			int spSize = 0;

@@ -16,7 +16,7 @@ namespace Engine
 		};
 	public:
 
-		Camera() {}
+		Camera();
 		Camera(float verticalFov, float nearPlane, float farPlane);
 
 		vec3 getRayDirection(const vec2&);
@@ -28,12 +28,12 @@ namespace Engine
 		void calculateRayDirections();
 		void moveCamera(const vec3& direction) { position += direction; }
 
-		/*std::vector<vec3> getCameraFrustrum() const;*/
+		uint32_t getCameraTransformId() { return ID; };
 		vec3 getForward() { return forwardDirection; }
 		vec3 getUp() { return upDirection; }
 		vec3 getRight() { return rightDirection; }
-		const mat4& getViewMatrix() const { return view; }
-		const mat4& getInverseViewMatrix() const { return inverseView; }
+		const mat4& getViewMatrix() const;
+		const mat4& getInverseViewMatrix() const;
 		const mat4& getProjectionMatrix() const { return projection; }
 		vec3 getCameraFrustrum(frustrumCorners fc);
 
@@ -45,11 +45,13 @@ namespace Engine
 
 	private:
 		mat4 projection, inverseProjection;
-		mat4 view, inverseView;
+		uint32_t ID = -1;
+		mat4 view;
 		vec3 cameraFrustrum[3];
 		float nearClip = 0.1f;
 		float farClip = 100.0f;
 		float FOV = 45.0f;
+		float aspectRatio = 0.0f;
 		
 		vec3 position{ 0.0f, 0.0f, -2.0f };
 		vec3 forwardDirection{ 0.0f,0.0f,1.0f };
