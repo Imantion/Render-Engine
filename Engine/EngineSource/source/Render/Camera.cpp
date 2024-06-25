@@ -94,6 +94,16 @@ Engine::vec3 Engine::Camera::getCameraFrustrum(frustrumCorners fc) // They are n
 	return rayDirections[fc];
 }
 
+const Engine::mat4& Engine::Camera::getViewMatrix() const
+{
+	return view; 
+}
+
+const Engine::mat4& Engine::Camera::getInverseViewMatrix() const
+{
+	return TransformSystem::Init()->GetModelTransforms(ID)[0].modelToWold;;
+}
+
 void Engine::Camera::setForward(vec3 f)
 {
 	forwardDirection = f;
