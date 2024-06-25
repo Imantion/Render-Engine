@@ -116,7 +116,7 @@ namespace Engine
 		}
 
 
-		void addModel(std::shared_ptr<Model> model, const M& material, const TransformSystem::transforms& modelTransforms, const I& instance = {})
+		uint32_t addModel(std::shared_ptr<Model> model, const M& material, const TransformSystem::transforms& modelTransforms, const I& instance = {}) // returns model transform ID
 		{
 			auto TS = TransformSystem::Init();
 			uint32_t modelTransformsId = TS->AddModelTransform(modelTransforms, (uint32_t)model->m_meshes.size());
@@ -164,10 +164,10 @@ namespace Engine
 					}
 				}
 			}
-
+			return modelTransformsId;
 		}
 		
-		void addModel(std::shared_ptr<Model> model, const std::vector<M>& material, const TransformSystem::transforms& modelTransforms, const I& instance = {})
+		uint32_t addModel(std::shared_ptr<Model> model, const std::vector<M>& material, const TransformSystem::transforms& modelTransforms, const I& instance = {}) // returns model transform ID
 		{
 			auto TS = TransformSystem::Init();
 			uint32_t modelTransformsId = TS->AddModelTransform(modelTransforms, (uint32_t)model->m_meshes.size());
@@ -220,7 +220,7 @@ namespace Engine
 					}
 				}
 			}
-
+			return modelTransformsId;
 		}
 
 		void updateInstanceBuffers()
@@ -255,9 +255,7 @@ namespace Engine
 						uint32_t numModelInstances = (uint32_t)instances.size();
 						for (uint32_t index = 0; index < numModelInstances; ++index)
 						{
-							auto b = sizeof(instanceBufferData);
-							auto a = instanceBufferData{ TS->GetModelTransforms(instances[index].transformsId)[meshIndex],  instances[index].instanceData };
-							dst[copiedNum++] = a;
+							dst[copiedNum++] = instanceBufferData{ TS->GetModelTransforms(instances[index].transformsId)[meshIndex],  instances[index].instanceData};
 						}
 					}
 				}
@@ -357,7 +355,6 @@ namespace Engine
 		struct EmmisiveInstance
 		{
 			vec3 emmisiveColor;
-			float padding;
 		};
 
 		struct EmmisiveMaterial

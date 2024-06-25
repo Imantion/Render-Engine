@@ -16,7 +16,7 @@ struct VOut
     float4 pos : SV_Position;
     float3 worldPos : WorldPos;
     float3 normal : NORMAL;
-    float3 emission : EMISSION;
+    nointerpolation float3 emission : EMISSION;
 };
 
 cbuffer meshData : register(b2)

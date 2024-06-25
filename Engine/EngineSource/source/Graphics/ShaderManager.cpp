@@ -80,6 +80,8 @@ std::shared_ptr<Engine::shader> Engine::ShaderManager::CompileAndCreateShader(co
 	const D3D_SHADER_MACRO* vertexShaderMacro,const D3D_SHADER_MACRO* pixelShaderMacro, D3D_PRIMITIVE_TOPOLOGY topology,
 	const char* vsEntryPoint, const char* psEntryPoint)
 {
+	if(shaders.find(shaderName) != shaders.end())
+		throw "Shader with this name alredy exists!";
 	UINT flags = 0;
 #ifdef _DEBUG 
 	flags |= D3DCOMPILE_DEBUG;
@@ -160,7 +162,7 @@ std::shared_ptr<Engine::shader> Engine::ShaderManager::CompileAndCreateShader(co
 ID3D11InputLayout* Engine::ShaderManager::CreateInputLayout(const char* InputLayoutName, ID3DBlob* vsBlob, const D3D11_INPUT_ELEMENT_DESC* ied, UINT iedSize)
 {
 	if (inputLayouts.find(InputLayoutName) != inputLayouts.end())
-		return inputLayouts[InputLayoutName].Get();
+		throw "Input layout with this name alredy exists!";
 
 	inputLayouts[InputLayoutName] = Microsoft::WRL::ComPtr<ID3D11InputLayout>();
 	D3D::GetInstance()->GetDevice()->CreateInputLayout(ied, iedSize, vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), &inputLayouts[InputLayoutName]);
