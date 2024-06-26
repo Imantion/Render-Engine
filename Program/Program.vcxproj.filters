@@ -77,33 +77,28 @@
     <None Include="Shaders\normalLines\PixelShader.hlsl">
       <Filter>Shaders\NomalColor</Filter>
     </None>
-    <None Include="Shaders\GlobalSamplers.hlsli">
-      <Filter>Shaders</Filter>
-    </None>
     <None Include="Shaders\crateTextMap\CrateVS.hlsl">
       <Filter>Shaders\CrateTextureMap</Filter>
     </None>
     <None Include="Shaders\crateTextMap\CratePS.hlsl">
       <Filter>Shaders\CrateTextureMap</Filter>
     </None>
-    <None Include="Shaders\skyboxShader\texturePS.hlsl">
+    <None Include="Shaders\skyboxShader\skyboxPS.hlsl">
       <Filter>Shaders\SkyBox</Filter>
     </None>
-    <None Include="Shaders\skyboxShader\textureVS.hlsl">
+    <None Include="Shaders\skyboxShader\skyboxVS.hlsl">
       <Filter>Shaders\SkyBox</Filter>
+    </None>
+    <None Include="Shaders\Hologram\GSHologram.hlsl">
+      <Filter>Shaders\Hologram</Filter>
+    </None>
+    <None Include="Shaders\normalLines\GSnormal.hlsl">
+      <Filter>Shaders\NormalVis</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\declarations.hlsli">
       <Filter>Shaders</Filter>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="Shaders\Hologram\GSHologram.hlsl">
-      <Filter>Shaders\Hologram</Filter>
-    </FxCompile>
-    <FxCompile Include="Shaders\normalLines\GSnormal.hlsl">
-      <Filter>Shaders\NormalVis</Filter>
-    </FxCompile>
   </ItemGroup>
 </Project>

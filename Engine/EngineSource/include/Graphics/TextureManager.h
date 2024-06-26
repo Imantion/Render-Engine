@@ -33,6 +33,7 @@ namespace Engine
 		std::shared_ptr<Texture> GetTexture(const char* name);
 		
 		void BindSamplers();
+		void BindSampleByFilter(D3D11_FILTER filter, UINT slot);
 
 	protected:
 		TextureManager();

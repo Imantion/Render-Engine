@@ -42,7 +42,9 @@ void Engine::SkyBox::BindSkyBox(UINT slot)
 {
 	if (m_pCamera)
 	{
-		cb_data.inverseView = m_pCamera->getInverseViewMatrix();
+		cb_data.frustrum[0] = vec4(-1.0f, -1.0f, 1.0f, 0.0f) * m_pCamera->getInverseViewMatrix();
+		cb_data.frustrum[1] = vec4(-1.0f, 3.0f, 1.0f, 0.0f) * m_pCamera->getInverseViewMatrix();
+		cb_data.frustrum[2] = vec4(3.0f, -1.0f, 1.0f, 0.0f) * m_pCamera->getInverseViewMatrix();
 
 		m_cb.updateBuffer(&cb_data);
 

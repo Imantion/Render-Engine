@@ -104,7 +104,7 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 	changepos(inst, Engine::vec3(1.0f, -1.0f, 0.0f));
 	Engine::MeshSystem::Init()->hologramGroup.addModel(model, knightMat, inst);
 
-	model = Engine::ModelManager::GetInstance()->loadModel("Models\\MeshCube.obj");
+	model = Engine::ModelManager::GetInstance()->loadModel("Models\\cube.obj");
 	changepos(inst, Engine::vec3(1.0f, 1.0f, 5.0f));
 	Engine::MeshSystem::Init()->normVisGroup.addModel(model, knightMat, inst);
 
@@ -137,8 +137,8 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 	Engine::MeshSystem::Init()->hologramGroup.updateInstanceBuffers();
 	Engine::MeshSystem::Init()->textureGroup.updateInstanceBuffers();
 
-	auto skyboxShader = Engine::ShaderManager::CompileAndCreateShader("skybox", L"shaders/skyboxShader/textureVS.hlsl", 
-		L"shaders/skyboxShader/texturePS.hlsl", nullptr, nullptr, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	auto skyboxShader = Engine::ShaderManager::CompileAndCreateShader("skybox", L"shaders/skyboxShader/skyboxVS.hlsl", 
+		L"shaders/skyboxShader/skyboxPS.hlsl", nullptr, nullptr, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 	auto skyboxTexture = Engine::TextureManager::Init()->AddTexture("skybox", L"Textures\\skybox4.dds");
 
 	skybox.SetShader(skyboxShader);
@@ -194,6 +194,13 @@ void D3DApplication::UpdateInput(float deltaTime)
 		cameraMoveDirection *= 5;
 	if (Input::mouseWasPressed(Input::MouseButtons::LEFT))
 		previousMousePosition = mousePosition;
+
+	if (Input::keyPresseed(Input::KeyboardButtons::ONE))
+		Engine::TextureManager::Init()->BindSampleByFilter(D3D11_FILTER_MIN_MAG_MIP_POINT, 3u);
+	else if (Input::keyPresseed(Input::KeyboardButtons::TWO))
+		Engine::TextureManager::Init()->BindSampleByFilter(D3D11_FILTER_MIN_MAG_POINT_MIP_LINEAR, 3u);
+	else if (Input::keyPresseed(Input::KeyboardButtons::THREE))
+		Engine::TextureManager::Init()->BindSampleByFilter(D3D11_FILTER_ANISOTROPIC, 3u);
 
 	if (Input::keyPresseed(Input::KeyboardButtons::N))
 	{

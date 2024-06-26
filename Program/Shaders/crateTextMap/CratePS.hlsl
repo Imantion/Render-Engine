@@ -1,4 +1,4 @@
-#include "..\GlobalSamplers.hlsli"
+#include "..\declarations.hlsli"
 
 Texture2D text : register(t0);
 
@@ -10,5 +10,5 @@ struct PSIn
 
 float4 main(PSIn input) : SV_TARGET
 {
-    return text.Sample(g_anisotropicWrap, input.tc);
+    return text.Sample(g_sampler, input.tc);
 }

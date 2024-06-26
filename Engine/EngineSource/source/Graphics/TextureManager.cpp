@@ -73,6 +73,25 @@ void Engine::TextureManager::BindSamplers()
 	context->PSSetSamplers(0, 3, samplers);
 }
 
+void Engine::TextureManager::BindSampleByFilter(D3D11_FILTER filter, UINT slot)
+{
+	auto context = D3D::GetInstance()->GetContext();
+	switch (filter)
+	{
+	case D3D11_FILTER_MIN_MAG_MIP_POINT:
+		context->PSSetSamplers(slot, 1, m_pointSamplareState.GetAddressOf());
+		break;
+	case D3D11_FILTER_MIN_MAG_POINT_MIP_LINEAR:
+		context->PSSetSamplers(slot, 1, m_linearSamplareState.GetAddressOf());
+		break;
+	case D3D11_FILTER_ANISOTROPIC:
+		context->PSSetSamplers(slot, 1, m_anisotropicSamplareState.GetAddressOf());
+		break;
+	default:
+		break;
+	}
+}
+
 Engine::TextureManager::TextureManager()
 {
 	auto d3d = D3D::GetInstance();

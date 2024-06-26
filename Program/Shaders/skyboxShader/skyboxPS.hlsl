@@ -1,4 +1,4 @@
-#include "..\GlobalSamplers.hlsli"
+#include "..\declarations.hlsli"
 
 TextureCube text : register(t0);
 

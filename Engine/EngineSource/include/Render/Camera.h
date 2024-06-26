@@ -41,7 +41,6 @@ namespace Engine
 		float nearClip = 0.1f;
 		float farClip = 100.0f;
 		float FOV = 45.0f;
-		float aspectRatio;
 		
 		vec3 position{ 0.0f, 0.0f, -2.0f };
 		vec3 forwardDirection{ 0.0f,0.0f,1.0f };

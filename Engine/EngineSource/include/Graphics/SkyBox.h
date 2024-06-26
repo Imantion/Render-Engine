@@ -29,7 +29,7 @@ namespace Engine
 	private:
 		struct cameraFrustrum
 		{
-			mat4 inverseView;
+			vec4 frustrum[3];
 		} cb_data;
 
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_readOnlyDepthBuffer;

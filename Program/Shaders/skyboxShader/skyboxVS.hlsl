@@ -2,7 +2,7 @@
 
 cbuffer frust : register(b2)
 {
-    float4x4 inverseView;
+    float4 frustCorners[3];
 };
 
 struct psOutput
@@ -22,7 +22,7 @@ psOutput main(uint index : SV_VertexID)
     output.pos = mul(float4(position[index], 0.0f), projection);
     output.pos.z = 0.0f;
     
-    output.direction = mul(float4(position[index], 0), inverseView);
+    output.direction = frustCorners[index];
     
     return output;
 }
