@@ -201,7 +201,7 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 	auto skyboxTexture = Engine::TextureManager::Init()->LoadFromFile("skybox", L"Textures\\night_street.dds");
 
 	auto postshader = Engine::ShaderManager::CompileAndCreateShader("PostProcess", L"shaders/PostProcess/PostProcessVS.hlsl", L"shaders/PostProcess/PostProcessPS.hlsl",
-		nullptr, nullptr, D3D10_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		nullptr, nullptr, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	Engine::PostProcess::Init()->SetLightToColorShader(postshader);
 

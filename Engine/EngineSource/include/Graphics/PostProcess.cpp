@@ -43,7 +43,7 @@ void Engine::PostProcess::Resolve(ID3D11ShaderResourceView* srv, ID3D11RenderTar
     m_constantBuffer.bind(2u, PS);
     context->PSSetShaderResources(0, 1, &srv);
 
-    context->Draw(4u, 0);
+    context->Draw(3u, 0);
 
     ID3D11ShaderResourceView* const pSRV[1] = { NULL };
     context->PSSetShaderResources(0, 1, pSRV);

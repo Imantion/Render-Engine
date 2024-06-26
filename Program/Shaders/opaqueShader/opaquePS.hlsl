@@ -1,4 +1,3 @@
-#include "..\GlobalSamplers.hlsli"
 #include "..\declarations.hlsli"
 #include "..\Lights.hlsli"
 

@@ -1,4 +1,4 @@
-#include "../GlobalSamplers.hlsli"
+#include "../declarations.hlsli"
 
 cbuffer postProcessData : register(b2)
 {
