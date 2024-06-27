@@ -92,10 +92,10 @@
     <ClCompile Include="EngineSource\source\Graphics\TransformSystem.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="EngineSource\include\Graphics\PostProcess.cpp">
+    <ClCompile Include="EngineSource\source\Graphics\PostProcess.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="EngineSource\include\Graphics\LightSystem.cpp">
+    <ClCompile Include="EngineSource\source\Graphics\LightSystem.cpp">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>

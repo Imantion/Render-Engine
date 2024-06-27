@@ -1,4 +1,4 @@
-#include "LightSystem.h"
+#include "Graphics/LightSystem.h"
 #include "Graphics/TransformSystem.h"
 #include "Graphics/TextureManager.h"
 

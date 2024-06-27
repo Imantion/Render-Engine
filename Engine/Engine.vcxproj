@@ -147,8 +147,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="EngineSource\include\Graphics\LightSystem.cpp" />
-    <ClCompile Include="EngineSource\include\Graphics\PostProcess.cpp" />
+    <ClCompile Include="EngineSource\source\Graphics\LightSystem.cpp" />
+    <ClCompile Include="EngineSource\source\Graphics\PostProcess.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\DDSTextureLoader11.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\MeshSystem.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\Model.cpp" />
