@@ -89,7 +89,7 @@ namespace Engine
 		void BindLightTextures();
 
 		void SetFlashLightAttachedState(bool attach);
-		bool IsFlashLightAttached() { return m_flashLight.isAttached; }
+		bool IsFlashLightAttached() const { return m_flashLight.isAttached; }
 
 
 	private:
@@ -123,10 +123,10 @@ namespace Engine
 			SpotLight spotLights[MAX_SPOT_LIGHTS];
 			SpotLight flashLight;
 			mat4 flashLightsViewProjection;
-			int dlSize = 0;
-			int plSize = 0;
-			int spSize = 0;
-			int padding;
+			UINT dlSize = 0;
+			UINT plSize = 0;
+			UINT spSize = 0;
+			UINT padding;
 		};
 
 		ConstBuffer<LightsData> m_lighsBuffer;

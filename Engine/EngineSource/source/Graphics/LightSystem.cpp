@@ -95,9 +95,9 @@ void Engine::LightSystem::UpdateLightsBuffer()
     LightsData bufferData;
     auto TS = TransformSystem::Init();
 
-    bufferData.dlSize = m_directionalLights.size();
-    bufferData.spSize = m_spotLights.size();
-    bufferData.plSize = m_pointLights.size();
+    bufferData.dlSize = (UINT)m_directionalLights.size();
+    bufferData.spSize = (UINT)m_spotLights.size();
+    bufferData.plSize = (UINT)m_pointLights.size();
 
     for (size_t i = 0; i < m_directionalLights.size(); i++)
     {
@@ -108,7 +108,7 @@ void Engine::LightSystem::UpdateLightsBuffer()
     {
         if (m_pointLights[i].bindedObjectId != -1)
         {
-            auto bindedTransform = TS->GetModelTransforms(m_pointLights[i].bindedObjectId)[0].modelToWold;
+            auto& bindedTransform = TS->GetModelTransforms(m_pointLights[i].bindedObjectId)[0].modelToWold;
             bufferData.pointLights[i].position = m_pointLights[i].position + (vec3&)(*bindedTransform[3]);
         }
         else
@@ -123,7 +123,7 @@ void Engine::LightSystem::UpdateLightsBuffer()
     {
         if (m_spotLights[i].bindedObjectId != -1)
         {
-            auto bindedTransform = TS->GetModelTransforms(m_spotLights[i].bindedObjectId)[0].modelToWold;
+            auto& bindedTransform = TS->GetModelTransforms(m_spotLights[i].bindedObjectId)[0].modelToWold;
             bufferData.spotLights[i].position = m_spotLights[i].position + (vec3&)(*bindedTransform[3]);
             bufferData.spotLights[i].direction = vec4(m_spotLights[i].direction, 0.0f) * bindedTransform;
             bufferData.spotLights[i].direction = bufferData.spotLights[i].direction.normalized();
@@ -143,7 +143,7 @@ void Engine::LightSystem::UpdateLightsBuffer()
     {
         if (m_flashLight.isAttached)
         {
-            auto bindedTransform = TS->GetModelTransforms(m_flashLight.light.bindedObjectId)[0].modelToWold;
+            auto& bindedTransform = TS->GetModelTransforms(m_flashLight.light.bindedObjectId)[0].modelToWold;
             m_flashLight.worldPosition = m_flashLight.light.position + (vec3&)(*bindedTransform[3]);
             m_flashLight.worldDirection = (vec4(m_flashLight.light.direction, 0.0f) * bindedTransform).normalized();
             m_flashLight.flashLightsViewProjection = mat4::Inverse(bindedTransform) * projectionMatrix(m_flashLight.light.cutoffAngle * 2.0f, 0.1f, 10.0f, 100, 100);;

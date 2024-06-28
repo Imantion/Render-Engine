@@ -34,8 +34,8 @@ std::shared_ptr<Engine::Model> Engine::ModelManager::AddModel(std::string name, 
 
 	models[name] = std::make_shared<Model>(std::move(model_));
 	auto& model = *models[name].get();
-	int vertexAmout = 0;
-	int trianglesAmount = 0;
+	size_t vertexAmout = 0;
+	size_t trianglesAmount = 0;
 	for (size_t i = 0; i <  model.m_meshes.size(); i++)
 	{
 		vertexAmout += model.m_meshes[i].vertices.size();
@@ -64,7 +64,7 @@ std::shared_ptr<Engine::Model> Engine::ModelManager::AddModel(std::string name, 
 		}
 	}
 
-	auto m = models[name];
+	auto& m = models[name];
 	m->m_vertices.create(vertecies.data(), (UINT)(vertexAmout));
 	m->m_indices.create((unsigned int*)triangles.data(), (UINT)(trianglesAmount) * 3u);
 	return models[name];

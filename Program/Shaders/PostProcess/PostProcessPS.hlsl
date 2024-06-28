@@ -50,7 +50,7 @@ struct PSINPUT
 
 float4 main(PSINPUT input) : SV_TARGET
 {
-    float3 color = text.Sample(g_pointWrap, input.textcord);
+    float3 color = (float3)text.Sample(g_pointWrap, input.textcord);
     color = adjustExposure(color, EV100);
     color = acesHdr2Ldr(color);
     color = correctGamma(color, gamma);

@@ -55,9 +55,9 @@ cbuffer LightData : register(b3)
     SpotLight spotLights[MAX_SL];
     SpotLight flashLight;
     float4x4 lightViewProjection;
-    int dlSize;
-    int plSize;
-    int slSize;
+    uint dlSize;
+    uint plSize;
+    uint slSize;
 }
 
 float3 SpotLightContribution(SpotLight spotLight, float3 normal, float3 position, float3 cameraPosition)
