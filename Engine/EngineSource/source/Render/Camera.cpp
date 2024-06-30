@@ -29,6 +29,9 @@ Engine::vec3 Engine::Camera::calculateRayDirection(const vec2& screenPosition) c
 
 void Engine::Camera::calculateProjectionMatrix(int viewportWidth, int viewportHeight)
 {
+	if (viewportWidth == 0 || viewportHeight == 0)
+		return;
+
 	projection = projectionMatrix(FOV * PI / 180.0f, nearClip, farClip, viewportWidth, viewportHeight);
 	inverseProjection = mat4::Inverse(projection);
 }
