@@ -57,9 +57,9 @@ void Engine::LightSystem::SetFlashLightAttachedState(bool attach)
     m_flashLight.isAttached = attach;
 }
 
-void Engine::LightSystem::AddDirectionalLight(const vec3& direction, const vec3& color, float intensity)
+void Engine::LightSystem::AddDirectionalLight(const vec3& direction, const vec3& color, float radius)
 {
-    DirectionalLight directLight(direction, color, intensity);
+    DirectionalLight directLight(direction, color, radius);
     AddDirectionalLight(directLight);
 }
 
@@ -119,7 +119,7 @@ void Engine::LightSystem::UpdateLightsBuffer()
             bufferData.pointLights[i].position = m_pointLights[i].position;
         }
         bufferData.pointLights[i].color = m_pointLights[i].color;
-        bufferData.pointLights[i].intensity = m_pointLights[i].intensity;
+        bufferData.pointLights[i].radius = m_pointLights[i].radius;
     }
     
     for (size_t i = 0; i < m_spotLights.size(); i++)
@@ -140,7 +140,7 @@ void Engine::LightSystem::UpdateLightsBuffer()
         
         bufferData.spotLights[i].color = m_spotLights[i].color;
         bufferData.spotLights[i].cutoffAngle = cosf(m_spotLights[i].cutoffAngle);
-        bufferData.spotLights[i].intensity = m_spotLights[i].intensity;
+        bufferData.spotLights[i].radius = m_spotLights[i].radius;
     }
 
     if (m_flashLight.light.bindedObjectId != -1)
@@ -158,7 +158,7 @@ void Engine::LightSystem::UpdateLightsBuffer()
         bufferData.flashLight.position = m_flashLight.worldPosition;
         bufferData.flashLight.color = m_flashLight.light.color;
         bufferData.flashLight.cutoffAngle = cosf(m_flashLight.light.cutoffAngle);
-        bufferData.flashLight.intensity = m_flashLight.light.intensity;
+        bufferData.flashLight.radius = m_flashLight.light.radius;
         bufferData.flashLightsViewProjection = m_flashLight.flashLightsViewProjection;
 
     }

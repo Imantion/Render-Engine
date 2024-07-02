@@ -339,8 +339,12 @@ namespace Engine
 
 		struct TextureMaterial
 		{
+			float roughness;
+			float metalness;
 			std::shared_ptr<Texture> texture;
+			vec2 padding;
 
+			
 			bool operator==(const TextureMaterial& other) const
 			{
 				return texture.get() == other.texture.get();

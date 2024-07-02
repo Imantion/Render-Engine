@@ -138,14 +138,14 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 		}
 		};
 	std::vector<Engine::MeshSystem::TextureMaterial> samuraiTextures;
-	samuraiTextures.push_back(Engine::MeshSystem::TextureMaterial{ TM->LoadFromFile("samurai_sword", L"Textures\\Samurai\\Sword_BaseColor.dds") });
-	samuraiTextures.push_back(Engine::MeshSystem::TextureMaterial{ TM->LoadFromFile("samurai_head", L"Textures\\Samurai\\Head_BaseColor.dds") });
-	samuraiTextures.push_back(Engine::MeshSystem::TextureMaterial{ TM->LoadFromFile("samurai_eyes", L"Textures\\Samurai\\Eyes_BaseColor.dds") });
-	samuraiTextures.push_back(Engine::MeshSystem::TextureMaterial{ TM->LoadFromFile("samurai_helmet", L"Textures\\Samurai\\Helmet_BaseColor.dds") });
-	samuraiTextures.push_back(Engine::MeshSystem::TextureMaterial{ TM->LoadFromFile("samurai_decor", L"Textures\\Samurai\\Decor_BaseColor.dds") });
-	samuraiTextures.push_back(Engine::MeshSystem::TextureMaterial{ TM->LoadFromFile("samurai_pants", L"Textures\\Samurai\\Pants_BaseColor.dds") });
-	samuraiTextures.push_back(Engine::MeshSystem::TextureMaterial{ TM->LoadFromFile("samurai_hands", L"Textures\\Samurai\\Hands_BaseColor.dds") });
-	samuraiTextures.push_back(Engine::MeshSystem::TextureMaterial{ TM->LoadFromFile("samurai_torso", L"Textures\\Samurai\\Torso_BaseColor.dds") });
+	samuraiTextures.push_back(Engine::MeshSystem::TextureMaterial{ 0.3f, 1.0f, TM->LoadFromFile("samurai_sword", L"Textures\\Samurai\\Sword_BaseColor.dds")});
+	samuraiTextures.push_back(Engine::MeshSystem::TextureMaterial{ 0.3f, 1.0f, TM->LoadFromFile("samurai_head", L"Textures\\Samurai\\Head_BaseColor.dds") });
+	samuraiTextures.push_back(Engine::MeshSystem::TextureMaterial{ 0.3f, 1.0f, TM->LoadFromFile("samurai_eyes", L"Textures\\Samurai\\Eyes_BaseColor.dds") });
+	samuraiTextures.push_back(Engine::MeshSystem::TextureMaterial{ 0.3f, 1.0f, TM->LoadFromFile("samurai_helmet", L"Textures\\Samurai\\Helmet_BaseColor.dds") });
+	samuraiTextures.push_back(Engine::MeshSystem::TextureMaterial{ 0.3f, 1.0f, TM->LoadFromFile("samurai_decor", L"Textures\\Samurai\\Decor_BaseColor.dds") });
+	samuraiTextures.push_back(Engine::MeshSystem::TextureMaterial{ 0.3f, 1.0f, TM->LoadFromFile("samurai_pants", L"Textures\\Samurai\\Pants_BaseColor.dds") });
+	samuraiTextures.push_back(Engine::MeshSystem::TextureMaterial{ 0.3f, 1.0f, TM->LoadFromFile("samurai_hands", L"Textures\\Samurai\\Hands_BaseColor.dds") });
+	samuraiTextures.push_back(Engine::MeshSystem::TextureMaterial{ 0.3f, 1.0f, TM->LoadFromFile("samurai_torso", L"Textures\\Samurai\\Torso_BaseColor.dds") });
 
 	auto model = Engine::ModelManager::GetInstance()->loadModel("Models\\Samurai.fbx");
 	Engine::TransformSystem::transforms inst = { Engine::transformMatrix(Engine::vec3(0.0f, -1.0f, 0.0f), Engine::vec3(0.0f, 0.0f, 1.0f), Engine::vec3(1.0f, 0.0f, 0.0f), Engine::vec3(0.0f, 1.0f, 0.0f)) };
@@ -154,11 +154,11 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 	changepos(inst, Engine::vec3(4.0f, -1.0f, 0.0f));
 	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, samuraiTextures, inst);
 
-	Engine::PointLight pointLight(Engine::vec3(0.0f, 5.0f, 0.0f), Engine::vec3(0.0f), 10.0f);
-	Engine::PointLight pointLight2(Engine::vec3(5.0f, 0.0f, 3.0f), Engine::vec3(0.0f), 10.0f);
-	Engine::SpotLight spotLight(Engine::vec3(1.0f), Engine::vec3(0.0f, 0.0f, 0.0f), Engine::vec3(.0f, .0f, 1.0f), 0.5 / 2.0f, 200.0f);
+	Engine::PointLight pointLight(Engine::vec3(0.0f, 5.0f, 0.0f), Engine::vec3(0.0f), 1.0f);
+	Engine::PointLight pointLight2(Engine::vec3(5.0f, 0.0f, 3.0f), Engine::vec3(0.0f), 1.0f);
+	Engine::SpotLight spotLight(Engine::vec3(1.0f), Engine::vec3(0.0f, 0.0f, 0.0f), Engine::vec3(.0f, .0f, 1.0f), 0.5 / 2.0f, 1.0f);
 	spotLight.bindedObjectId = camera->getCameraTransformId();
-	Engine::DirectionalLight directionalLight(Engine::vec3(0.707f, -0.707f, 0.0f), Engine::vec3(0.84f,0.86264f,0.89019f), 1.0f);
+	Engine::DirectionalLight directionalLight(Engine::vec3(0.707f, -0.707f, 0.0f), Engine::vec3(0.84f * 10,0.86264f * 10,0.89019f * 10), 0.35);
 
 	Engine::ModelManager::GetInstance()->initUnitSphere();
 	model = Engine::ModelManager::GetInstance()->GetModel("UNIT_SPHERE");
@@ -179,7 +179,7 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 	model = Engine::ModelManager::GetInstance()->loadModel("Models\\cube.obj");
 	
 	Engine::MeshSystem::TextureMaterial crateMaterial;
-	crateMaterial = Engine::MeshSystem::TextureMaterial{ crateFirst };
+	crateMaterial = Engine::MeshSystem::TextureMaterial{ 0.3f, 1.0f, crateFirst };
 	changepos(inst, Engine::vec3(1.0f, -4.0f, 2.0f));
 	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, crateMaterial, inst);
 
