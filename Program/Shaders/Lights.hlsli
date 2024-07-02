@@ -64,10 +64,10 @@ cbuffer LightData : register(b3)
 
 float SpotLightCuttOffFactor(SpotLight spotLight, float3 position, float3 cameraPosition)
 {
-    float3 directionToLight = position - spotLight.position;
+    float3 directionToLight = spotLight.position - position;
     directionToLight = normalize(directionToLight);
         
-    float cosAngle = dot(directionToLight, spotLight.direction);
+    float cosAngle = dot(directionToLight, -spotLight.direction);
     if (cosAngle < spotLight.cutoffAngle)
         return 0.001f;
     else
@@ -98,25 +98,6 @@ float radianceFromIrradiance(float irradiance, float radius, float distanceSquar
     return irradiance / (1 - sqrt(1 - min(radius * radius / distanceSquared, 1.0f)));
 }
 
-
-float3 BRDF(float3 albedo, float metalness, float roughness, float3 n, float3 v, float3 l)
-{
-    float3 h = normalize(v + l);
-    float rSquared = roughness * roughness;
-    float NoH = max(dot(n, h), 0.001f);
-    float NoV = max(dot(n, v),0.001f);
-    float NoL = max(dot(n, l), 0.001f);
-    float HoL = max(dot(h, l), 0.001f);
-    float3 F0 = lerp(0.4f, albedo, metalness);
-
-    
-    float3 f_spec = D_GGX(rSquared, NoH) * G_Smith(rSquared, NoV, NoL) / (4 * NoL * NoV) * fresnel(F0, HoL);
-    float3 f_diff = (1 - metalness) / PI * albedo * (1 - fresnel(F0, NoL));
-
-    return f_spec + f_diff;
-}
-
-
 float SolidAngle(float radius, float distanceSquared)
 {
     return 2 * PI * (1 - sqrt(1 - min(radius * radius / distanceSquared, 1.0f)));
@@ -125,15 +106,27 @@ float SolidAngle(float radius, float distanceSquared)
 
 float3 PBRLight(float3 irradiance, float solidAngle, float3 l ,float3 albedo, float metalness, float roughness, float3 n, float3 v)
 {
-    return irradiance * BRDF(albedo, metalness, roughness, n, v, l) * (max(dot(n, l), 0.001f) * solidAngle);
+    float3 h = normalize(v + l);
+    float rSquared = roughness * roughness;
+    float NoH = max(dot(n, h), 0.001f);
+    float NoV = max(dot(n, v), 0.001f);
+    float NoL = max(dot(n, l), 0.001f);
+    float HoL = max(dot(h, l), 0.001f);
+    float3 F0 = lerp(0.4f, albedo, metalness);
+
+    
+    float3 f_spec = min(D_GGX(rSquared, NoH) * solidAngle / (4 * NoV), 1.0f) * G_Smith(rSquared, NoV, NoL) * fresnel(F0, HoL);
+    float3 f_diff = (1 - metalness) / PI * solidAngle * NoL * albedo * (1 - fresnel(F0, NoL));
+    
+    return irradiance * (f_diff + f_spec);
 }
 
 float3 FlashLight(SpotLight flashLight,float3 albedo, float metalness, float roughness, float3 normal, float3 position, float3 cameraPosition)
 {
     float3 directionToLight = flashLight.position - position;
-    float3 view = cameraPosition - position;
-    float3 finalColor = SpotLightCuttOffFactor(flashLight, position, cameraPosition) * SolidAngle(flashLight.radiusOfCone, dot(directionToLight, directionToLight)) * 
-                        BRDF(albedo, metalness, roughness, normal, view, directionToLight);
+    float3 view = normalize(cameraPosition - position);
+    float solidAngle = SolidAngle(flashLight.radiusOfCone, dot(directionToLight, directionToLight));
+    float3 finalColor = SpotLightCuttOffFactor(flashLight, position, cameraPosition) * PBRLight(flashLight.color, solidAngle, normalize(directionToLight), albedo, metalness, roughness, normal, view);
     float4 proj = mul(float4(position, 1.0f), lightViewProjection);
     float2 uv = (proj.xy) / proj.w;
     float3 mask = flashlighTexture.Sample(samplerstateFlash, uv * 0.5 + 0.5).rgb;

@@ -118,8 +118,11 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 	InitMeshSystem();
 	
 	auto TM = Engine::TextureManager::Init();
-	auto crateFirst = TM->LoadFromFile("crate", L"Textures\\crate.dds");
-	auto crateSecond = TM->LoadFromFile("metalCrate", L"Textures\\MetalCrate.dds");
+	auto crateFirst = TM->LoadFromFile("crate", L"Textures\\RedCore\\albedo.dds");
+	auto crateMetallic = TM->LoadFromFile("crateMetallic", L"Textures\\RedCore\\metallic.dds");
+	auto crateRoughness = TM->LoadFromFile("crateRoughness", L"Textures\\RedCore\\roughness.dds");
+	auto crateNormal = TM->LoadFromFile("crateNormal", L"Textures\\RedCore\\normal.dds");
+	/*auto crateSecond = TM->LoadFromFile("metalCrate", L"Textures\\MetalCrate.dds");*/
 
 
 	Engine::MeshSystem::Material knightMat = { Engine::vec3(1.0,0.0f,1.0f), 0.0f,Engine::vec3(1.0,1.0f,0.0f), 0.0f };
@@ -137,15 +140,32 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 			inst.modelToWold[axis][i] *= scale;
 		}
 		};
+
+	std::shared_ptr<Engine::Texture> emptyTexture = std::make_shared<Engine::Texture>();
 	std::vector<Engine::MeshSystem::TextureMaterial> samuraiTextures;
-	samuraiTextures.push_back(Engine::MeshSystem::TextureMaterial{ 0.3f, 1.0f, TM->LoadFromFile("samurai_sword", L"Textures\\Samurai\\Sword_BaseColor.dds")});
-	samuraiTextures.push_back(Engine::MeshSystem::TextureMaterial{ 0.3f, 1.0f, TM->LoadFromFile("samurai_head", L"Textures\\Samurai\\Head_BaseColor.dds") });
-	samuraiTextures.push_back(Engine::MeshSystem::TextureMaterial{ 0.3f, 1.0f, TM->LoadFromFile("samurai_eyes", L"Textures\\Samurai\\Eyes_BaseColor.dds") });
-	samuraiTextures.push_back(Engine::MeshSystem::TextureMaterial{ 0.3f, 1.0f, TM->LoadFromFile("samurai_helmet", L"Textures\\Samurai\\Helmet_BaseColor.dds") });
-	samuraiTextures.push_back(Engine::MeshSystem::TextureMaterial{ 0.3f, 1.0f, TM->LoadFromFile("samurai_decor", L"Textures\\Samurai\\Decor_BaseColor.dds") });
-	samuraiTextures.push_back(Engine::MeshSystem::TextureMaterial{ 0.3f, 1.0f, TM->LoadFromFile("samurai_pants", L"Textures\\Samurai\\Pants_BaseColor.dds") });
-	samuraiTextures.push_back(Engine::MeshSystem::TextureMaterial{ 0.3f, 1.0f, TM->LoadFromFile("samurai_hands", L"Textures\\Samurai\\Hands_BaseColor.dds") });
-	samuraiTextures.push_back(Engine::MeshSystem::TextureMaterial{ 0.3f, 1.0f, TM->LoadFromFile("samurai_torso", L"Textures\\Samurai\\Torso_BaseColor.dds") });
+	samuraiTextures.push_back(Engine::MeshSystem::TextureMaterial{ TM->LoadFromFile("samurai_sword", L"Textures\\Samurai\\Sword_BaseColor.dds"), 
+		TM->LoadFromFile("samurai_sword_roughness", L"Textures\\Samurai\\Sword_Roughness.dds"), TM->LoadFromFile("samurai_sword_metallic", L"Textures\\Samurai\\Sword_Metallic.dds"),
+		TM->LoadFromFile("samurai_sword_normal", L"Textures\\Samurai\\Sword_Normal.dds")});
+	samuraiTextures.push_back(Engine::MeshSystem::TextureMaterial{ TM->LoadFromFile("samurai_head", L"Textures\\Samurai\\Head_BaseColor.dds"),
+		TM->LoadFromFile("samurai_head_rougness", L"Textures\\Samurai\\Head_Roughness.dds"), emptyTexture, 
+		TM->LoadFromFile("samurai_head_normal", L"Textures\\Samurai\\Head_Normal.dds") });
+	samuraiTextures.push_back(Engine::MeshSystem::TextureMaterial{ TM->LoadFromFile("samurai_eyes", L"Textures\\Samurai\\Eyes_BaseColor.dds"), emptyTexture, emptyTexture, 
+		TM->LoadFromFile("samurai_eyes_normal", L"Textures\\Samurai\\Eyes_Normal.dds") });
+	samuraiTextures.push_back(Engine::MeshSystem::TextureMaterial{ TM->LoadFromFile("samurai_helmet", L"Textures\\Samurai\\Helmet_BaseColor.dds"),
+		TM->LoadFromFile("samurai_helmet_rougness", L"Textures\\Samurai\\Helmet_Roughness.dds"), TM->LoadFromFile("samurai_helmet_metallic", L"Textures\\Samurai\\Helmet_Metallic.dds"),
+		TM->LoadFromFile("samurai_helmet_normal", L"Textures\\Samurai\\Helmet_Normal.dds") });
+	samuraiTextures.push_back(Engine::MeshSystem::TextureMaterial{ TM->LoadFromFile("samurai_decor", L"Textures\\Samurai\\Decor_BaseColor.dds"), 
+		TM->LoadFromFile("samurai_decor_roughness", L"Textures\\Samurai\\Decor_Roughness.dds"), TM->LoadFromFile("samurai_decor_metallic", L"Textures\\Samurai\\Decor_Metallic.dds"),
+		TM->LoadFromFile("samurai_decor_normal", L"Textures\\Samurai\\Decor_Normal.dds") });
+	samuraiTextures.push_back(Engine::MeshSystem::TextureMaterial{ TM->LoadFromFile("samurai_pants", L"Textures\\Samurai\\Pants_BaseColor.dds"),
+		TM->LoadFromFile("samurai_pants_roughness", L"Textures\\Samurai\\Pants_Roughness.dds") , TM->LoadFromFile("samurai_pants_metalness", L"Textures\\Samurai\\Pants_Metallic.dds") ,
+		TM->LoadFromFile("samurai_pants_normal", L"Textures\\Samurai\\Pants_Normal.dds") });
+	samuraiTextures.push_back(Engine::MeshSystem::TextureMaterial{ TM->LoadFromFile("samurai_hands", L"Textures\\Samurai\\Hands_BaseColor.dds"),
+		TM->LoadFromFile("samurai_hands_roughness", L"Textures\\Samurai\\Hands_Roughness.dds") , emptyTexture,
+		TM->LoadFromFile("samurai_hands_normal", L"Textures\\Samurai\\Hands_Normal.dds") });
+	samuraiTextures.push_back(Engine::MeshSystem::TextureMaterial{ TM->LoadFromFile("samurai_torso", L"Textures\\Samurai\\Torso_BaseColor.dds"), 
+		TM->LoadFromFile("samurai_torso_roughness", L"Textures\\Samurai\\Torso_Roughness.dds"), TM->LoadFromFile("samurai_torso_metallic", L"Textures\\Samurai\\Torso_Metallic.dds"),
+		TM->LoadFromFile("samurai_torso_normal", L"Textures\\Samurai\\Torso_Normal.dds") });
 
 	auto model = Engine::ModelManager::GetInstance()->loadModel("Models\\Samurai.fbx");
 	Engine::TransformSystem::transforms inst = { Engine::transformMatrix(Engine::vec3(0.0f, -1.0f, 0.0f), Engine::vec3(0.0f, 0.0f, 1.0f), Engine::vec3(1.0f, 0.0f, 0.0f), Engine::vec3(0.0f, 1.0f, 0.0f)) };
@@ -156,16 +176,16 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 
 	Engine::PointLight pointLight(Engine::vec3(0.0f, 5.0f, 0.0f), Engine::vec3(0.0f), 1.0f);
 	Engine::PointLight pointLight2(Engine::vec3(5.0f, 0.0f, 3.0f), Engine::vec3(0.0f), 1.0f);
-	Engine::SpotLight spotLight(Engine::vec3(1.0f), Engine::vec3(0.0f, 0.0f, 0.0f), Engine::vec3(.0f, .0f, 1.0f), 0.5 / 2.0f, 1.0f);
+	Engine::SpotLight spotLight(Engine::vec3(100.0f), Engine::vec3(0.0f, 0.0f, 0.0f), Engine::vec3(.0f, .0f, 1.0f), 0.5 / 2.0f, 1.0f);
 	spotLight.bindedObjectId = camera->getCameraTransformId();
-	Engine::DirectionalLight directionalLight(Engine::vec3(0.707f, -0.707f, 0.0f), Engine::vec3(0.84f * 10,0.86264f * 10,0.89019f * 10), 0.35);
+	Engine::DirectionalLight directionalLight(Engine::vec3(0.707f, -0.707f, 0.0f), Engine::vec3(0.84f * 10.0f,0.86264f * 10.0f,0.89019f * 10.0f), 0.35f);
 
 	Engine::ModelManager::GetInstance()->initUnitSphere();
 	model = Engine::ModelManager::GetInstance()->GetModel("UNIT_SPHERE");
 	changepos(inst, Engine::vec3(2.0f, -1.0f, 0.0f));
-	pointLight.bindedObjectId = Engine::MeshSystem::Init()->emmisiveGroup.addModel(model, samuraiTextures[0], inst, Engine::MeshSystem::EmmisiveInstance{ Engine::vec3(0.0f, 5.0f, 0.0f) });;
+	pointLight.bindedObjectId = Engine::MeshSystem::Init()->emmisiveGroup.addModel(model, Engine::MeshSystem::EmmisiveMaterial{}, inst, Engine::MeshSystem::EmmisiveInstance{ Engine::vec3(0.0f, 5.0f, 0.0f) });;
 	changepos(inst, Engine::vec3(-5.0f, 0.0f, 2.0f));
-	pointLight2.bindedObjectId = Engine::MeshSystem::Init()->emmisiveGroup.addModel(model, samuraiTextures[0], inst, Engine::MeshSystem::EmmisiveInstance{ Engine::vec3(5.0f, 0.0f, 3.0f) });;
+	pointLight2.bindedObjectId = Engine::MeshSystem::Init()->emmisiveGroup.addModel(model, Engine::MeshSystem::EmmisiveMaterial{}, inst, Engine::MeshSystem::EmmisiveInstance{ Engine::vec3(5.0f, 0.0f, 3.0f) });;
 
 	Engine::LightSystem::Init()->AddFlashLight(spotLight, TM->LoadFromFile("flashlight", L"Textures\\flashlightMask.dds"));
 	Engine::LightSystem::Init()->AddPointLight(pointLight);
@@ -179,14 +199,14 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 	model = Engine::ModelManager::GetInstance()->loadModel("Models\\cube.obj");
 	
 	Engine::MeshSystem::TextureMaterial crateMaterial;
-	crateMaterial = Engine::MeshSystem::TextureMaterial{ 0.3f, 1.0f, crateFirst };
+	crateMaterial = Engine::MeshSystem::TextureMaterial{crateFirst,crateRoughness,crateMetallic, crateNormal};
 	changepos(inst, Engine::vec3(1.0f, -4.0f, 2.0f));
 	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, crateMaterial, inst);
 
 	
 	auto rotZ = Engine::mat4::rotateZ(3.14f * (-45.0f) / 360.0f);
 	changescale(inst,0, 5);
-	crateMaterial.texture = crateSecond;
+	/*crateMaterial.albedo = crateSecond;*/
 	changepos(inst, Engine::vec3(-10.0f, -4.0f, 2.0f));
 	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, crateMaterial, Engine::TransformSystem::transforms{ inst.modelToWold * rotZ });
 

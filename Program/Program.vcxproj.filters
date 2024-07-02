@@ -95,7 +95,6 @@
     <None Include="Shaders\normalLines\GSnormal.hlsl">
       <Filter>Shaders\NormalVis</Filter>
     </None>
-    <None Include="Shaders\opaqueShader\opaquePS.hlsl" />
     <None Include="Shaders\opaqueShader\opaqueVS.hlsl" />
     <None Include="Shaders\opaqueShader\opaquePS.hlsl" />
     <None Include="Shaders\emissive\emissivePS.hlsl" />
@@ -108,13 +107,8 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Shaders\Hologram\GSHologram.hlsl">
-      <Filter>Shaders\Hologram</Filter>
-    </FxCompile>
-    <FxCompile Include="Shaders\normalLines\GSnormal.hlsl">
-      <Filter>Shaders\NormalVis</Filter>
-    </FxCompile>
     <FxCompile Include="Shaders\PostProcess\PostProcessVS.hlsl" />
     <FxCompile Include="Shaders\PostProcess\PostProcessPS.hlsl" />
+    <FxCompile Include="Shaders\opaqueShader\opaquePS.hlsl" />
   </ItemGroup>
 </Project>

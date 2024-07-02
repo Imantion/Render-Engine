@@ -12,6 +12,7 @@
 
 namespace Engine
 {
+
 	template <typename I, typename M>
 	class OpaqueInstances
 	{
@@ -265,6 +266,7 @@ namespace Engine
 		}
 
 	public:
+
 		void render()
 		{
 			if (instanceBuffer.getSize() == 0)
@@ -307,8 +309,6 @@ namespace Engine
 							// ... update shader local per-draw uniform buffer
 							materialData.updateBuffer(&data);
 
-							if(material.texture)
-								material.texture->BindTexture(0u);
 
 							uint32_t numInstances = uint32_t(perMaterial.instances.size());
 							d3d->GetContext()->DrawIndexedInstanced(meshRange.indexNum, numInstances, meshRange.indexOffset, meshRange.vertexOffset, renderedInstances);
@@ -320,6 +320,7 @@ namespace Engine
 			}
 			
 	};
+
 
 	class MeshSystem
 	{
@@ -339,20 +340,20 @@ namespace Engine
 
 		struct TextureMaterial
 		{
-			float roughness;
-			float metalness;
-			std::shared_ptr<Texture> texture;
-			vec2 padding;
+			std::shared_ptr<Texture> albedo;
+			std::shared_ptr<Texture> roughness;
+			std::shared_ptr<Texture> metalness;
+			std::shared_ptr<Texture> normal;
 
 			
 			bool operator==(const TextureMaterial& other) const
 			{
-				return texture.get() == other.texture.get();
+				return albedo.get() == other.albedo.get() && roughness.get() == other.roughness.get() && metalness.get() == other.metalness.get() && normal.get() == other.normal.get();
 			}
 		};
 
 
-		struct Instance // all other template instances must inherit this one
+		struct Instance 
 		{
 		};
 
@@ -363,14 +364,18 @@ namespace Engine
 
 		struct EmmisiveMaterial
 		{
-
+			vec4 padding;
+			bool operator==(const EmmisiveMaterial& other) const
+			{
+				return true;
+			}
 		};
 
 		OpaqueInstances<Instance, Material> hologramGroup;
 		OpaqueInstances<Instance, Material> normVisGroup;
 		OpaqueInstances<Instance, TextureMaterial> textureGroup;
 		OpaqueInstances<Instance, TextureMaterial> opaqueGroup;
-		OpaqueInstances<EmmisiveInstance, TextureMaterial> emmisiveGroup;
+		OpaqueInstances<EmmisiveInstance, EmmisiveMaterial> emmisiveGroup;
 
 		int intersect(const ray& r, hitInfo& hInfo);
 
@@ -390,4 +395,49 @@ namespace Engine
 		static MeshSystem* pInstance;
 	};
 
+	template <>
+	inline void OpaqueInstances<MeshSystem::Instance, MeshSystem::TextureMaterial>::render() {
+		// Custom render implementation for TextureMaterial
+		if (instanceBuffer.getSize() == 0)
+			return;
+
+		D3D* d3d = D3D::GetInstance();
+		for (size_t i = 0; i < m_shaders.size(); i++) {
+			if (!m_shaders[i]->isEnabled)
+				continue;
+			m_shaders[i]->BindShader();
+			instanceBuffer.bind(1u);
+			meshData.bind(2u, shaderTypes::VS);
+			materialData.bind(2u, shaderTypes::PS);
+
+			uint32_t renderedInstances = 0;
+			for (const auto& perModel : perModel) {
+				if (perModel.model.get() == nullptr) continue;
+				perModel.model->m_vertices.bind();
+				perModel.model->m_indices.bind();
+				for (uint32_t meshIndex = 0; meshIndex < perModel.perMesh.size(); ++meshIndex) {
+					const Mesh& mesh = perModel.model->m_meshes[meshIndex];
+					const auto& meshRange = perModel.model->m_ranges[meshIndex];
+					meshData.updateBuffer(reinterpret_cast<const MeshData*>(mesh.instances.data())); // ... update shader local per-mesh uniform buffer
+					for (const auto& perMaterial : perModel.perMesh[meshIndex].perMaterial) {
+						if (perMaterial.instances.empty()) continue;
+						const auto& material = perMaterial.material;
+						MaterialData data = { material };
+						materialData.updateBuffer(&data);
+						uint32_t numInstances = uint32_t(perMaterial.instances.size());
+						// Custom rendering logic for TextureMaterial
+
+						perMaterial.material.albedo->BindTexture(2u);
+						perMaterial.material.roughness->BindTexture(3u);
+						perMaterial.material.metalness->BindTexture(4u);
+						perMaterial.material.normal->BindTexture(5u);
+
+						d3d->GetContext()->DrawIndexedInstanced(meshRange.indexNum, numInstances, meshRange.indexOffset, meshRange.vertexOffset, renderedInstances);
+						renderedInstances += numInstances;
+					}
+				}
+			}
+		}
+	}
 }
+
