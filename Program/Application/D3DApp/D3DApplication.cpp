@@ -210,6 +210,14 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 	changepos(inst, Engine::vec3(-10.0f, -4.0f, 2.0f));
 	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, crateMaterial, Engine::TransformSystem::transforms{ inst.modelToWold * rotZ });
 
+	changescale(inst, 0, 20);
+	changescale(inst, 2, 100);
+	changepos(inst, Engine::vec3(0.0f, -15.0f, 0.0f));
+	Engine::MeshSystem::TextureMaterial floorMaterial = { TM->LoadFromFile("floorAlbedo", L"Textures\\Concrete\\albedo.dds"),
+	TM->LoadFromFile("floorRoughness", L"Textures\\Concrete\\albedo.dds"), TM->LoadFromFile("floorMetallic", L"Textures\\Concrete\\metallic.dds"),
+	TM->LoadFromFile("floorNormal", L"Textures\\Concrete\\normal.dds") };
+	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, floorMaterial,inst);
+
 
 
 
