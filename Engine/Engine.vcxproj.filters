@@ -190,8 +190,5 @@
     <ClInclude Include="EngineSource\include\Graphics\LightSystem.h">
       <Filter>Include</Filter>
     </ClInclude>
-    <ClInclude Include="EngineSource\include\Graphics\PBRMeshInsance.cpp">
-      <Filter>Include</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

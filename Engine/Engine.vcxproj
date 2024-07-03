@@ -176,7 +176,6 @@
     <ClInclude Include="EngineSource\include\Graphics\Mesh.h" />
     <ClInclude Include="EngineSource\include\Graphics\MeshSystem.h" />
     <ClInclude Include="EngineSource\include\Graphics\Model.h" />
-    <ClInclude Include="EngineSource\include\Graphics\PBRMeshInsance.cpp" />
     <ClInclude Include="EngineSource\include\Graphics\PostProcess.h" />
     <ClInclude Include="EngineSource\include\Graphics\Renderer.h" />
     <ClInclude Include="EngineSource\include\Graphics\SkyBox.h" />

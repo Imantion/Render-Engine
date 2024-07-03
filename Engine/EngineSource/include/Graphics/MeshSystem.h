@@ -396,48 +396,6 @@ namespace Engine
 	};
 
 	template <>
-	inline void OpaqueInstances<MeshSystem::Instance, MeshSystem::TextureMaterial>::render() {
-		// Custom render implementation for TextureMaterial
-		if (instanceBuffer.getSize() == 0)
-			return;
-
-		D3D* d3d = D3D::GetInstance();
-		for (size_t i = 0; i < m_shaders.size(); i++) {
-			if (!m_shaders[i]->isEnabled)
-				continue;
-			m_shaders[i]->BindShader();
-			instanceBuffer.bind(1u);
-			meshData.bind(2u, shaderTypes::VS);
-			materialData.bind(2u, shaderTypes::PS);
-
-			uint32_t renderedInstances = 0;
-			for (const auto& perModel : perModel) {
-				if (perModel.model.get() == nullptr) continue;
-				perModel.model->m_vertices.bind();
-				perModel.model->m_indices.bind();
-				for (uint32_t meshIndex = 0; meshIndex < perModel.perMesh.size(); ++meshIndex) {
-					const Mesh& mesh = perModel.model->m_meshes[meshIndex];
-					const auto& meshRange = perModel.model->m_ranges[meshIndex];
-					meshData.updateBuffer(reinterpret_cast<const MeshData*>(mesh.instances.data())); // ... update shader local per-mesh uniform buffer
-					for (const auto& perMaterial : perModel.perMesh[meshIndex].perMaterial) {
-						if (perMaterial.instances.empty()) continue;
-						const auto& material = perMaterial.material;
-						MaterialData data = { material };
-						materialData.updateBuffer(&data);
-						uint32_t numInstances = uint32_t(perMaterial.instances.size());
-						// Custom rendering logic for TextureMaterial
-
-						perMaterial.material.albedo->BindTexture(2u);
-						perMaterial.material.roughness->BindTexture(3u);
-						perMaterial.material.metalness->BindTexture(4u);
-						perMaterial.material.normal->BindTexture(5u);
-
-						d3d->GetContext()->DrawIndexedInstanced(meshRange.indexNum, numInstances, meshRange.indexOffset, meshRange.vertexOffset, renderedInstances);
-						renderedInstances += numInstances;
-					}
-				}
-			}
-		}
-	}
+	inline void OpaqueInstances<MeshSystem::Instance, MeshSystem::TextureMaterial>::render();
 }
 
