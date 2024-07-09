@@ -29,7 +29,7 @@ Engine::vec3 Engine::Camera::getRayDirection(const vec2& point)
 Engine::vec3 Engine::Camera::calculateRayDirection(const vec2& screenPosition) const // not normalized
 {
 	vec4 target = vec4(screenPosition.x, screenPosition.y, 1.0f, 1.0f) * inverseProjection;
-	vec3 rayDirection = vec4((vec3(target) / target.w).normalized(), 0.0f) * TransformSystem::Init()->GetModelTransforms(ID)[0].modelToWold;
+	vec3 rayDirection = vec4((vec3(target) / target.w), 0.0f) * TransformSystem::Init()->GetModelTransforms(ID)[0].modelToWold;
 
 	return rayDirection;
 }

@@ -71,13 +71,13 @@ float3 SpotLightContribution(SpotLight spotLight, float3 normal, float3 position
     float cosAngle = dot(directionToLight, spotLight.direction);
     if (cosAngle < spotLight.cutoffAngle)
     {
-        return spotLight.color * 0.001f;
+        return spotLight.color * 0.00001f;
     }
     float3 viewDir = normalize(cameraPosition - position);
     float3 halfwayDir = normalize(viewDir - directionToLight);
         
-    float diff = max(dot(normal, -directionToLight), 0.001f);
-    float spec = pow(max(dot(halfwayDir, normal), 0.001f), 32);
+    float diff = max(dot(normal, -directionToLight), 0.00001f);
+    float spec = pow(max(dot(halfwayDir, normal), 0.00001f), 32);
        
     float I = 1 - (1 - cosAngle) / (1 - spotLight.cutoffAngle);
         
@@ -114,8 +114,8 @@ float3 PointLightContribution(PointLight pointLight, float3 normal, float3 posit
     float3 viewDir = normalize(cameraPosition - position);
     float3 halfwayDir = normalize(viewDir - directionToLight);
         
-    float diff = max(dot(normal, -directionToLight), 0.001f);
-    float spec = pow(max(dot(halfwayDir, normal), 0.001f), 32);
+    float diff = max(dot(normal, -directionToLight), 0.00001f);
+    float spec = pow(max(dot(halfwayDir, normal), 0.00001f), 32);
         
     finalColor += pointLight.color * ((diff + spec) * (pointLight.intensity / distancSquaredToLight));
     
@@ -131,8 +131,8 @@ float3 DirectionalLightsContibution(DirectionalLight directionalLight, float3 no
     float3 viewDir = normalize(cameraPosition - position);
     float3 halfwayDir = normalize(viewDir - directionalLight.direction);
         
-    float diff = max(dot(normal, -directionalLight.direction), 0.001f);
-    float spec = pow(max(dot(halfwayDir, normal), 0.001f), 32);
+    float diff = max(dot(normal, -directionalLight.direction), 0.00001f);
+    float spec = pow(max(dot(halfwayDir, normal), 0.00001f), 32);
         
     finalColor += directionalLight.color * ((diff + spec) * directionalLight.intensity);
     
