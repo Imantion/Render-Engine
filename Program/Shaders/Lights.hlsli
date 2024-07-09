@@ -114,8 +114,13 @@ float3 PointLightContribution(PointLight pointLight, float3 normal, float3 posit
     float3 viewDir = normalize(cameraPosition - position);
     float3 halfwayDir = normalize(viewDir - directionToLight);
         
-    float diff = max(dot(normal, -directionToLight), 0.00001f);
+    float diff = dot(normal, -directionToLight);
     float spec = pow(max(dot(halfwayDir, normal), 0.00001f), 32);
+    if(diff < 0)
+    {
+        diff = 0.0001f;
+        spec = 0.0001f;
+    }
         
     finalColor += pointLight.color * ((diff + spec) * (pointLight.intensity / distancSquaredToLight));
     
