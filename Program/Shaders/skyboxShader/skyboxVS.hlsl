@@ -1,10 +1,5 @@
 #include "..\declarations.hlsli"
 
-cbuffer frust : register(b2)
-{
-    float4 frustCorners[3];
-};
-
 struct psOutput
 {
     float4 pos : SV_POSITION;
@@ -21,7 +16,7 @@ psOutput main(uint index : SV_VertexID)
     
     output.pos = float4(position[index],0.0f, 1.0f);
     
-    output.direction = frustCorners[index];
+    output.direction = bottomLeft + (position[index].x + 1) * 0.5 * rightVector + (position[index].y + 1) * 0.5 * topVector;;
     
     return output;
 }

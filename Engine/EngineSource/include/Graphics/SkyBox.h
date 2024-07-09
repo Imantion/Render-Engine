@@ -27,13 +27,8 @@ namespace Engine
 		void Draw();
 
 	private:
-		struct cameraFrustrum
-		{
-			vec4 frustrum[3];
-		} cb_data;
 
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_readOnlyDepthBuffer;
-		ConstBuffer<cameraFrustrum> m_cb;
 		std::shared_ptr<Texture> m_skyBoxTexture;
 		std::shared_ptr<shader> m_skyBoxShader;
 		const Camera* m_pCamera;

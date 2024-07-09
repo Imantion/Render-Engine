@@ -74,6 +74,7 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 	camera.reset(new Engine::Camera(45.0f, 0.1f, 100.0f));
 	
 	camera->calculateProjectionMatrix(windowWidth, windowHeight);
+	camera->calculateRayDirections();
 	InitMeshSystem();
 	
 	auto crateFirst = Engine::TextureManager::Init()->AddTexture("crate", L"Textures\\crate.dds");
@@ -139,7 +140,7 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 
 	auto skyboxShader = Engine::ShaderManager::CompileAndCreateShader("skybox", L"shaders/skyboxShader/skyboxVS.hlsl", 
 		L"shaders/skyboxShader/skyboxPS.hlsl", nullptr, nullptr, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-	auto skyboxTexture = Engine::TextureManager::Init()->AddTexture("skybox", L"Textures\\skybox4.dds");
+	auto skyboxTexture = Engine::TextureManager::Init()->AddTexture("skybox", L"Textures\\skybox.dds");
 
 	skybox.SetShader(skyboxShader);
 	skybox.SetTexture(skyboxTexture);
@@ -244,7 +245,7 @@ void D3DApplication::UpdateInput(float deltaTime)
 		screenCoord.x = (screenCoord.x / pWindow->getWindowWidth() - 0.5f) * 2.0f;
 		screenCoord.y = (screenCoord.y / pWindow->getWindowHeight() - 0.5f) * 2.0f;
 		r.origin = camera->getPosition();
-		r.direction = camera->calculateRayDirection(screenCoord);
+		r.direction = camera->calculateRayDirection(screenCoord).normalized();
 
 		Engine::hitInfo hInfo; hInfo.reset_parameter_t();
 		auto instances = Engine::MeshSystem::Init()->intersect(r, hInfo);
@@ -262,6 +263,7 @@ void D3DApplication::UpdateInput(float deltaTime)
 	{
 		camera->calculateViewMatrix();
 		camera->setRight(Engine::cross(camera->getUp(), camera->getForward()));
+		camera->calculateRayDirections();
 	}
 
 	if (dragger)

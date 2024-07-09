@@ -8,6 +8,13 @@ namespace Engine
 	class Camera
 	{
 	public:
+		enum frustrumCorners { // Corners of frustum to orient in rayDirections array
+			LeftUp,
+			RightUp,
+			LeftDown,
+			RightDown
+		};
+	public:
 
 		Camera() {}
 		Camera(float verticalFov, float nearPlane, float farPlane);
@@ -28,6 +35,7 @@ namespace Engine
 		const mat4& getViewMatrix() const { return view; }
 		const mat4& getInverseViewMatrix() const { return inverseView; }
 		const mat4& getProjectionMatrix() const { return projection; }
+		vec3 getCameraFrustrum(frustrumCorners fc);
 
 		void setForward(vec3 f);
 		void setUp(vec3 u);
@@ -38,6 +46,7 @@ namespace Engine
 	private:
 		mat4 projection, inverseProjection;
 		mat4 view, inverseView;
+		vec3 cameraFrustrum[3];
 		float nearClip = 0.1f;
 		float farClip = 100.0f;
 		float FOV = 45.0f;
@@ -47,12 +56,7 @@ namespace Engine
 		vec3 upDirection{ 0.0f,1.0f,0.0f };
 		vec3 rightDirection{ 1.0f,0.0f,0.0f };
 
-		enum { // Corners of frustum to orient in rayDirections array
-			LeftUp,
-			RightUp,
-			LeftDown,
-			RightDown
-		};
+		
 		vec3 rayDirections[4]; // 4 corners of frustrum
 	};
 }
