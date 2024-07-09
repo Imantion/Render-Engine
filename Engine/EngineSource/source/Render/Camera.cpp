@@ -19,7 +19,7 @@ Engine::vec3 Engine::Camera::getRayDirection(const vec2& point)
 	return (downInterpolation * (1 - point.y) + upInterpolation * point.y).normalized();
 }
 
-Engine::vec3 Engine::Camera::calculateRayDirection(const vec2& screenPosition) const
+Engine::vec3 Engine::Camera::calculateRayDirection(const vec2& screenPosition) const // not normalized
 {
 	vec4 target = vec4(screenPosition.x, screenPosition.y, 0.0f, 1.0f) * inverseProjection;
 	vec3 rayDirection = vec4((vec3(target) / target.w), 0.0f) * inverseView;

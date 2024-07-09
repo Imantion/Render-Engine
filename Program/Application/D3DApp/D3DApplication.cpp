@@ -273,7 +273,7 @@ void D3DApplication::UpdateInput(float deltaTime)
 		screenCoord.x = (screenCoord.x / pWindow->getWindowWidth() - 0.5f) * 2.0f;
 		screenCoord.y = (screenCoord.y / pWindow->getWindowHeight() - 0.5f) * 2.0f;
 		r.origin = camera->getPosition();
-		r.direction = camera->calculateRayDirection(screenCoord);
+		r.direction = camera->calculateRayDirection(screenCoord).normalized();
 
 		dragger->drag(r);
 	}
