@@ -14,6 +14,7 @@
 
 Engine::vec2 previousMousePosition;
 static float cameraSpeed = 2.0f;
+#define PI 3.141f
 
 static void InitMeshSystem()
 {
@@ -227,7 +228,7 @@ void D3DApplication::UpdateInput(float deltaTime)
 	Engine::vec2 delta;
 	if (Input::mouseIsDown(Input::MouseButtons::LEFT))
 	{
-		delta = (mousePosition - previousMousePosition) * (0.01f * deltaTime);
+		delta = (mousePosition - previousMousePosition) / Engine::vec2(pWindow->getWindowWidth(),pWindow->getWindowHeight()) * 2.0f * PI * deltaTime;
 		if (delta.x != 0 || delta.y != 0)
 		{
 			Engine::quaternion q = (Engine::quaternion::angleAxis(delta.y, camera->getRight()) *
