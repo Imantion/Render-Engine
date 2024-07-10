@@ -166,8 +166,5 @@
     <ClInclude Include="EngineSource\include\Utils\EnumDefinitions.h">
       <Filter>Include\Utils</Filter>
     </ClInclude>
-    <ClInclude Include="EngineSource\include\Utils\incudes.h">
-      <Filter>Include</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>
