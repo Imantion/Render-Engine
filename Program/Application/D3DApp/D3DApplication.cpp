@@ -175,17 +175,19 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, samuraiTextures, inst);
 
 	Engine::PointLight pointLight(Engine::vec3(0.0f, 5.0f, 0.0f), Engine::vec3(0.0f), 1.0f);
-	Engine::PointLight pointLight2(Engine::vec3(5.0f, 0.0f, 3.0f), Engine::vec3(0.0f), 1.0f);
+	Engine::PointLight pointLight2(Engine::vec3(5.0f, 0.0f, 3.0f), Engine::vec3(0.0f), 3.0f);
 	Engine::SpotLight spotLight(Engine::vec3(100.0f), Engine::vec3(0.0f, 0.0f, 0.0f), Engine::vec3(.0f, .0f, 1.0f), 0.5 / 2.0f, 1.0f);
 	spotLight.bindedObjectId = camera->getCameraTransformId();
-	Engine::DirectionalLight directionalLight(Engine::vec3(0.707f, -0.707f, 0.0f), Engine::vec3(0.84f * 10.0f,0.86264f * 10.0f,0.89019f * 10.0f), 0.35f);
+	Engine::DirectionalLight directionalLight(Engine::vec3(0.707f, -0.707f, 0.0f), Engine::vec3(0.84f * 10.0f,0.86264f * 10.0f,0.89019f * 10.0f), 0.15f);
 
 	Engine::ModelManager::GetInstance()->initUnitSphere();
 	model = Engine::ModelManager::GetInstance()->GetModel("UNIT_SPHERE");
 	changepos(inst, Engine::vec3(2.0f, -1.0f, 0.0f));
-	pointLight.bindedObjectId = Engine::MeshSystem::Init()->emmisiveGroup.addModel(model, Engine::MeshSystem::EmmisiveMaterial{}, inst, Engine::MeshSystem::EmmisiveInstance{ Engine::vec3(0.0f, 5.0f, 0.0f) });;
+	pointLight.bindedObjectId = Engine::MeshSystem::Init()->emmisiveGroup.addModel(model, Engine::MeshSystem::EmmisiveMaterial{}, inst, Engine::MeshSystem::EmmisiveInstance{ Engine::vec3(0.0f, 5.0f, 0.0f) });
 	changepos(inst, Engine::vec3(-5.0f, 0.0f, 2.0f));
-	pointLight2.bindedObjectId = Engine::MeshSystem::Init()->emmisiveGroup.addModel(model, Engine::MeshSystem::EmmisiveMaterial{}, inst, Engine::MeshSystem::EmmisiveInstance{ Engine::vec3(5.0f, 0.0f, 3.0f) });;
+	auto emmisiveSphereInstance = inst;
+	changescale(emmisiveSphereInstance, 0, 3.0f); changescale(emmisiveSphereInstance, 1, 3.0f); changescale(emmisiveSphereInstance, 2, 3.0f);
+	pointLight2.bindedObjectId = Engine::MeshSystem::Init()->emmisiveGroup.addModel(model, Engine::MeshSystem::EmmisiveMaterial{}, emmisiveSphereInstance, Engine::MeshSystem::EmmisiveInstance{ Engine::vec3(5.0f, 0.0f, 3.0f) });
 
 	Engine::LightSystem::Init()->AddFlashLight(spotLight, TM->LoadFromFile("flashlight", L"Textures\\flashlightMask.dds"));
 	Engine::LightSystem::Init()->AddPointLight(pointLight);
