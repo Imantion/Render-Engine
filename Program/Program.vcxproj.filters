@@ -16,6 +16,21 @@
     <Filter Include="Shaders">
       <UniqueIdentifier>{17d2168b-3c71-49f7-a281-6e0d7b019bf4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\Hologram">
+      <UniqueIdentifier>{e55f58b9-85a4-41b1-9ab3-739ef8e05476}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\NormalVis">
+      <UniqueIdentifier>{de5372de-6977-4f41-92ab-96fde615f5f6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\NomalColor">
+      <UniqueIdentifier>{3979acc7-26f5-4cb7-828e-897ef60d9e55}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\CrateTextureMap">
+      <UniqueIdentifier>{ee0164f2-c359-4d97-b27a-41e478786a0e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\SkyBox">
+      <UniqueIdentifier>{32051f6c-69de-44e5-a2b9-bf1e884ec58f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Application\Input\Input.cpp">
@@ -35,33 +50,55 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\normalLines\PixelShader.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Shaders\normalLines\VertexShader.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
     <None Include="Shaders\normalLines\HullShader.hlsl">
-      <Filter>Shaders</Filter>
+      <Filter>Shaders\Hologram</Filter>
+    </None>
+    <None Include="Shaders\Hologram\Hologram.shader">
+      <Filter>Shaders\Hologram</Filter>
     </None>
     <None Include="Shaders\normalLines\DomainShader.hlsl">
-      <Filter>Shaders</Filter>
+      <Filter>Shaders\Hologram</Filter>
     </None>
-    <None Include="Shaders\normalColor\VertexShader.hlsl" />
-    <None Include="Shaders\normalColor\PixelShader.hlsl" />
-    <None Include="Shaders\DomainShader.hlsl" />
-    <None Include="Shaders\HullShader.hlsl" />
+    <None Include="Shaders\Hologram\HullShader.hlsl">
+      <Filter>Shaders\NormalVis</Filter>
+    </None>
+    <None Include="Shaders\Hologram\DomainShader.hlsl">
+      <Filter>Shaders\NormalVis</Filter>
+    </None>
+    <None Include="Shaders\normalColor\PixelShader.hlsl">
+      <Filter>Shaders\NormalVis</Filter>
+    </None>
+    <None Include="Shaders\normalColor\VertexShader.hlsl">
+      <Filter>Shaders\NormalVis</Filter>
+    </None>
+    <None Include="Shaders\normalLines\VertexShader.hlsl">
+      <Filter>Shaders\NomalColor</Filter>
+    </None>
+    <None Include="Shaders\normalLines\PixelShader.hlsl">
+      <Filter>Shaders\NomalColor</Filter>
+    </None>
+    <None Include="Shaders\crateTextMap\CrateVS.hlsl">
+      <Filter>Shaders\CrateTextureMap</Filter>
+    </None>
+    <None Include="Shaders\crateTextMap\CratePS.hlsl">
+      <Filter>Shaders\CrateTextureMap</Filter>
+    </None>
+    <None Include="Shaders\skyboxShader\skyboxPS.hlsl">
+      <Filter>Shaders\SkyBox</Filter>
+    </None>
+    <None Include="Shaders\skyboxShader\skyboxVS.hlsl">
+      <Filter>Shaders\SkyBox</Filter>
+    </None>
+    <None Include="Shaders\Hologram\GSHologram.hlsl">
+      <Filter>Shaders\Hologram</Filter>
+    </None>
+    <None Include="Shaders\normalLines\GSnormal.hlsl">
+      <Filter>Shaders\NormalVis</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\declarations.hlsli">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\Hologram.shader">
-      <Filter>Shaders</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="Shaders\normalLines\GSnormal.hlsl" />
-    <FxCompile Include="Shaders\GSHologram.hlsl" />
   </ItemGroup>
 </Project>

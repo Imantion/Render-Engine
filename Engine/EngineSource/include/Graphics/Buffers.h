@@ -38,7 +38,7 @@ namespace Engine
 				HRESULT hr = d3d->GetContext()->Map(m_constBuffer.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &mappedResource);
 				assert(SUCCEEDED(hr));
 				T* data = (T*)mappedResource.pData;
-				memcpy(data, constBufferSource, sizeof(*constBufferSource));
+				memcpy(data, constBufferSource, sizeof(T));
 				d3d->GetContext()->Unmap(m_constBuffer.Get(), 0u);
 
 				return true;
@@ -60,7 +60,7 @@ namespace Engine
 			if(typeOfShader & shaderTypes::GS)
 				context->GSSetConstantBuffers(slot, 1, m_constBuffer.GetAddressOf());
 		}
-	public:
+	private:
 		Microsoft::WRL::ComPtr<ID3D11Buffer> m_constBuffer;
 	};
 

@@ -5,6 +5,7 @@
 #include "Graphics/D3D.h"
 #include "Graphics/Buffers.h"
 #include "Utils/IRayDraggable.h"
+#include "Graphics/SkyBox.h"
 #include <DirectXMath.h>
 
 namespace dx = DirectX;
@@ -32,5 +33,6 @@ private:
 	std::unique_ptr<Engine::Window> pWindow;
 	
 	std::unique_ptr<Engine::IRayDraggable> dragger;
+	Engine::SkyBox skybox;
 };
 

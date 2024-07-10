@@ -8,6 +8,8 @@
 #include "Graphics/Renderer.h"
 #include "Math/quaternion.h"
 #include "Graphics/MeshSystem.h"
+#include "Graphics\TextureManager.h"
+#include "Graphics/SkyBox.h"
 #include <assert.h>
 
 Engine::vec2 previousMousePosition;
@@ -33,7 +35,8 @@ static void InitMeshSystem()
 
 	auto inputLayout = Engine::ShaderManager::CreateInputLayout("Default", NormalVisColor->vertexBlob.Get(), ied, 9u);
 
-
+	auto textureMap = Engine::ShaderManager::CompileAndCreateShader("texture", L"Shaders\\crateTextMap\\CrateVS.hlsl",
+		L"Shaders\\crateTextMap\\CratePS.hlsl", nullptr, nullptr);
 
 	auto NormalVisLines = Engine::ShaderManager::CompileAndCreateShader("NormalVisLines", L"Shaders\\normalLines\\VertexShader.hlsl",
 		L"Shaders\\normalLines\\PixelShader.hlsl", L"Shaders\\normalLines\\HullShader.hlsl", L"Shaders\\normalLines\\DomainShader.hlsl",
@@ -43,8 +46,8 @@ static void InitMeshSystem()
 	if (!NormalVisColor)
 		throw std::runtime_error("Failed to compile and create shader!");
 
-	auto HologramGroup = Engine::ShaderManager::CompileAndCreateShader("HologramGroup", L"Shaders\\Hologram.shader",
-		L"Shaders\\Hologram.shader", L"Shaders\\HullShader.hlsl", L"Shaders\\DomainShader.hlsl", L"Shaders\\GSHologram.hlsl",
+	auto HologramGroup = Engine::ShaderManager::CompileAndCreateShader("HologramGroup", L"Shaders\\Hologram\\Hologram.shader",
+		L"Shaders\\Hologram\\Hologram.shader", L"Shaders\\Hologram\\HullShader.hlsl", L"Shaders\\Hologram\\DomainShader.hlsl", L"Shaders\\Hologram\\GSHologram.hlsl",
 		nullptr, nullptr, D3D_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST, "vsMain", "psMain");
 
 	if (!HologramGroup)
@@ -60,6 +63,9 @@ static void InitMeshSystem()
 	ms->normVisGroup.addShader(NormalVisColor);
 	ms->hologramGroup.addShader(HologramGroup);
 	ms->hologramGroup.addShader(NormalVisLines);
+
+	ms->textureGroup.addShader(textureMap);
+	ms->textureGroup.addShader(NormalVisLines);
 }
 
 D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc windowEvent) :
@@ -68,7 +74,12 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 	camera.reset(new Engine::Camera(45.0f, 0.1f, 100.0f));
 	
 	camera->calculateProjectionMatrix(windowWidth, windowHeight);
+	camera->calculateRayDirections();
 	InitMeshSystem();
+	
+	auto crateFirst = Engine::TextureManager::Init()->AddTexture("crate", L"Textures\\crate.dds");
+	auto crateSecond = Engine::TextureManager::Init()->AddTexture("metalCrate", L"Textures\\MetalCrate.dds");
+
 
 	Engine::MeshSystem::Material knightMat = { Engine::vec3(1.0,0.0f,1.0f), 0.0f,Engine::vec3(1.0,1.0f,0.0f), 0.0f };
 
@@ -101,13 +112,23 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 	changepos(inst, Engine::vec3(3.0f, -1.0f, -2.0f));
 	Engine::MeshSystem::Init()->normVisGroup.addModel(model, knightMat, inst);
 
+	Engine::MeshSystem::Material crateMaterial;
+	crateMaterial.texture = crateFirst;
+	changepos(inst, Engine::vec3(1.0f, -4.0f, 2.0f));
+	Engine::MeshSystem::Init()->textureGroup.addModel(model, crateMaterial, inst);
+
 	auto rotX = Engine::mat4::rotateX(3.14f * (-45.0f) / 360.0f);
 
 	changepos(inst, Engine::vec3(-4.0f, 0.0f, 1.0f));
 	Engine::MeshSystem::Init()->hologramGroup.addModel(model, knightMat, Engine::MeshSystem::Instance{ inst.tranformation * rotX });
 	
-
 	auto rotZ = Engine::mat4::rotateZ(3.14f * (-45.0f) / 360.0f);
+	changescale(inst,0, 5);
+	crateMaterial.texture = crateSecond;
+	changepos(inst, Engine::vec3(-10.0f, -4.0f, 2.0f));
+	Engine::MeshSystem::Init()->textureGroup.addModel(model, crateMaterial, Engine::MeshSystem::Instance{ inst.tranformation * rotZ });
+
+	
 	changescale(inst, 0, 0.2f);
 	changepos(inst, Engine::vec3(2.0f, -2.0f, 4.0f));
 	Engine::MeshSystem::Init()->hologramGroup.addModel(model, knightMat, Engine::MeshSystem::Instance{ inst.tranformation * rotZ });
@@ -115,6 +136,15 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 
 	Engine::MeshSystem::Init()->normVisGroup.updateInstanceBuffers();
 	Engine::MeshSystem::Init()->hologramGroup.updateInstanceBuffers();
+	Engine::MeshSystem::Init()->textureGroup.updateInstanceBuffers();
+
+	auto skyboxShader = Engine::ShaderManager::CompileAndCreateShader("skybox", L"shaders/skyboxShader/skyboxVS.hlsl", 
+		L"shaders/skyboxShader/skyboxPS.hlsl", nullptr, nullptr, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	auto skyboxTexture = Engine::TextureManager::Init()->AddTexture("skybox", L"Textures\\skybox.dds");
+
+	skybox.SetShader(skyboxShader);
+	skybox.SetTexture(skyboxTexture);
+	skybox.BindCamera(camera.get());
 }
 
 bool D3DApplication::isClosed()
@@ -128,13 +158,18 @@ void D3DApplication::Update(float deltaTime)
 	if (pWindow->wasWindowResized())
 	{
 		camera->calculateProjectionMatrix(pWindow->getWindowWidth(), pWindow->getWindowHeight());
-
 	}
 
 	Engine::D3D* d3d = Engine::D3D::GetInstance();
 	Engine::Renderer* renderer = Engine::Renderer::GetInstance();
 	renderer->updatePerFrameCB(deltaTime, (FLOAT)pWindow->getWindowWidth(), (FLOAT)pWindow->getWindowHeight());
+
+	Engine::TextureManager::Init()->BindSamplers();
+
 	renderer->Render(camera.get());
+
+	skybox.BindSkyBox(2u);
+	skybox.Draw();
 
 	pWindow->flush();
 }
@@ -161,6 +196,13 @@ void D3DApplication::UpdateInput(float deltaTime)
 	if (Input::mouseWasPressed(Input::MouseButtons::LEFT))
 		previousMousePosition = mousePosition;
 
+	if (Input::keyPresseed(Input::KeyboardButtons::ONE))
+		Engine::TextureManager::Init()->BindSampleByFilter(D3D11_FILTER_MIN_MAG_MIP_POINT, 3u);
+	else if (Input::keyPresseed(Input::KeyboardButtons::TWO))
+		Engine::TextureManager::Init()->BindSampleByFilter(D3D11_FILTER_MIN_MAG_POINT_MIP_LINEAR, 3u);
+	else if (Input::keyPresseed(Input::KeyboardButtons::THREE))
+		Engine::TextureManager::Init()->BindSampleByFilter(D3D11_FILTER_ANISOTROPIC, 3u);
+
 	if (Input::keyPresseed(Input::KeyboardButtons::N))
 	{
 		auto visShader = Engine::ShaderManager::GetShader("NormalVisLines");
@@ -185,7 +227,7 @@ void D3DApplication::UpdateInput(float deltaTime)
 	Engine::vec2 delta;
 	if (Input::mouseIsDown(Input::MouseButtons::LEFT))
 	{
-		delta = (mousePosition - previousMousePosition) * (0.01f * deltaTime);
+		delta = (mousePosition - previousMousePosition) / Engine::vec2((float)pWindow->getWindowWidth(),(float)pWindow->getWindowHeight()) * (2.0f * (float)M_PI * deltaTime);
 		if (delta.x != 0 || delta.y != 0)
 		{
 			Engine::quaternion q = (Engine::quaternion::angleAxis(delta.y, camera->getRight()) *
@@ -203,7 +245,7 @@ void D3DApplication::UpdateInput(float deltaTime)
 		screenCoord.x = (screenCoord.x / pWindow->getWindowWidth() - 0.5f) * 2.0f;
 		screenCoord.y = (screenCoord.y / pWindow->getWindowHeight() - 0.5f) * 2.0f;
 		r.origin = camera->getPosition();
-		r.direction = camera->calculateRayDirection(screenCoord);
+		r.direction = camera->calculateRayDirection(screenCoord).normalized();
 
 		Engine::hitInfo hInfo; hInfo.reset_parameter_t();
 		auto instances = Engine::MeshSystem::Init()->intersect(r, hInfo);
@@ -221,6 +263,7 @@ void D3DApplication::UpdateInput(float deltaTime)
 	{
 		camera->calculateViewMatrix();
 		camera->setRight(Engine::cross(camera->getUp(), camera->getForward()));
+		camera->calculateRayDirections();
 	}
 
 	if (dragger)
@@ -230,7 +273,7 @@ void D3DApplication::UpdateInput(float deltaTime)
 		screenCoord.x = (screenCoord.x / pWindow->getWindowWidth() - 0.5f) * 2.0f;
 		screenCoord.y = (screenCoord.y / pWindow->getWindowHeight() - 0.5f) * 2.0f;
 		r.origin = camera->getPosition();
-		r.direction = camera->calculateRayDirection(screenCoord);
+		r.direction = camera->calculateRayDirection(screenCoord).normalized();
 
 		dragger->drag(r);
 	}

@@ -80,6 +80,15 @@
     <ClCompile Include="EngineSource\source\Graphics\ShaderManager.cpp">
       <Filter>Source\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="EngineSource\source\Graphics\DDSTextureLoader11.cpp">
+      <Filter>Source\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="EngineSource\source\Graphics\SkyBox.cpp">
+      <Filter>Source\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="EngineSource\source\Graphics\TextureManager.cpp">
+      <Filter>Source\Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EngineSource\include\Math\math.h">
@@ -142,8 +151,20 @@
     <ClInclude Include="EngineSource\include\Graphics\Renderer.h">
       <Filter>Include\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="EngineSource\include\Utils\EnumDefinitions.h">
+    <ClInclude Include="EngineSource\include\Graphics\TextureManager.h">
       <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineSource\include\Graphics\DDSTextureLoader11.h">
+      <Filter>Include\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineSource\include\Graphics\SkyBox.h">
+      <Filter>Include\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineSource\include\Graphics\TextureManager.h">
+      <Filter>Include\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineSource\include\Utils\EnumDefinitions.h">
+      <Filter>Include\Utils</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
