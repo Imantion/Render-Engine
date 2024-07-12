@@ -1,7 +1,6 @@
 cbuffer PerFace : register(b0)
 {
-    float3 normal[6];
-    float4 color[6];
+    float3 normal[18];
 };
 
 struct GSInput
@@ -13,9 +12,10 @@ struct PSInput
 {
     float4 pos : SV_POSITION;
     float3 normal : NORMAL;
-    float4 color : COLOR;
     uint renderTargetArrayIndex : SV_RenderTargetArrayIndex;
 };
+
+static const float2 uvs[3] = {float2(0,0),float2(2,0),float2(0,2)};
 
 [maxvertexcount(18)]
 void main(triangle GSInput input[3], inout TriangleStream<PSInput> outputStream)
@@ -26,8 +26,7 @@ void main(triangle GSInput input[3], inout TriangleStream<PSInput> outputStream)
         {
             PSInput output;
             output.pos = input[i].pos;
-            output.normal = normal[face];
-            output.color = color[face];
+            output.normal = normal[3 * face + i];
             output.renderTargetArrayIndex = face;
             outputStream.Append(output);
         }

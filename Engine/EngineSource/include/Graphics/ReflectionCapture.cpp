@@ -86,12 +86,12 @@ void ReflectionCapture::GenerateCubeMap(ID3D11RenderTargetView* rtv, ID3D11Textu
 
 	struct cl
 	{
-		Engine::vec4 normal[6];
-		Engine::vec4 color[6];
+		Engine::vec4 normal[18];
 	};
 
-	cl data = { { Engine::vec4(1,0,0,1), Engine::vec4(-1,0,0,1), Engine::vec4(0,1,0,1),Engine::vec4(0,-1,0,1),Engine::vec4(0,0,1,1),Engine::vec4(0,0,-1,1) },
-	{ Engine::vec4(1,0,0,1), Engine::vec4(0,1,0,1), Engine::vec4(1,1,0,1),Engine::vec4(0,0,1,1),Engine::vec4(1,0,1,1),Engine::vec4(0,1,1,1) } };
+	cl data = { Engine::vec4(1, -1, -1, 1), Engine::vec4(1, 1, -1, 1), Engine::vec4(1, -1, 1, 1), Engine::vec4(-1, -1, -1, 1), Engine::vec4(-1, 1, -1, 1), Engine::vec4(-1, -1, 1, 1),
+	 Engine::vec4(1, 1, -1, 1) ,  Engine::vec4(1, 1, -1, 1) ,  Engine::vec4(1, 1, -1, 1) ,  Engine::vec4(1, 1, -1, 1) ,  Engine::vec4(1, 1, -1, 1) ,  Engine::vec4(1, 1, -1, 1),
+	Engine::vec4(1, 1, -1, 1) ,  Engine::vec4(1, 1, -1, 1) ,  Engine::vec4(1, 1, -1, 1) ,  Engine::vec4(1, 1, -1, 1) ,  Engine::vec4(1, 1, -1, 1) ,  Engine::vec4(1, 1, -1, 1) };
 
 	Engine::ConstBuffer<cl> cb;
 

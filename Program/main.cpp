@@ -124,10 +124,12 @@ int main(int argc, char* argv[])
 	
 	Engine::Engine::Init();
 
+	auto skyboxTexture = Engine::TextureManager::Init()->LoadFromFile("skybox", L"Textures\\lake_beach.dds");
+	skyboxTexture->BindTexture(0u);
 	ID3D11RenderTargetView* rtv = nullptr;
 	ID3D11Texture2D* tex = nullptr;
 
-	ReflectionCapture::GenerateCubeMap(rtv, tex, 512, 512);
+	ReflectionCapture::GenerateCubeMap(rtv, tex, 1024, 1024);
 	
 	D3DApplication app(800, 400, WindowProc);
 
