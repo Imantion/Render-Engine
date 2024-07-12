@@ -77,11 +77,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 
-Engine::vec3 Fibonacci(int i, int N)
+Engine::vec3 Fibonacci(float& NoV, int i, int N)
 {
 	const float GOLDEN_RATIO = (1.0 + sqrt(5.0)) / 2.0;
 	float theta = 2.0 * M_PI * i / GOLDEN_RATIO;
-	float phiCos  = 1.0 - (i + 0.5) / N;
+	float phiCos = NoV = 1.0 - (i + 0.5) / N;
 	float phiSin = sqrt(1.0 - phiCos * phiCos);
 	float thetaCos = cosf(theta), thetaSin = sinf(theta);
 	return Engine::vec3(thetaCos * phiSin, thetaSin * phiSin, phiCos).normalized();
@@ -102,18 +102,21 @@ void basisFromDir(Engine::vec3& right, Engine::vec3& top, Engine::vec3& dir)
 int main(int argc, char* argv[])
 {
 
-	float sum = 0;	
+	float sum = 0;
+	float cosSum = 0;
 	float N = 4096;
 	Engine::vec3 normal = Engine::vec3(0.707f, 0.0f, 0.707f).normalized();
 	for (size_t i = 0; i < N; i++)
 	{
-		Engine::vec3 right, top, direction = Fibonacci(i, N);
+		float NoV;
+		Engine::vec3 right, top, direction = Fibonacci(NoV,i, N);
+		cosSum += NoV;
 		basisFromDir(right, top, normal);
 		direction = right * direction.x + top * direction.y + normal * direction.z;
 		sum += Engine::dot(direction,normal);
 	}	
 
-	std::cout << sum << " " << 2 * M_PI * sum / N;
+	std::cout << 2 * M_PI * cosSum / N << " " << 2 * M_PI * sum / N;
 
 
 	MSG msg = { 0 };
@@ -124,7 +127,7 @@ int main(int argc, char* argv[])
 	
 	Engine::Engine::Init();
 
-	auto skyboxTexture = Engine::TextureManager::Init()->LoadFromFile("skybox", L"Textures\\lake_beach.dds");
+	auto skyboxTexture = Engine::TextureManager::Init()->LoadFromFile("skybox", L"Textures\\mountains.dds");
 	skyboxTexture->BindTexture(0u);
 	ID3D11RenderTargetView* rtv = nullptr;
 	ID3D11Texture2D* tex = nullptr;

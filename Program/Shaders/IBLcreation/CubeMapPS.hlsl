@@ -2,8 +2,6 @@
 
 TextureCube text : register(t0);
 SamplerState sampl : register(s0);
-#define PI 3.14159f
-
 
 // Fibonacci hemisphere point uniform distribution
 float3 randomHemisphere(out float NdotV, float i, float N)
@@ -63,20 +61,25 @@ struct PSInput
 
 float4 main(PSInput input) : SV_TARGET
 {
-    //float3 color = float3(0, 0, 0);
-    //for (int i = 0; i < 4096; i++)
-    //{
-    //    float NoV;
-    //    float3 sampleDirection = randomHemisphere(NoV, i, 4096);
-    //    float3x3 newBasis = basisFromDir(input.normal);
-    //    sampleDirection = mul(sampleDirection, newBasis);
-    //    color += text.Sample(sampl, sampleDirection).rgb * dot(input.normal, sampleDirection) / PI * (1 - fresnel(float3(0.04, 0.04, 0.04), dot(input.normal, sampleDirection)));
+    float3 color = float3(0, 0, 0);
+    float3 normalizedNormal = normalize(input.normal);
+    int passedAmount = 0;
+    for (int i = 0; i < 10000; i++)
+    {
+        float NoV;
+        float3 sampleDirection = randomHemisphere(NoV, i, 4096);
+        float3x3 newBasis = basisFromDir(normalizedNormal);
+        sampleDirection = normalize(mul(sampleDirection, newBasis));
+        float cos = dot(normalizedNormal, sampleDirection);
+        if (NoV > 0.001f)
+        {
+            ++passedAmount;
+            color += text.SampleLevel(sampl, sampleDirection, 5).rgb * NoV / PI * (1 - fresnel(float3(0.04, 0.04, 0.04), NoV));
+        }
 
-    //}
-    //color *= (2 * PI / 4096.0f);
+    }
+    color *= (2 * PI / passedAmount);
     
-    //return float4(color, 1);
-    
-    return text.Sample(sampl, input.normal);
+    return float4(color, 1);
 
 }

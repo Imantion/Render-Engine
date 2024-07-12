@@ -99,8 +99,8 @@
     <None Include="Shaders\emissive\emissivePS.hlsl" />
     <None Include="Shaders\emissive\emissiveVS.hlsl" />
     <None Include="Shaders\Lights.hlsli" />
-    <None Include="Shaders\IBLcreation\CubeMapPS.hlsl" />
     <None Include="Shaders\IBLcreation\CubeMapVS.hlsl" />
+    <None Include="Shaders\IBLcreation\CubeMapPS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\declarations.hlsli">
