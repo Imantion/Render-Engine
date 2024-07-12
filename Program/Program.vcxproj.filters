@@ -99,8 +99,8 @@
     <None Include="Shaders\emissive\emissivePS.hlsl" />
     <None Include="Shaders\emissive\emissiveVS.hlsl" />
     <None Include="Shaders\Lights.hlsli" />
-    <None Include="Shaders\IBLcreation\PixelShader.hlsl" />
-    <None Include="Shaders\IBLcreation\VertexShader.hlsl" />
+    <None Include="Shaders\IBLcreation\CubeMapPS.hlsl" />
+    <None Include="Shaders\IBLcreation\CubeMapVS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\declarations.hlsli">
@@ -111,5 +111,6 @@
     <FxCompile Include="Shaders\PostProcess\PostProcessVS.hlsl" />
     <FxCompile Include="Shaders\PostProcess\PostProcessPS.hlsl" />
     <FxCompile Include="Shaders\opaqueShader\opaquePS.hlsl" />
+    <FxCompile Include="Shaders\IBLcreation\CubeMapGS.hlsl" />
   </ItemGroup>
 </Project>

@@ -124,7 +124,7 @@ int main(int argc, char* argv[])
 	
 	Engine::Engine::Init();
 
-	ID3D11RenderTargetView* rtv[6];
+	ID3D11RenderTargetView* rtv = nullptr;
 	ID3D11Texture2D* tex = nullptr;
 
 	ReflectionCapture::GenerateCubeMap(rtv, tex, 512, 512);

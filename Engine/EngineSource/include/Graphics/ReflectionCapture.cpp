@@ -55,7 +55,7 @@ void ReflectionCapture::saveCapture(const wchar_t* filename, ID3D11Device* s_dev
 	DirectX::SaveToDDSFile(imagePtr->GetImages(), imagePtr->GetImageCount(), imagePtr->GetMetadata(), DirectX::DDS_FLAGS(0), filename);
 }
 
-void ReflectionCapture::GenerateCubeMap(ID3D11RenderTargetView* rtv[6], ID3D11Texture2D* tex, UINT width, UINT height)
+void ReflectionCapture::GenerateCubeMap(ID3D11RenderTargetView* rtv, ID3D11Texture2D* tex, UINT width, UINT height)
 {
 	D3D11_TEXTURE2D_DESC textDesc = {};
 	textDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
@@ -76,46 +76,27 @@ void ReflectionCapture::GenerateCubeMap(ID3D11RenderTargetView* rtv[6], ID3D11Te
 	D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = {};
 	rtvDesc.Format = textDesc.Format;
 	rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
-	rtvDesc.Texture2DArray.ArraySize = 1;
+	rtvDesc.Texture2DArray.ArraySize = 6;
 	rtvDesc.Texture2DArray.MipSlice = 0;
+	rtvDesc.Texture2DArray.FirstArraySlice = 0;
 
-	for (size_t i = 0; i < 6; i++)
-	{
-		rtvDesc.Texture2DArray.FirstArraySlice = i;
-		hr = Engine::D3D::GetInstance()->GetDevice()->CreateRenderTargetView(tex, &rtvDesc, &rtv[i]);
-
-		assert(SUCCEEDED(hr));
-	}
-
-	DirectX::XMMATRIX views[6];
-	views[0] = DirectX::XMMatrixLookAtLH(DirectX::XMVectorSet(0, 0, 0, 1), DirectX::XMVectorSet(1, 0, 0, 1), DirectX::XMVectorSet(0, 1, 0, 0));
-	views[1] = DirectX::XMMatrixLookAtLH(DirectX::XMVectorSet(0, 0, 0, 1), DirectX::XMVectorSet(-1, 0, 0, 1), DirectX::XMVectorSet(0, 1, 0, 0));
-	views[2] = DirectX::XMMatrixLookAtLH(DirectX::XMVectorSet(0, 0, 0, 1), DirectX::XMVectorSet(0, 1, 0, 1), DirectX::XMVectorSet(0, 0, -1, 0));
-	views[3] = DirectX::XMMatrixLookAtLH(DirectX::XMVectorSet(0, 0, 0, 1), DirectX::XMVectorSet(0, -1, 0, 1), DirectX::XMVectorSet(0, 0, 1, 0));
-	views[4] = DirectX::XMMatrixLookAtLH(DirectX::XMVectorSet(0, 0, 0, 1), DirectX::XMVectorSet(0, 0, 1, 1), DirectX::XMVectorSet(0, 1, 0, 0));
-	views[5] = DirectX::XMMatrixLookAtLH(DirectX::XMVectorSet(0, 0, 0, 1), DirectX::XMVectorSet(0, 0, -1, 1), DirectX::XMVectorSet(0, 1, 0, 0));
-	DirectX::XMMATRIX projection = DirectX::XMMatrixPerspectiveFovLH(DirectX::XM_PIDIV2, 1.0f, 0.1f, 100.0f);
-
-	DirectX::XMMATRIX viewProj[6];
-	for (int i = 0; i < 6; ++i) {
-		viewProj[i] = DirectX::XMMatrixMultiply(views[i], projection);
-	}
-
-
-	Engine::vec4 normals[6] = { Engine::vec4(1,0,0,1), Engine::vec4(-1,0,0,1), Engine::vec4(0,1,0,1),Engine::vec4(0,-1,0,1),Engine::vec4(0,0,1,1),Engine::vec4(0,0,-1,1) };
-	Engine::vec4 colors[6] = { Engine::vec4(1,0,0,1), Engine::vec4(0,1,0,1), Engine::vec4(1,1,0,1),Engine::vec4(0,0,1,1),Engine::vec4(1,0,1,1),Engine::vec4(0,1,1,1) };
+	hr = Engine::D3D::GetInstance()->GetDevice()->CreateRenderTargetView(tex, &rtvDesc, &rtv);
+	assert(SUCCEEDED(hr));
 	
 
 	struct cl
 	{
-		Engine::vec4 normal;
-		Engine::vec4 color;
+		Engine::vec4 normal[6];
+		Engine::vec4 color[6];
 	};
+
+	cl data = { { Engine::vec4(1,0,0,1), Engine::vec4(-1,0,0,1), Engine::vec4(0,1,0,1),Engine::vec4(0,-1,0,1),Engine::vec4(0,0,1,1),Engine::vec4(0,0,-1,1) },
+	{ Engine::vec4(1,0,0,1), Engine::vec4(0,1,0,1), Engine::vec4(1,1,0,1),Engine::vec4(0,0,1,1),Engine::vec4(1,0,1,1),Engine::vec4(0,1,1,1) } };
 
 	Engine::ConstBuffer<cl> cb;
 
-	auto shader = Engine::ShaderManager::CompileAndCreateShader("TEST", L"Shaders\\IBLcreation\\VertexShader.hlsl", L"Shaders\\IBLcreation\\PixelShader.hlsl", nullptr, nullptr);
-
+	auto shader = Engine::ShaderManager::CompileAndCreateShader("TEST", L"Shaders\\IBLcreation\\CubeMapVS.hlsl", L"Shaders\\IBLcreation\\CubeMapPS.hlsl",
+		nullptr, nullptr, L"Shaders\\IBLcreation\\CubeMapGS.hlsl", nullptr, nullptr);
 	cb.create();
 
 	auto deviceContext = Engine::D3D::GetInstance()->GetContext();
@@ -126,26 +107,19 @@ void ReflectionCapture::GenerateCubeMap(ID3D11RenderTargetView* rtv[6], ID3D11Te
 	viewPort.MinDepth = 0;
 	viewPort.MaxDepth = 1;
 
-	
-
-
 	shader->BindShader();
 	
-	for (size_t i = 0; i < 6; i++)
-	{
-		float clearColor[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
-		deviceContext->ClearRenderTargetView(rtv[i], clearColor);
-		deviceContext->OMSetRenderTargets(1, &rtv[i], nullptr);
-		deviceContext->RSSetViewports(1, &viewPort);
+	float clearColor[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
+	deviceContext->ClearRenderTargetView(rtv, clearColor);
+	deviceContext->OMSetRenderTargets(1, &rtv, nullptr);
+	deviceContext->RSSetViewports(1, &viewPort);
 
-		cl buf = { normals[i], colors[i] };
+	cb.updateBuffer(&data);
 
-		cb.updateBuffer(&buf);
+	cb.bind(0u, Engine::shaderTypes::GS);
 
-		cb.bind(3u, Engine::shaderTypes::PS);
-
-		deviceContext->Draw(3u, 0u);
-	}
+	deviceContext->Draw(3u, 0u);
+	
 
 	saveCapture(L"TEST.dds", Engine::D3D::GetInstance()->GetDevice(), deviceContext, tex, false, FileFormat::BC6_UNSIGNED);
 }
