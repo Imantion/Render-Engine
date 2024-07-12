@@ -10,6 +10,7 @@
 #include "Graphics/MeshSystem.h"
 #include "Graphics/TextureManager.h"
 #include "Graphics/TransformSystem.h"
+#include "Graphics/ReflectionCapture.h"
 
 #define FRAME_RATE 60
 
@@ -76,16 +77,57 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 
+Engine::vec3 Fibonacci(int i, int N)
+{
+	const float GOLDEN_RATIO = (1.0 + sqrt(5.0)) / 2.0;
+	float theta = 2.0 * M_PI * i / GOLDEN_RATIO;
+	float phiCos  = 1.0 - (i + 0.5) / N;
+	float phiSin = sqrt(1.0 - phiCos * phiCos);
+	float thetaCos = cosf(theta), thetaSin = sinf(theta);
+	return Engine::vec3(thetaCos * phiSin, thetaSin * phiSin, phiCos).normalized();
+
+}
+
+void basisFromDir(Engine::vec3& right, Engine::vec3& top, Engine::vec3& dir)
+{
+	float k = 1.0 / Engine::Max(1.0 + dir.z, 0.00001);
+	float a = dir.y * k;
+	float b = dir.y * a;
+	float c = -dir.x * a;
+	right = Engine::vec3(dir.z + b, c, -dir.x);
+	top = Engine::vec3(c, 1.0 - b, -dir.y);
+}
+
 
 int main(int argc, char* argv[])
 {
 
+	float sum = 0;	
+	float N = 4096;
+	Engine::vec3 normal = Engine::vec3(0.707f, 0.0f, 0.707f).normalized();
+	for (size_t i = 0; i < N; i++)
+	{
+		Engine::vec3 right, top, direction = Fibonacci(i, N);
+		basisFromDir(right, top, normal);
+		direction = right * direction.x + top * direction.y + normal * direction.z;
+		sum += Engine::dot(direction,normal);
+	}	
+
+	std::cout << sum << " " << 2 * M_PI * sum / N;
+
+
 	MSG msg = { 0 };
 
+	
 
 	Engine::Timer timer;
 	
 	Engine::Engine::Init();
+
+	ID3D11RenderTargetView* rtv[6];
+	ID3D11Texture2D* tex = nullptr;
+
+	ReflectionCapture::GenerateCubeMap(rtv, tex, 512, 512);
 	
 	D3DApplication app(800, 400, WindowProc);
 

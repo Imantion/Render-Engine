@@ -149,6 +149,7 @@ void Engine::Renderer::Render(Camera* camera)
 
 void Engine::Renderer::PostProcess()
 {
+	
 	PostProcess::Init()->Resolve(pHDRtextureResource.Get(), pRenderTarget.Get());
 }
 

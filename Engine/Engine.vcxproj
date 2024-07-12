@@ -92,7 +92,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)assimpbins\;$(SolutionDir)assimp\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)assimpbins\;$(SolutionDir)assimp\include\;$(SolutionDir)DirectXTex\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -107,7 +107,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)assimpbins\;$(SolutionDir)assimp\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)assimpbins\;$(SolutionDir)assimp\include\;$(SolutionDir)DirectXTex\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -122,7 +122,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)assimpbins\;$(SolutionDir)assimp\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)assimpbins\;$(SolutionDir)assimp\include\;$(SolutionDir)DirectXTex\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -137,7 +137,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)assimpbins\;$(SolutionDir)assimp\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)assimpbins\;$(SolutionDir)assimp\include\;$(SolutionDir)DirectXTex\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -147,6 +147,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="EngineSource\include\Graphics\ReflectionCapture.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\LightSystem.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\PostProcess.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\DDSTextureLoader11.cpp" />
@@ -177,6 +178,7 @@
     <ClInclude Include="EngineSource\include\Graphics\MeshSystem.h" />
     <ClInclude Include="EngineSource\include\Graphics\Model.h" />
     <ClInclude Include="EngineSource\include\Graphics\PostProcess.h" />
+    <ClInclude Include="EngineSource\include\Graphics\ReflectionCapture.h" />
     <ClInclude Include="EngineSource\include\Graphics\Renderer.h" />
     <ClInclude Include="EngineSource\include\Graphics\SkyBox.h" />
     <ClInclude Include="EngineSource\include\Graphics\TextureManager.h" />
