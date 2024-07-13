@@ -127,12 +127,10 @@ int main(int argc, char* argv[])
 	
 	Engine::Engine::Init();
 
-	auto skyboxTexture = Engine::TextureManager::Init()->LoadFromFile("skybox", L"Textures\\mountains.dds");
-	skyboxTexture->BindTexture(0u);
-	ID3D11RenderTargetView* rtv = nullptr;
-	ID3D11Texture2D* tex = nullptr;
+	auto skyboxTexture = Engine::TextureManager::Init()->LoadFromFile("sdasdasd", L"Textures\\mountains.dds");
+	Engine::ReflectionCapture::IBLdiffuse(L"DADADA.dds", skyboxTexture);
+	
 
-	ReflectionCapture::GenerateCubeMap(rtv, tex, 1024, 1024);
 	
 	D3DApplication app(800, 400, WindowProc);
 

@@ -3,6 +3,12 @@
 TextureCube text : register(t0);
 SamplerState sampl : register(s0);
 
+cbuffer textureProcessInfo : register(b0)
+{
+    uint resolution;
+    uint numberOfSamples;
+};
+
 // Fibonacci hemisphere point uniform distribution
 float3 randomHemisphere(out float NdotV, float i, float N)
 {
@@ -64,7 +70,8 @@ float4 main(PSInput input) : SV_TARGET
     float3 color = float3(0, 0, 0);
     float3 normalizedNormal = normalize(input.normal);
     int passedAmount = 0;
-    for (int i = 0; i < 10000; i++)
+    float mip = 0.5f * log2(1.0f / numberOfSamples * 3 * resolution * resolution);
+    for (int i = 0; i < numberOfSamples; i++)
     {
         float NoV;
         float3 sampleDirection = randomHemisphere(NoV, i, 4096);
@@ -74,7 +81,7 @@ float4 main(PSInput input) : SV_TARGET
         if (NoV > 0.001f)
         {
             ++passedAmount;
-            color += text.SampleLevel(sampl, sampleDirection, 5).rgb * NoV / PI * (1 - fresnel(float3(0.04, 0.04, 0.04), NoV));
+            color += text.SampleLevel(sampl, sampleDirection, mip).rgb * NoV / PI * (1 - fresnel(float3(0.04, 0.04, 0.04), NoV));
         }
 
     }

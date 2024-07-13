@@ -1,8 +1,11 @@
 #include "ReflectionCapture.h"
 #include "Math/vec.h"
+#include "Math/matrix.h"
+#include "Math/math.h"
 #include "DirectXTex.h"
 #include "Buffers.h"
 #include "ShaderManager.h"
+#include "TextureManager.h"
 
 #define BREAK __debugbreak();
 
@@ -22,6 +25,7 @@
 #define DEV_ASSERT(expression, ...) ALWAYS_ASSERT(expression, __VA_ARGS__);
 #endif
 
+using namespace Engine;
 
 void ReflectionCapture::saveCapture(const wchar_t* filename, ID3D11Device* s_device, ID3D11DeviceContext* s_devcon, ID3D11Texture2D* tex, bool generateMips, FileFormat format)
 {
@@ -55,13 +59,21 @@ void ReflectionCapture::saveCapture(const wchar_t* filename, ID3D11Device* s_dev
 	DirectX::SaveToDDSFile(imagePtr->GetImages(), imagePtr->GetImageCount(), imagePtr->GetMetadata(), DirectX::DDS_FLAGS(0), filename);
 }
 
-void ReflectionCapture::GenerateCubeMap(ID3D11RenderTargetView* rtv, ID3D11Texture2D* tex, UINT width, UINT height)
+
+
+void ReflectionCapture::GenerateCubeMap(const wchar_t* psShaderPath, ID3D11Texture2D** tex, UINT resolution, UINT numbersOfSample, UINT maxMipLevel)
 {
+	if (maxMipLevel != 0 && resolution / maxMipLevel < 1)
+		throw "Max mip level is not compatible with given resolution";
+
+	UINT mipLevels = maxMipLevel + 1;
+	float roughnessStep = maxMipLevel == 0 ? 0.0f : 1.0f / (float)maxMipLevel;
+
 	D3D11_TEXTURE2D_DESC textDesc = {};
 	textDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-	textDesc.Width = width;
-	textDesc.Height = height;
-	textDesc.MipLevels = 1;
+	textDesc.Width = resolution;
+	textDesc.Height = resolution;
+	textDesc.MipLevels = mipLevels;
 	textDesc.ArraySize = 6;
 	textDesc.SampleDesc.Count = 1;
 	textDesc.SampleDesc.Quality = 0;
@@ -70,56 +82,95 @@ void ReflectionCapture::GenerateCubeMap(ID3D11RenderTargetView* rtv, ID3D11Textu
 	textDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
 	textDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
 
-	HRESULT hr = Engine::D3D::GetInstance()->GetDevice()->CreateTexture2D(&textDesc, nullptr, &tex);
+	HRESULT hr = Engine::D3D::GetInstance()->GetDevice()->CreateTexture2D(&textDesc, nullptr, tex);
 	assert(SUCCEEDED(hr));
 
+	std::vector<Microsoft::WRL::ComPtr<ID3D11RenderTargetView>> rtvs(mipLevels);
 	D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = {};
 	rtvDesc.Format = textDesc.Format;
 	rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
 	rtvDesc.Texture2DArray.ArraySize = 6;
-	rtvDesc.Texture2DArray.MipSlice = 0;
 	rtvDesc.Texture2DArray.FirstArraySlice = 0;
-
-	hr = Engine::D3D::GetInstance()->GetDevice()->CreateRenderTargetView(tex, &rtvDesc, &rtv);
-	assert(SUCCEEDED(hr));
-	
-
-	struct cl
+	for (size_t i = 0; i < mipLevels; i++)
 	{
-		Engine::vec4 normal[18];
-	};
+		rtvDesc.Texture2DArray.MipSlice = (UINT)i;
+		hr = Engine::D3D::GetInstance()->GetDevice()->CreateRenderTargetView(*tex, &rtvDesc, &rtvs[i]);
+		assert(SUCCEEDED(hr));
+	}
 
-	cl data = { Engine::vec4(1, -1, -1, 1), Engine::vec4(1, 1, -1, 1), Engine::vec4(1, -1, 1, 1), Engine::vec4(-1, -1, -1, 1), Engine::vec4(-1, 1, -1, 1), Engine::vec4(-1, -1, 1, 1),
-	 Engine::vec4(1, 1, -1, 1) ,  Engine::vec4(1, 1, -1, 1) ,  Engine::vec4(1, 1, -1, 1) ,  Engine::vec4(1, 1, -1, 1) ,  Engine::vec4(1, 1, -1, 1) ,  Engine::vec4(1, 1, -1, 1),
-	Engine::vec4(1, 1, -1, 1) ,  Engine::vec4(1, 1, -1, 1) ,  Engine::vec4(1, 1, -1, 1) ,  Engine::vec4(1, 1, -1, 1) ,  Engine::vec4(1, 1, -1, 1) ,  Engine::vec4(1, 1, -1, 1) };
 
-	Engine::ConstBuffer<cl> cb;
 
-	auto shader = Engine::ShaderManager::CompileAndCreateShader("TEST", L"Shaders\\IBLcreation\\CubeMapVS.hlsl", L"Shaders\\IBLcreation\\CubeMapPS.hlsl",
-		nullptr, nullptr, L"Shaders\\IBLcreation\\CubeMapGS.hlsl", nullptr, nullptr);
-	cb.create();
+	struct cubeFrustrum
+	{
+		Engine::vec4 frustrums[18];
+	} gsCBdata;
+
+	Engine::ConstBuffer<cubeFrustrum> gsCB;
+	gsCB.create();
+
+	mat4 projection = projectionMatrix(M_PI / 2.0f, 0.01f, 100.f, resolution, resolution);
+	mat4 inverseView[6];
+	Engine::vec3 pos(0.0f);
+	inverseView[0] = mat4::Inverse(viewMatrix(pos, vec3(1.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f)));
+	inverseView[1] = mat4::Inverse(viewMatrix(pos, vec3(-1.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f)));
+	inverseView[2] = mat4::Inverse(viewMatrix(pos, vec3(0.0f, 1.0f, 0.0f), vec3(0.0f, 0.0f, -1.0f)));
+	inverseView[3] = mat4::Inverse(viewMatrix(pos, vec3(0.0f, -1.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f)));
+	inverseView[4] = mat4::Inverse(viewMatrix(pos, vec3(0.0f, 0.0f, 1.0f), vec3(0.0f, 1.0f, 0.0f)));
+	inverseView[5] = mat4::Inverse(viewMatrix(pos, vec3(0.0f, 0.0f, -1.0f), vec3(0.0f, 1.0f, 1.0f)));
+	vec2 invProj = vec2(1.0f / projection[0][0], 1.0f / projection[1][1]);
+	for (size_t i = 0; i < 6; i++)
+	{
+		gsCBdata.frustrums[3 * i + 0] = vec4(-1.0f * invProj.x, -1.0f * invProj.y, 1.0f, 0.0f) * inverseView[i];
+		gsCBdata.frustrums[3 * i + 1] = vec4(-1.0f * invProj.x, 3.0f * invProj.y, 1.0f, 0.0f) * inverseView[i];
+		gsCBdata.frustrums[3 * i + 2] = vec4(3.0f * invProj.x, -1.0f * invProj.y, 1.0f, 0.0f) * inverseView[i];
+	}
+	gsCB.updateBuffer(&gsCBdata);
+	gsCB.bind(0u, Engine::shaderTypes::GS);
+
+
+	struct textureProcessInfo
+	{
+		UINT resolution;
+		UINT numbersOfSample;
+		float roughness;
+		float padding[1];
+	} psCBdata;
+	psCBdata = { resolution, numbersOfSample };
+	Engine::ConstBuffer<textureProcessInfo> psCB;
+	psCB.create();
+
+
+	auto shader = Engine::ShaderManager::CompileAndCreateShader("TEST", L"Shaders\\ReflectionCapture\\CubeMapVS.hlsl", psShaderPath,
+		nullptr, nullptr, L"Shaders\\ReflectionCapture\\CubeMapGS.hlsl", nullptr, nullptr);
+	shader->BindShader();
 
 	auto deviceContext = Engine::D3D::GetInstance()->GetContext();
 
-	D3D11_VIEWPORT viewPort = {};
-	viewPort.Width = width;
-	viewPort.Height = height;
-	viewPort.MinDepth = 0;
-	viewPort.MaxDepth = 1;
+	for (size_t i = 0; i < mipLevels; i++)
+	{
+		D3D11_VIEWPORT viewPort = {};
+		viewPort.Width = (float)(resolution >> i);
+		viewPort.Height = (float)(resolution >> i);
+		viewPort.MinDepth = 0;
+		viewPort.MaxDepth = 1;
 
-	shader->BindShader();
-	
-	float clearColor[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
-	deviceContext->ClearRenderTargetView(rtv, clearColor);
-	deviceContext->OMSetRenderTargets(1, &rtv, nullptr);
-	deviceContext->RSSetViewports(1, &viewPort);
+		psCBdata.roughness = roughnessStep * (float)i;
+		psCB.updateBuffer(&psCBdata);
+		psCB.bind(0u, Engine::shaderTypes::PS);
 
-	cb.updateBuffer(&data);
+		float clearColor[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
+		deviceContext->ClearRenderTargetView(rtvs[i].Get(), clearColor);
+		deviceContext->OMSetRenderTargets(1, rtvs[i].GetAddressOf(), nullptr);
+		deviceContext->RSSetViewports(1, &viewPort);
+		deviceContext->Draw(3u, 0u);
 
-	cb.bind(0u, Engine::shaderTypes::GS);
+	}
+}
 
-	deviceContext->Draw(3u, 0u);
-	
-
-	saveCapture(L"TEST.dds", Engine::D3D::GetInstance()->GetDevice(), deviceContext, tex, false, FileFormat::BC6_UNSIGNED);
+void ReflectionCapture::IBLdiffuse(const wchar_t* generatedTextureName, std::shared_ptr<Texture> source)
+{
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> tex;
+	source->BindTexture(0u);
+	GenerateCubeMap(L"Shaders\\ReflectionCapture\\IBLdiffusePS.hlsl", &tex, 1024, 3600, 0);
+	saveCapture(generatedTextureName, Engine::D3D::GetInstance()->GetDevice(), Engine::D3D::GetInstance()->GetContext(), tex.Get(), false, FileFormat::BC6_UNSIGNED);
 }
