@@ -101,6 +101,11 @@
     <None Include="Shaders\Lights.hlsli" />
     <None Include="Shaders\ReflectionCapture\CubeMapVS.hlsl" />
     <None Include="Shaders\ReflectionCapture\IBLdiffusePS.hlsl" />
+    <None Include="Shaders\ReflectionCapture\IBL.hlsli" />
+    <None Include="Shaders\ReflectionCapture\IBLspecularIrradiancePS.hlsl" />
+    <None Include="Shaders\ReflectionCapture\IBLReflectancePS.hlsl" />
+    <None Include="Shaders\ReflectionCapture\IBLReflectanceVS.hlsl" />
+    <None Include="Shaders\ReflectionCapture\CubeMapGS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\declarations.hlsli">
@@ -111,6 +116,5 @@
     <FxCompile Include="Shaders\PostProcess\PostProcessVS.hlsl" />
     <FxCompile Include="Shaders\PostProcess\PostProcessPS.hlsl" />
     <FxCompile Include="Shaders\opaqueShader\opaquePS.hlsl" />
-    <FxCompile Include="Shaders\ReflectionCapture\CubeMapGS.hlsl" />
   </ItemGroup>
 </Project>

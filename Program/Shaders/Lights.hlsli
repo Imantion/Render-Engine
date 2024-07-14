@@ -74,6 +74,7 @@ float SpotLightCuttOffFactor(SpotLight spotLight, float3 position, float3 camera
     else
         return 1 - (1 - cosAngle) / (1 - spotLight.cutoffAngle);
 }
+
 float3 fresnel(float3 F0, float angle)
 {
     return F0 + (1.0f - F0) * pow(1 - angle, 5);
