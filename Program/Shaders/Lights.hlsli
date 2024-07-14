@@ -91,7 +91,7 @@ float D_GGX(float roughness4, float NoH)
 
 float G_Smith(float roughness4, float NoV, float NoL)
 {
-    float denominator = max((sqrt(1.0f + roughness4 * (1 - NoV) / NoV) * sqrt(1.0f + roughness4 * (1 - NoL) / NoL)), 0.0001f);
+    float denominator = max((sqrt(1.0f + roughness4 * (1 - NoV) / max(NoV, 0.0001f)) * sqrt(1.0f + roughness4 * (1 - NoL) / max(NoL, 0.0001f))), 0.0001f);
     return 2.0f / denominator;
 }
 

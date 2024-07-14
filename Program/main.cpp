@@ -128,9 +128,9 @@ int main(int argc, char* argv[])
 	Engine::Engine::Init();
 
 	auto skyboxTexture = Engine::TextureManager::Init()->LoadFromFile("IBL", L"Textures\\mountains.dds");
-	Engine::ReflectionCapture::IBLdiffuse(L"diffuse.dds", skyboxTexture, 3600);
-	Engine::ReflectionCapture::IBLspecularIrradiance(L"specIrrad.dds", skyboxTexture, 5000, 10);
-	Engine::ReflectionCapture::IBLreflectance(L"specIrrad.dds", skyboxTexture, 1024, 5000);
+	Engine::ReflectionCapture::IBLdiffuse(L"Textures\\PreCalculatedIBL\\diffuse.dds", skyboxTexture, 3600);
+	Engine::ReflectionCapture::IBLspecularIrradiance(L"Textures\\PreCalculatedIBL\\specIrrad.dds", skyboxTexture, 5000, 10);
+	Engine::ReflectionCapture::IBLreflectance(L"Textures\\PreCalculatedIBL\\reflectance.dds", skyboxTexture, 1024, 1024);
 	
 
 	
