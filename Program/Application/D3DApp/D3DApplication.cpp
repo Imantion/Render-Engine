@@ -369,6 +369,12 @@ void D3DApplication::InitLights()
 	Engine::LightSystem::Init()->AddDirectionalLight(directionalLight);
 
 	Engine::LightSystem::Init()->UpdateLightsBuffer();
+
+	auto diffuse = Engine::TextureManager::Init()->LoadFromFile("IBLd", L"Textures\\PreCalculatedIBL\\diffuse.dds");
+	auto specular = Engine::TextureManager::Init()->LoadFromFile("IBLs", L"Textures\\PreCalculatedIBL\\specIrrad.dds");
+	auto reflectance = Engine::TextureManager::Init()->LoadFromFile("IBLr", L"Textures\\PreCalculatedIBL\\reflectance.dds");
+
+	Engine::Renderer::GetInstance()->setIBLLight(diffuse, specular, reflectance);
 }
 
 void D3DApplication::InitCrateModel()
@@ -422,7 +428,7 @@ void D3DApplication::InitSkybox()
 {
 	auto skyboxShader = Engine::ShaderManager::CompileAndCreateShader("skybox", L"shaders/skyboxShader/skyboxVS.hlsl",
 		L"shaders/skyboxShader/skyboxPS.hlsl", nullptr, nullptr, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-	auto skyboxTexture = Engine::TextureManager::Init()->LoadFromFile("skybox", L"Textures\\night_street.dds");
+	auto skyboxTexture = Engine::TextureManager::Init()->LoadFromFile("skybox", L"Textures\\mountains.dds");
 
 	skybox.SetShader(skyboxShader);
 	skybox.SetTexture(skyboxTexture);

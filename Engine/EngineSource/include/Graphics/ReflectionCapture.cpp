@@ -63,7 +63,7 @@ void ReflectionCapture::saveCapture(const wchar_t* filename, ID3D11Device* s_dev
 
 void ReflectionCapture::GenerateCubeMap(const wchar_t* psShaderPath, ID3D11Texture2D** tex, UINT resolution, UINT numbersOfSample, UINT maxMipLevel)
 {
-	if (maxMipLevel != 0 && resolution / maxMipLevel < 1)
+	if (maxMipLevel != 0 && (resolution >> maxMipLevel) < 1)
 		throw "Max mip level is not compatible with given resolution";
 
 	UINT mipLevels = maxMipLevel + 1;
@@ -140,11 +140,12 @@ void ReflectionCapture::GenerateCubeMap(const wchar_t* psShaderPath, ID3D11Textu
 	psCB.create();
 
 
-	auto shader = Engine::ShaderManager::CompileAndCreateShader("TEST", L"Shaders\\ReflectionCapture\\CubeMapVS.hlsl", psShaderPath,
+	auto shader = Engine::ShaderManager::CompileAndCreateShader("CubeMapIBL", L"Shaders\\ReflectionCapture\\CubeMapVS.hlsl", psShaderPath,
 		nullptr, nullptr, L"Shaders\\ReflectionCapture\\CubeMapGS.hlsl", nullptr, nullptr);
 	shader->BindShader();
 
 	auto deviceContext = Engine::D3D::GetInstance()->GetContext();
+	TextureManager::Init()->BindSamplers();
 
 	for (size_t i = 0; i < mipLevels; i++)
 	{
@@ -156,7 +157,7 @@ void ReflectionCapture::GenerateCubeMap(const wchar_t* psShaderPath, ID3D11Textu
 
 		psCBdata.roughness = roughnessStep * (float)i;
 		psCB.updateBuffer(&psCBdata);
-		psCB.bind(0u, Engine::shaderTypes::PS);
+		psCB.bind(2u, Engine::shaderTypes::PS);
 
 		float clearColor[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
 		deviceContext->ClearRenderTargetView(rtvs[i].Get(), clearColor);
@@ -167,10 +168,78 @@ void ReflectionCapture::GenerateCubeMap(const wchar_t* psShaderPath, ID3D11Textu
 	}
 }
 
-void ReflectionCapture::IBLdiffuse(const wchar_t* generatedTextureName, std::shared_ptr<Texture> source)
+void ReflectionCapture::IBLdiffuse(const wchar_t* generatedTextureName, std::shared_ptr<Texture> source, UINT numberOfSamples)
 {
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> tex;
 	source->BindTexture(0u);
-	GenerateCubeMap(L"Shaders\\ReflectionCapture\\IBLdiffusePS.hlsl", &tex, 1024, 3600, 0);
+	GenerateCubeMap(L"Shaders\\ReflectionCapture\\IBLdiffusePS.hlsl", &tex, source->getTextureWidth(), numberOfSamples, 0u);
 	saveCapture(generatedTextureName, Engine::D3D::GetInstance()->GetDevice(), Engine::D3D::GetInstance()->GetContext(), tex.Get(), false, FileFormat::BC6_UNSIGNED);
+}
+
+void Engine::ReflectionCapture::IBLspecularIrradiance(const wchar_t* generatedTextureName, std::shared_ptr<Texture> source, UINT numberOfSamples, UINT maxMipLevel)
+{
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> tex;
+	source->BindTexture(0u);
+	GenerateCubeMap(L"Shaders\\ReflectionCapture\\IBLspecularIrradiancePS.hlsl", &tex, source->getTextureWidth(), numberOfSamples, maxMipLevel);
+	saveCapture(generatedTextureName, Engine::D3D::GetInstance()->GetDevice(), Engine::D3D::GetInstance()->GetContext(), tex.Get(), false, FileFormat::BC6_UNSIGNED);
+}
+
+void Engine::ReflectionCapture::IBLreflectance(const wchar_t* generatedTextureName, std::shared_ptr<Texture> source,UINT resolution, UINT numberOfSamples)
+{
+	auto device = D3D::Init()->GetDevice();
+	auto context = D3D::Init()->GetContext();
+
+	source->BindTexture(0u);
+
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> tex;
+	D3D11_TEXTURE2D_DESC textDesc = {};
+	textDesc.ArraySize = 1;
+	textDesc.Format = DXGI_FORMAT_R32G32_FLOAT;
+	textDesc.Width = resolution;
+	textDesc.Height = resolution;
+	textDesc.MipLevels = 1;
+	textDesc.SampleDesc.Count = 1;
+	textDesc.SampleDesc.Quality = 0;
+	textDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+
+	HRESULT hr = device->CreateTexture2D(&textDesc, nullptr, &tex);
+	assert(SUCCEEDED(hr));
+
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> rtv;
+
+	D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = {};
+	rtvDesc.Format = textDesc.Format;
+	rtvDesc.Texture2D.MipSlice = 0;
+	rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+
+	device->CreateRenderTargetView(tex.Get(), &rtvDesc, &rtv);
+
+	auto shader = Engine::ShaderManager::CompileAndCreateShader("IBlreflectance", L"Shaders\\ReflectionCapture\\IBLReflectanceVS.hlsl", L"Shaders\\ReflectionCapture\\IBLReflectancePS.hlsl", nullptr, nullptr);
+	shader->BindShader();
+
+	struct textureProcessInfo
+	{
+		UINT resolution;
+		UINT numbersOfSample;
+		float roughness;
+		float padding[1];
+	} psCBdata;
+	psCBdata = { resolution, numberOfSamples };
+	Engine::ConstBuffer<textureProcessInfo> psCB;
+	psCB.create();
+	psCB.updateBuffer(&psCBdata);
+	psCB.bind(2u, shaderTypes::PS);
+
+	D3D11_VIEWPORT viewport = {};
+	viewport.Width = resolution;
+	viewport.Height = resolution;
+	viewport.MaxDepth = 1.0f;
+
+	float clearColor[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
+	context->ClearRenderTargetView(rtv.Get(), clearColor);
+	context->OMSetRenderTargets(1, rtv.GetAddressOf(), nullptr);
+	context->RSSetViewports(1, &viewport);
+	context->Draw(3u, 0u);
+
+	saveCapture(generatedTextureName, device, context, tex.Get(), false, FileFormat::BC5_UNSIGNED);
 }

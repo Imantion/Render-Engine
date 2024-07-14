@@ -15,9 +15,13 @@ namespace Engine
 		void CreateTexture(const wchar_t* name);
 
 		void BindTexture(UINT slot) const;
+
+		UINT getTextureWidth();
+		UINT getTextureHeight();
+
 		
 	private:
-		Microsoft::WRL::ComPtr<ID3D11Texture2D> m_texture;
+		Microsoft::WRL::ComPtr<ID3D11Resource> m_texture;
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_srv;
 	};
 

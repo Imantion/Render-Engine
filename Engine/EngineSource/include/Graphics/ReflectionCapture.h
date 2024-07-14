@@ -32,7 +32,9 @@ namespace Engine
 	public:
 
 		static void saveCapture(const wchar_t* filename, ID3D11Device* s_device, ID3D11DeviceContext* s_devcon, ID3D11Texture2D* tex, bool generateMips, FileFormat format);
-		static void IBLdiffuse(const wchar_t* generatedTextureName, std::shared_ptr<Texture> source);
+		static void IBLdiffuse(const wchar_t* generatedTextureName, std::shared_ptr<Texture> source, UINT numberOfSamples);
+		static void IBLspecularIrradiance(const wchar_t* generatedTextureName, std::shared_ptr<Texture> source, UINT numberOfSamples, UINT maxMipLevel);
+		static void IBLreflectance(const wchar_t* generatedTextureName, std::shared_ptr<Texture> source,UINT resolution, UINT numberOfSamples);
 		static void GenerateCubeMap(const wchar_t* psShaderPath, ID3D11Texture2D** tex, UINT resolution, UINT numbersOfSample, UINT maxMipLevel);
 	private:
 

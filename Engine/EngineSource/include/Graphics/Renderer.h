@@ -6,6 +6,7 @@
 namespace Engine
 {
 	class Camera;
+	class Texture;
 
 	struct PerFrameCB
 	{
@@ -38,6 +39,9 @@ namespace Engine
 		void Render(Camera* camera);
 		void PostProcess();
 
+		void setIBLLight(std::shared_ptr<Texture> diffuse, std::shared_ptr<Texture> specular, std::shared_ptr<Texture> reflectance);
+		void setIBLLghtState(bool state);
+
 	protected:
 		Renderer();
 	private:
@@ -52,6 +56,11 @@ namespace Engine
 		Microsoft::WRL::ComPtr <ID3D11DepthStencilView> pViewDepth;
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> pDepthStencil;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> pDSState;
+
+		bool isIBLLighOn = false;
+		std::shared_ptr<Texture> diffuseIBL;
+		std::shared_ptr<Texture> specularIBL;
+		std::shared_ptr<Texture> reflectanceIBL;
 	private:
 		static std::mutex mutex_;
 		static Renderer* pInstance;

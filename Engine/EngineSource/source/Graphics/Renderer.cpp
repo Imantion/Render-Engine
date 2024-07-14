@@ -141,6 +141,13 @@ void Engine::Renderer::Render(Camera* camera)
 
 	perViewBuffer.updateBuffer(&perView);
 	LightSystem::Init()->BindLigtsBuffer(3u, shaderTypes::PS);
+
+	if (isIBLLighOn)
+	{
+		diffuseIBL->BindTexture(6u);
+		specularIBL->BindTexture(7u);
+		reflectanceIBL->BindTexture(8u);
+	}
 	Engine::LightSystem::Init()->UpdateLightsBuffer();
 	Engine::LightSystem::Init()->BindLightTextures();
 
@@ -151,6 +158,19 @@ void Engine::Renderer::PostProcess()
 {
 	
 	PostProcess::Init()->Resolve(pHDRtextureResource.Get(), pRenderTarget.Get());
+}
+
+void Engine::Renderer::setIBLLight(std::shared_ptr<Texture> diffuse, std::shared_ptr<Texture> specular, std::shared_ptr<Texture> reflectance)
+{
+	diffuseIBL = diffuse;
+	specularIBL = specular;
+	reflectanceIBL = reflectance;
+	isIBLLighOn = true;
+}
+
+void Engine::Renderer::setIBLLghtState(bool state)
+{
+	isIBLLighOn = state;
 }
 
 Engine::Renderer::Renderer() :
