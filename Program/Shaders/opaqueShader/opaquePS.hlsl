@@ -56,10 +56,8 @@ float4 main(PSInput input) : SV_TARGET
     }
     for (i = 0; i < plSize; ++i)
     {
-        float3 l = pointLights[i].position - input.worldPos;
-        float solidAngle = SolidAngle(pointLights[i].radius, dot(l, l));
-        l = normalize(l);
-        finalColor += PBRLight(pointLights[i].color, solidAngle, l, albedo, metalness, roughness, normal, v);
+
+        finalColor += PBRLight(pointLights[i], input.worldPos, albedo, metalness, roughness, input.tbn._31_32_33,normal, v);
     }
     
     for (i = 0; i < dlSize; ++i)
