@@ -395,6 +395,7 @@ namespace Engine
 		OpaqueInstances<PBRInstance, Materials::OpaqueTextureMaterial> opaqueGroup;
 		OpaqueInstances<EmmisiveInstance, Materials::EmmisiveMaterial> emmisiveGroup;
 
+		OpaqueInstances<PBRInstance, TextureMaterial> opaqueGroup;
 		int intersect(const ray& r, hitInfo& hInfo);
 
 		void updateInstanceBuffers();
