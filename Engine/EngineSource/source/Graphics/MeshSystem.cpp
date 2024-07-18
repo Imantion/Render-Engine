@@ -56,7 +56,7 @@ void Engine::MeshSystem::Deinit()
 }
 
 template <>
-inline void Engine::OpaqueInstances<Engine::MeshSystem::Instance, Materials::OpaqueTextureMaterial>::render()
+inline void Engine::OpaqueInstances<Engine::MeshSystem::PBRInstance, Materials::OpaqueTextureMaterial>::render()
 {
 
 	// Custom render implementation for TextureMaterial

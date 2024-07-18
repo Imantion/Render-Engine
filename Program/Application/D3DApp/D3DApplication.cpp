@@ -15,6 +15,7 @@
 #include "imgui.h"
 #include "backends/imgui_impl_dx11.h"
 #include "backends/imgui_impl_win32.h"
+#include "Utils/ISelected.h"
 #include <assert.h>
 
 #ifdef UNICODE
@@ -50,10 +51,22 @@ static void InitMeshSystem()
 	{"TOWORLD", 1, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
 	{"TOWORLD", 2, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
 	{"TOWORLD", 3, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
-	{"ISSELECTED", 0, DXGI_FORMAT_R32_UINT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
-	{"SHOULDOVERWRITE", 0, DXGI_FORMAT_R32_UINT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+	{"ISSELECTED", 0, DXGI_FORMAT_R32_SINT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+	{"SHOULDOVERWRITE", 0, DXGI_FORMAT_R32_SINT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
 	{"ROUGHNESS", 0, DXGI_FORMAT_R32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
 	{"METALNESS", 0, DXGI_FORMAT_R32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+	};
+
+	D3D11_INPUT_ELEMENT_DESC normalIED[] = {
+	{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	{"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	{"TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	{"BITANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	{"TC", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	{"TOWORLD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+	{"TOWORLD", 1, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+	{"TOWORLD", 2, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+	{"TOWORLD", 3, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
 	};
 
 	D3D11_INPUT_ELEMENT_DESC secondIed[] = {
@@ -75,11 +88,11 @@ static void InitMeshSystem()
 	auto NormalVisColor = Engine::ShaderManager::CompileAndCreateShader("NormalVisColor", L"Shaders\\normalColor\\VertexShader.hlsl",
 		L"Shaders\\normalColor\\PixelShader.hlsl", nullptr, nullptr);
 
-	auto inputLayout = Engine::ShaderManager::CreateInputLayout("Default", NormalVisColor->vertexBlob.Get(), ied, 9u);
-	auto secondInputLayout = Engine::ShaderManager::CreateInputLayout("Second", emissiveShader->vertexBlob.Get(), secondIed, 10u);
+
 
 	auto textureMap = Engine::ShaderManager::CompileAndCreateShader("texture", L"Shaders\\crateTextMap\\CrateVS.hlsl",
 		L"Shaders\\crateTextMap\\CratePS.hlsl", nullptr, nullptr);
+
 
 	D3D_SHADER_MACRO shaders[] = { "MAX_DIRECTIONAL_LIGHTS", "1",
 		"MAX_POINT_LIGHTS", "10",
@@ -104,10 +117,14 @@ static void InitMeshSystem()
 	if (!HologramGroup)
 		throw std::runtime_error("Failed to compile and create shader!");
 
-	NormalVisColor->BindInputLyout(inputLayout);
-	NormalVisLines->BindInputLyout(inputLayout);
-	HologramGroup->BindInputLyout(inputLayout);
-	textureMap->BindInputLyout(inputLayout);
+	auto inputLayout = Engine::ShaderManager::CreateInputLayout("Default", opaqueShader->vertexBlob.Get(), ied, sizeof(ied) / sizeof(D3D11_INPUT_ELEMENT_DESC));
+	auto secondInputLayout = Engine::ShaderManager::CreateInputLayout("Second", emissiveShader->vertexBlob.Get(), secondIed, sizeof(secondIed) / sizeof(D3D11_INPUT_ELEMENT_DESC));
+	auto thirdLayout = Engine::ShaderManager::CreateInputLayout("Third", NormalVisLines->vertexBlob.Get(), secondIed, sizeof(normalIED) / sizeof(D3D11_INPUT_ELEMENT_DESC));
+
+	NormalVisColor->BindInputLyout(thirdLayout);
+	NormalVisLines->BindInputLyout(thirdLayout);
+	HologramGroup->BindInputLyout(thirdLayout);
+	textureMap->BindInputLyout(thirdLayout);
 	opaqueShader->BindInputLyout(inputLayout);
 	emissiveShader->BindInputLyout(secondInputLayout);
 
@@ -148,48 +165,19 @@ bool D3DApplication::isClosed()
 
 void D3DApplication::Update(float deltaTime)
 {
-	Engine::D3D* d3d = Engine::D3D::GetInstance();
-	Engine::Renderer* renderer = Engine::Renderer::GetInstance();
-
-	ImGui_ImplDX11_NewFrame();
-	ImGui_ImplWin32_NewFrame();
-	ImGui::NewFrame();
-	
-	ImGui::Begin("Settings");
-
-	
-	if (ImGui::BeginTabBar("Light computation states"))
-	{
-		
-		if (ImGui::BeginTabItem("Light"))
-		{
-			
-			ImGui::Checkbox("Diffuse State", &renderer->getDiffuseState());
-			ImGui::Checkbox("Specular State", &renderer->getSpecularState());
-			ImGui::Checkbox("IBL State", &renderer->getIBLLghtState());
-
-			
-			ImGui::EndTabItem();
-		}
-		
-		
-		ImGui::EndTabBar();
-	}
-
-	
-	ImGui::End();
+	GUI();
 
 	UpdateInput(deltaTime);
 	if (pWindow->wasWindowResized())
 	{
 		camera->calculateProjectionMatrix(pWindow->getWindowWidth(), pWindow->getWindowHeight());
 	}
-
 	
-	renderer->updatePerFrameCB(deltaTime, (FLOAT)pWindow->getWindowWidth(), (FLOAT)pWindow->getWindowHeight());
 
 	Engine::TextureManager::Init()->BindSamplers();
 
+	Engine::Renderer* renderer = Engine::Renderer::GetInstance();
+	renderer->updatePerFrameCB(deltaTime, (FLOAT)pWindow->getWindowWidth(), (FLOAT)pWindow->getWindowHeight());
 	renderer->Render(camera.get());
 
 	skybox.BindSkyBox(2u);
@@ -208,20 +196,23 @@ void D3DApplication::UpdateInput(float deltaTime)
 	Engine::vec2 mousePosition = Input::getMousePosition();
 
 	Engine::vec3 cameraMoveDirection = (0.0f, 0.0f, 0.0f);
-	if (Input::keyIsDown(Input::KeyboardButtons::W))
-		cameraMoveDirection += camera->getForward() * deltaTime;
-	if (Input::keyIsDown(Input::KeyboardButtons::A))
-		cameraMoveDirection += camera->getRight() * -deltaTime;
-	if (Input::keyIsDown(Input::KeyboardButtons::S))
-		cameraMoveDirection += camera->getForward() * -deltaTime;
-	if (Input::keyIsDown(Input::KeyboardButtons::D))
-		cameraMoveDirection += camera->getRight() * deltaTime;
-	if (Input::keyIsDown(Input::KeyboardButtons::Q))
-		cameraMoveDirection += camera->getUp() * -deltaTime;
-	if (Input::keyIsDown(Input::KeyboardButtons::E))
-		cameraMoveDirection += camera->getUp() * deltaTime;
-	if (Input::keyIsDown(Input::KeyboardButtons::SHIFT))
-		cameraMoveDirection *= 5;
+	if (cameraStates.canMove)
+	{
+		if (Input::keyIsDown(Input::KeyboardButtons::W))
+			cameraMoveDirection += camera->getForward() * deltaTime;
+		if (Input::keyIsDown(Input::KeyboardButtons::A))
+			cameraMoveDirection += camera->getRight() * -deltaTime;
+		if (Input::keyIsDown(Input::KeyboardButtons::S))
+			cameraMoveDirection += camera->getForward() * -deltaTime;
+		if (Input::keyIsDown(Input::KeyboardButtons::D))
+			cameraMoveDirection += camera->getRight() * deltaTime;
+		if (Input::keyIsDown(Input::KeyboardButtons::Q))
+			cameraMoveDirection += camera->getUp() * -deltaTime;
+		if (Input::keyIsDown(Input::KeyboardButtons::E))
+			cameraMoveDirection += camera->getUp() * deltaTime;
+		if (Input::keyIsDown(Input::KeyboardButtons::SHIFT))
+			cameraMoveDirection *= 5;
+	}
 	if (Input::mouseWasPressed(Input::MouseButtons::LEFT))
 		previousMousePosition = mousePosition;
 	if (Input::keyIsDown(Input::KeyboardButtons::PLUS))
@@ -263,7 +254,7 @@ void D3DApplication::UpdateInput(float deltaTime)
 
 	bool cameraRotated = false;
 	Engine::vec2 delta;
-	if (Input::mouseIsDown(Input::MouseButtons::LEFT))
+	if (Input::mouseIsDown(Input::MouseButtons::LEFT) && cameraStates.canRotate)
 	{
 		delta = (mousePosition - previousMousePosition) / Engine::vec2((float)pWindow->getWindowWidth(),(float)pWindow->getWindowHeight()) * (2.0f * (float)M_PI * deltaTime);
 		if (delta.x != 0 || delta.y != 0)
@@ -276,7 +267,7 @@ void D3DApplication::UpdateInput(float deltaTime)
 
 	}
 
-	if (Input::mouseWasPressed(Input::MouseButtons::RIGHT))
+	if (Input::mouseWasPressed(Input::MouseButtons::RIGHT) && objectInteractions == Drag)
 	{
 		Engine::vec2 screenCoord(mousePosition.x, pWindow->getWindowHeight() - mousePosition.y);
 		Engine::ray r;
@@ -295,6 +286,29 @@ void D3DApplication::UpdateInput(float deltaTime)
 	else if (!Input::mouseIsDown(Input::MouseButtons::RIGHT))
 	{
 		dragger.release();
+	}
+
+	if (Input::mouseWasPressed(Input::MouseButtons::RIGHT) && objectInteractions == Select)
+	{
+		Engine::vec2 screenCoord(mousePosition.x, pWindow->getWindowHeight() - mousePosition.y);
+		Engine::ray r;
+		screenCoord.x = (screenCoord.x / pWindow->getWindowWidth() - 0.5f) * 2.0f;
+		screenCoord.y = (screenCoord.y / pWindow->getWindowHeight() - 0.5f) * 2.0f;
+		r.origin = camera->getPosition();
+		r.direction = camera->calculateRayDirection(screenCoord);
+
+		Engine::hitInfo hInfo; hInfo.reset_parameter_t();
+		auto& opaqueGroup = Engine::MeshSystem::Init()->opaqueGroup;
+		uint32_t hitId = opaqueGroup.intersect(r, hInfo);
+
+		if (hitId != -1)
+		{
+			selected = std::make_unique<Engine::IInstanceSelected<Engine::MeshSystem::PBRInstance>>(hitId, std::move(opaqueGroup.getInstanceByTransformId(hitId)));
+		}
+	}
+	else if (selected && objectInteractions != Select)
+	{
+		selected.release();
 	}
 
 	if (cameraMoveDirection != Engine::vec3(0.0f) || cameraRotated)
@@ -319,6 +333,91 @@ void D3DApplication::UpdateInput(float deltaTime)
 
 D3DApplication::~D3DApplication()
 {
+}
+
+void D3DApplication::GUI()
+{
+	Engine::Renderer* renderer = Engine::Renderer::GetInstance();
+
+	ImGui_ImplDX11_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
+
+	ImGui::Begin("Settings");
+
+
+	if (ImGui::BeginTabBar("Light computation states"))
+	{
+
+		if (ImGui::BeginTabItem("Light"))
+		{
+			ImGui::Checkbox("Diffuse State", &renderer->getDiffuseState());
+			ImGui::Checkbox("Specular State", &renderer->getSpecularState());
+			ImGui::Checkbox("IBL State", &renderer->getIBLLghtState());
+
+			ImGui::EndTabItem();
+		}
+
+		if (ImGui::BeginTabItem("Camera"))
+		{
+			ImGui::Checkbox("Can move", &cameraStates.canMove);
+			ImGui::Checkbox("Can rotate", &cameraStates.canRotate);
+
+			ImGui::EndTabItem();
+		}
+
+
+		if (ImGui::BeginTabItem("Object Interactions"))
+		{
+			// New section for mode selection and conditional rendering
+			ImGui::Separator();
+			ImGui::Text("Mode Selection");
+
+			static const char* items[] = { "Drag", "Select" };
+			static int currentItem = 0; // 0 for Drag, 1 for Select
+
+			if (ImGui::Combo("Mode", &currentItem, items, IM_ARRAYSIZE(items)))
+			{
+				// Update the current mode based on selection
+				objectInteractions = (Mode)currentItem;
+			}
+
+
+			
+			static float roughness = 0.0f;
+			static float metalness = 0.0f;
+			static bool overwrite = false;
+			float objectPosition = 0;
+
+			switch (objectInteractions)
+			{
+			case D3DApplication::Drag:
+				ImGui::Text("Drag Mode");
+				if(dragger)
+					ImGui::DragFloat3("Position", &objectPosition, 0.1f);
+				break;
+			case D3DApplication::Select:
+				ImGui::Text("Select Mode");
+				if (selected)
+				{
+					ImGui::Checkbox("Overwrite Roughness and Metalness of texture", &overwrite);
+					ImGui::SliderFloat("Roughness", &roughness, 0.05f, 1.0f);
+					ImGui::SliderFloat("Metalness", &metalness, 0.05f, 1.0f);
+
+					auto instance = Engine::MeshSystem::PBRInstance{ true, overwrite, roughness, metalness };
+					selected->update((void*)&instance, 1.0f);
+				}
+				break;
+			default:
+				break;
+			}
+			ImGui::EndTabItem();
+		}
+
+		ImGui::EndTabBar();
+	}
+
+	ImGui::End();
 }
 
 void D3DApplication::InitCamera(int windowWidth, int windowHeight)

@@ -207,6 +207,7 @@
     <ClInclude Include="EngineSource\include\Render\Camera.h" />
     <ClInclude Include="EngineSource\include\Math\vec.h" />
     <ClInclude Include="EngineSource\include\Utils\EnumDefinitions.h" />
+    <ClInclude Include="EngineSource\include\Utils\ISelected.h" />
     <ClInclude Include="EngineSource\include\Utils\solid_vector.h" />
     <ClInclude Include="EngineSource\include\Utils\Timer.h" />
     <ClInclude Include="EngineSource\include\Utils\TriangleOctree.hpp" />

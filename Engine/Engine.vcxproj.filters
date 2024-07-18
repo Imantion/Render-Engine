@@ -247,5 +247,8 @@
     <ClInclude Include="EngineSource\include\Graphics\TransformSystem.h">
       <Filter>Include\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="EngineSource\include\Utils\ISelected.h">
+      <Filter>Include</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

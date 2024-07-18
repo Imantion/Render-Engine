@@ -25,6 +25,10 @@ struct PSInput
     float3 worldPos : WorldPos;
     float3x3 tbn : TBN;
     float2 tc : TC;
+    int isSelected : ISSELECTED;
+    int shouldOverWriteMaterial : SHOULDOVERWRITE;
+    float roughness : ROUGHNESS;
+    float metalness : METALNESS;
 };
 
 
@@ -43,6 +47,20 @@ float4 main(PSInput input) : SV_TARGET
     if(material_flags && 1)
         roughness = rough.Sample(g_sampler, input.tc).r;
     
+    
+    if(input.isSelected)
+    {
+        if(input.shouldOverWriteMaterial)
+        {
+            metalness = input.metalness;
+            roughness = input.roughness;
+        }
+        else
+        {
+            metalness = saturate(metalness * input.metalness);
+            roughness = saturate(roughness * input.roughness);
+        }
+    }
     
     float3 finalColor = float3(0, 0, 0);
     for (int i = 0; i < slSize; ++i)

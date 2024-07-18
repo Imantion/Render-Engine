@@ -90,7 +90,7 @@ namespace Engine
 
 		OpaqueInstances() { meshData.create(); materialData.create(); }
 
-		std::vector<I> getInstanceByTransformId(uint32_t transformId)
+		std::vector<I*> getInstanceByTransformId(uint32_t transformId)
 		{
 			std::vector<I*> modelInstanes;
 
@@ -108,13 +108,13 @@ namespace Engine
 						for (uint32_t index = 0; index < numModelInstances; ++index)
 						{
 							if (transformId == instances[index].transformsId)
-								modelInstanes.pushback(&instances[i].instanceData);
+								modelInstanes.push_back(&instances[index].instanceData);
 						}
 					}
 				}
 			}
 
-			return transformId;
+			return modelInstanes;
 		}
 
 		uint32_t intersect(const ray& r, hitInfo& hInfo)
@@ -376,10 +376,10 @@ namespace Engine
 
 		struct PBRInstance
 		{
-			int isSelected;
-			int shouldOverWriteMaterial;
-			float roughness;
-			float metalness;
+			int isSelected = 0;
+			int shouldOverWriteMaterial = 0;
+			float roughness = 0.0f;
+			float metalness = 0.0f;
 		};
 
 		struct EmmisiveMaterial
@@ -393,7 +393,7 @@ namespace Engine
 		OpaqueInstances<Instance, Materials::HologramMaterial> hologramGroup;
 		OpaqueInstances<Instance, Materials::NormVisMaterial> normVisGroup;
 		OpaqueInstances<Instance, Materials::TextureMaterial> textureGroup;
-		OpaqueInstances<Instance, Materials::OpaqueTextureMaterial> opaqueGroup;
+		OpaqueInstances<PBRInstance, Materials::OpaqueTextureMaterial> opaqueGroup;
 		OpaqueInstances<EmmisiveInstance, Materials::EmmisiveMaterial> emmisiveGroup;
 
 		int intersect(const ray& r, hitInfo& hInfo);
@@ -415,7 +415,7 @@ namespace Engine
 	};
 
 	template <>
-	inline void OpaqueInstances<MeshSystem::Instance, Materials::OpaqueTextureMaterial>::render();
+	inline void OpaqueInstances<MeshSystem::PBRInstance, Materials::OpaqueTextureMaterial>::render();
 
 
 	

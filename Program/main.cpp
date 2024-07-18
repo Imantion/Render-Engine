@@ -93,7 +93,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 Engine::vec3 Fibonacci(float& NoV, int i, int N)
 {
 	const float GOLDEN_RATIO = (1.0f + sqrt(5.0f)) / 2.0f;
-	float theta = 2.0f * M_PI * i / GOLDEN_RATIO;
+	float theta = 2.0f * (float)M_PI * i / GOLDEN_RATIO;
 	float phiCos = NoV = 1.0f - (i + 0.5f) / N;
 	float phiSin = sqrt(1.0f - phiCos * phiCos);
 	float thetaCos = cosf(theta), thetaSin = sinf(theta);
