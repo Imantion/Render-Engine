@@ -10,6 +10,10 @@ namespace Engine
 	public:
 
 		virtual void drag(const ray& r) = 0;
+		uint32_t getObjectID() { return hittedObjectID; }
+
+	protected:
+		uint32_t hittedObjectID;
 	};
 
 	class IInstanceDragger : public IRayDraggable
@@ -21,7 +25,6 @@ namespace Engine
 	
 
 	private:
-		uint32_t hittedObjectID;
 		hitInfo grabbedInfo;
 		std::vector<vec3> grabbedVectors;
 	};

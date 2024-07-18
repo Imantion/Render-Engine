@@ -384,17 +384,19 @@ void D3DApplication::GUI()
 
 
 			
-			static float roughness = 0.0f;
-			static float metalness = 0.0f;
+			static float roughness = 1.0f;
+			static float metalness = 1.0f;
 			static bool overwrite = false;
-			float objectPosition = 0;
 
 			switch (objectInteractions)
 			{
 			case D3DApplication::Drag:
 				ImGui::Text("Drag Mode");
-				if(dragger)
-					ImGui::DragFloat3("Position", &objectPosition, 0.1f);
+				if (dragger)
+				{
+					const Engine::vec3& objectPosition = (Engine::vec3&)*Engine::TransformSystem::Init()->GetModelTransforms(dragger->getObjectID())[0].modelToWold[3];
+					ImGui::Text("Object Position: %.2f, %.2f, %.2f", objectPosition.x, objectPosition.y, objectPosition.z);
+				}
 				break;
 			case D3DApplication::Select:
 				ImGui::Text("Select Mode");
