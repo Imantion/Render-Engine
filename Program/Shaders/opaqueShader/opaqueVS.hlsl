@@ -8,6 +8,10 @@ struct VIn
     float3 bitangent : BITANGENT;
     float2 tc : TC;
     float4 modelToWorld[4] : TOWORLD;
+    int isSelected : ISSELECTED;
+    int shouldOverWriteMaterial : SHOULDOVERWRITE;
+    float roughness : ROUGHNESS;
+    float metalness : METALNESS;
 };
 
 struct VOut

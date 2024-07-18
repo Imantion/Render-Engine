@@ -8,6 +8,9 @@
 #include "Graphics/PostProcess.h"
 #include "Graphics/LightSystem.h"
 #include "Window/Window.h"
+#include "imgui.h"
+#include "backends/imgui_impl_win32.h"
+#include "backends/imgui_impl_dx11.h"
 #include <assert.h>
 
 
@@ -24,11 +27,22 @@ void Engine::Engine::Init()
 	PostProcess::Init();
 	LightSystem::Init();
 
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO();
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+	ImGui_ImplDX11_Init(D3D::GetInstance()->GetDevice(), D3D::GetInstance()->GetContext());
+
 	isInitialized = true;
 }
 
 void Engine::Engine::Deinit()
 {
+	ImGui_ImplDX11_Shutdown();
+	ImGui_ImplWin32_Shutdown();
+	ImGui::DestroyContext();
+
 	D3D::GetInstance()->Reset();
 	Renderer::Deinit();
 	ModelManager::Deinit();

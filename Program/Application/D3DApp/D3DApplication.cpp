@@ -12,6 +12,9 @@
 #include "Graphics/PostProcess.h"
 #include "Graphics/SkyBox.h"
 #include "Graphics/LightSystem.h"
+#include "imgui.h"
+#include "backends/imgui_impl_dx11.h"
+#include "backends/imgui_impl_win32.h"
 #include <assert.h>
 
 #ifdef UNICODE
@@ -46,7 +49,11 @@ static void InitMeshSystem()
 	{"TOWORLD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
 	{"TOWORLD", 1, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
 	{"TOWORLD", 2, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
-	{"TOWORLD", 3, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1}
+	{"TOWORLD", 3, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+	{"ISSELECTED", 0, DXGI_FORMAT_R32_UINT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+	{"SHOULDOVERWRITE", 0, DXGI_FORMAT_R32_UINT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+	{"ROUGHNESS", 0, DXGI_FORMAT_R32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+	{"METALNESS", 0, DXGI_FORMAT_R32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
 	};
 
 	D3D11_INPUT_ELEMENT_DESC secondIed[] = {
@@ -130,7 +137,7 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 	InitFloor();
 	InitSkybox();
 	InitPostProcess();
-	Engine::MeshSystem::Init()->updateInstanceBuffers();
+	ImGui_ImplWin32_Init(pWindow->getHWND());	Engine::MeshSystem::Init()->updateInstanceBuffers();
 }
 
 
@@ -141,14 +148,44 @@ bool D3DApplication::isClosed()
 
 void D3DApplication::Update(float deltaTime)
 {
+	Engine::D3D* d3d = Engine::D3D::GetInstance();
+	Engine::Renderer* renderer = Engine::Renderer::GetInstance();
+
+	ImGui_ImplDX11_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
+	
+	ImGui::Begin("Settings");
+
+	
+	if (ImGui::BeginTabBar("Light computation states"))
+	{
+		
+		if (ImGui::BeginTabItem("Light"))
+		{
+			
+			ImGui::Checkbox("Diffuse State", &renderer->getDiffuseState());
+			ImGui::Checkbox("Specular State", &renderer->getSpecularState());
+			ImGui::Checkbox("IBL State", &renderer->getIBLLghtState());
+
+			
+			ImGui::EndTabItem();
+		}
+		
+		
+		ImGui::EndTabBar();
+	}
+
+	
+	ImGui::End();
+
 	UpdateInput(deltaTime);
 	if (pWindow->wasWindowResized())
 	{
 		camera->calculateProjectionMatrix(pWindow->getWindowWidth(), pWindow->getWindowHeight());
 	}
 
-	Engine::D3D* d3d = Engine::D3D::GetInstance();
-	Engine::Renderer* renderer = Engine::Renderer::GetInstance();
+	
 	renderer->updatePerFrameCB(deltaTime, (FLOAT)pWindow->getWindowWidth(), (FLOAT)pWindow->getWindowHeight());
 
 	Engine::TextureManager::Init()->BindSamplers();
@@ -159,6 +196,9 @@ void D3DApplication::Update(float deltaTime)
 	skybox.Draw();
 		
 	renderer->PostProcess();
+
+	ImGui::Render();
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
 	pWindow->flush();
 }

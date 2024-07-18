@@ -98,7 +98,6 @@
     <None Include="Shaders\opaqueShader\opaqueVS.hlsl" />
     <None Include="Shaders\emissive\emissivePS.hlsl" />
     <None Include="Shaders\emissive\emissiveVS.hlsl" />
-    <None Include="Shaders\Lights.hlsli" />
     <None Include="Shaders\ReflectionCapture\CubeMapVS.hlsl" />
     <None Include="Shaders\ReflectionCapture\IBLdiffusePS.hlsl" />
     <None Include="Shaders\ReflectionCapture\IBL.hlsli" />
@@ -106,6 +105,7 @@
     <None Include="Shaders\ReflectionCapture\IBLReflectancePS.hlsl" />
     <None Include="Shaders\ReflectionCapture\IBLReflectanceVS.hlsl" />
     <None Include="Shaders\ReflectionCapture\CubeMapGS.hlsl" />
+    <None Include="Shaders\Lights.hlsli" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\declarations.hlsli">

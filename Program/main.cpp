@@ -11,11 +11,21 @@
 #include "Graphics/TextureManager.h"
 #include "Graphics/TransformSystem.h"
 #include "Graphics/ReflectionCapture.h"
+#include "imgui.h"
+#include "backends/imgui_impl_win32.h"
+#include "backends/imgui_impl_dx11.h"
+
 
 #define FRAME_RATE 60
 
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	
+
+	if (ImGui_ImplWin32_WndProcHandler(hwnd, uMsg, wParam, lParam))
+		return true;
 
 	switch (uMsg)
 	{
@@ -77,12 +87,15 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 
+
+
+
 Engine::vec3 Fibonacci(float& NoV, int i, int N)
 {
-	const float GOLDEN_RATIO = (1.0 + sqrt(5.0)) / 2.0;
-	float theta = 2.0 * M_PI * i / GOLDEN_RATIO;
-	float phiCos = NoV = 1.0 - (i + 0.5) / N;
-	float phiSin = sqrt(1.0 - phiCos * phiCos);
+	const float GOLDEN_RATIO = (1.0f + sqrt(5.0f)) / 2.0f;
+	float theta = 2.0f * M_PI * i / GOLDEN_RATIO;
+	float phiCos = NoV = 1.0f - (i + 0.5f) / N;
+	float phiSin = sqrt(1.0f - phiCos * phiCos);
 	float thetaCos = cosf(theta), thetaSin = sinf(theta);
 	return Engine::vec3(thetaCos * phiSin, thetaSin * phiSin, phiCos).normalized();
 
@@ -90,12 +103,12 @@ Engine::vec3 Fibonacci(float& NoV, int i, int N)
 
 void basisFromDir(Engine::vec3& right, Engine::vec3& top, Engine::vec3& dir)
 {
-	float k = 1.0 / Engine::Max(1.0 + dir.z, 0.00001);
+	float k = 1.0f / Engine::Max(1.0f + dir.z, 0.00001f);
 	float a = dir.y * k;
 	float b = dir.y * a;
 	float c = -dir.x * a;
 	right = Engine::vec3(dir.z + b, c, -dir.x);
-	top = Engine::vec3(c, 1.0 - b, -dir.y);
+	top = Engine::vec3(c, 1.0f - b, -dir.y);
 }
 
 
@@ -104,9 +117,9 @@ int main(int argc, char* argv[])
 
 	float sum = 0;
 	float cosSum = 0;
-	float N = 4096;
+	int N = 4096;
 	Engine::vec3 normal = Engine::vec3(0.707f, 0.0f, 0.707f).normalized();
-	for (size_t i = 0; i < N; i++)
+	for (int i = 0; i < N; i++)
 	{
 		float NoV;
 		Engine::vec3 right, top, direction = Fibonacci(NoV,i, N);
@@ -131,12 +144,14 @@ int main(int argc, char* argv[])
 	//Engine::ReflectionCapture::IBLdiffuse(L"Textures\\PreCalculatedIBL\\diffuse.dds", skyboxTexture, 3600);
 	//Engine::ReflectionCapture::IBLspecularIrradiance(L"Textures\\PreCalculatedIBL\\specIrrad.dds", skyboxTexture, 5000, 10);
 	//Engine::ReflectionCapture::IBLreflectance(L"Textures\\PreCalculatedIBL\\reflectance.dds", skyboxTexture, 1024, 1024);
-
 	
 	D3DApplication app(800, 400, WindowProc);
 
+	
+
 	while (!app.isClosed())
 	{
+
 		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 		{
 			TranslateMessage(&msg);
@@ -149,6 +164,7 @@ int main(int argc, char* argv[])
 
 		if (timer.timeElapsed(FRAME_RATE))
 		{
+
 			app.Update(timer.getDeltatime());
 			Input::resetScroll();
 			Input::resetMousePressed();

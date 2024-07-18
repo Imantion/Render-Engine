@@ -12,8 +12,9 @@ namespace Engine
 	{
 		float g_resolution[4];
 		float g_time;
-
-		float padding[3];
+		int diffuse = 1;
+		int specular  = 1;
+		int IBL;
 	};
 
 	struct PerViewCB
@@ -40,7 +41,14 @@ namespace Engine
 		void PostProcess();
 
 		void setIBLLight(std::shared_ptr<Texture> diffuse, std::shared_ptr<Texture> specular, std::shared_ptr<Texture> reflectance);
+
 		void setIBLLghtState(bool state);
+		void setDiffuseState(bool state);
+		void setSpecularState(bool state);
+
+		bool& getIBLLghtState() { return (bool&)perFrameData.IBL; }
+		bool& getDiffuseState() { return (bool&)perFrameData.diffuse; }
+		bool& getSpecularState() { return (bool&)perFrameData.specular; }
 
 	protected:
 		Renderer();
@@ -49,6 +57,7 @@ namespace Engine
 		PerFrameCB perFrameData;
 
 		ConstBuffer<PerViewCB> perViewBuffer;
+
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pHDRtextureResource;
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pHDRRenderTarget;
 

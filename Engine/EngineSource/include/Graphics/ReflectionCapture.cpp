@@ -108,7 +108,7 @@ void ReflectionCapture::GenerateCubeMap(const wchar_t* psShaderPath, ID3D11Textu
 	Engine::ConstBuffer<cubeFrustrum> gsCB;
 	gsCB.create();
 
-	mat4 projection = projectionMatrix(M_PI / 2.0f, 0.01f, 100.f, resolution, resolution);
+	mat4 projection = projectionMatrix((float)M_PI / 2.0f, 0.01f, 100.f, resolution, resolution);
 	mat4 inverseView[6];
 	Engine::vec3 pos(0.0f);
 	inverseView[0] = mat4::Inverse(viewMatrix(pos, vec3(1.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f)));
@@ -231,8 +231,8 @@ void Engine::ReflectionCapture::IBLreflectance(const wchar_t* generatedTextureNa
 	psCB.bind(2u, shaderTypes::PS);
 
 	D3D11_VIEWPORT viewport = {};
-	viewport.Width = resolution;
-	viewport.Height = resolution;
+	viewport.Width = (FLOAT)resolution;
+	viewport.Height = (FLOAT)resolution;
 	viewport.MaxDepth = 1.0f;
 
 	float clearColor[4] = { 0.5f, 0.5f, 0.5f, 1.0f };

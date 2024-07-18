@@ -19,6 +19,8 @@ static const int MAX_SL = 5;
 #define PI 3.141
 static const float g_MIN_F0 = 0.01;
 
+
+
 static const float3 ambient = float3(0.005f, 0.005f, 0.005f);
 Texture2D flashlighTexture : register(t1);
 SamplerState samplerstateFlash : register(s0);
@@ -186,7 +188,7 @@ float SolidAngle(float radius, float distanceSquared)
 }
 
 
-float3 PBRLight(float3 irradiance, float solidAngle, float3 l ,float3 albedo, float metalness, float roughness, float3 n, float3 v)
+float3 PBRLight(float3 irradiance, float solidAngle, float3 l ,float3 albedo, float metalness, float roughness, float3 n, float3 v, bool specular = true, bool diffuse = true)
 {
     float3 h = normalize(v + l);
     float rSquared = roughness * roughness;
@@ -197,13 +199,19 @@ float3 PBRLight(float3 irradiance, float solidAngle, float3 l ,float3 albedo, fl
     float3 F0 = lerp(g_MIN_F0, albedo, metalness);
 
     
-    float3 f_spec = min(D_GGX(rSquared, NoH) * solidAngle / (4 * NoV), 1.0f) * G_Smith(rSquared, NoV, NoL) * fresnel(F0, HoL);
-    float3 f_diff = (1 - metalness) / PI * solidAngle * NoL * albedo * (1 - fresnel(F0, NoL));
+    float3 f_spec = 0.0f;
+    if (specular)
+        f_spec = min(D_GGX(rSquared, NoH) * solidAngle / (4 * NoV), 1.0f) * G_Smith(rSquared, NoV, NoL) * fresnel(F0, HoL);
+    
+    float3 f_diff = 0.0f;
+    if(diffuse)
+        f_diff = (1 - metalness) / PI * solidAngle * NoL * albedo * (1 - fresnel(F0, NoL));
     
     return irradiance * (f_diff + f_spec);
 }
 
-float3 PBRLight(PointLight lightSource, float3 worldPosition, float3 albedo, float metalness, float roughness,float3 macroNormal, float3 microNormal, float3 v)
+float3 PBRLight(PointLight lightSource, float3 worldPosition, float3 albedo, float metalness, float roughness, float3 macroNormal, float3 microNormal, 
+               float3 v, bool specular = true, bool diffuse = true)
 {
     float3 relPosition = lightSource.position - worldPosition;
     float3 lightDir = normalize(relPosition);
@@ -228,20 +236,26 @@ float3 PBRLight(PointLight lightSource, float3 worldPosition, float3 albedo, flo
 
     SphereMaxNoH(NoV, NoL, VoL, sinAngular, cosAnglular, true, NoH, NoV);
     
-    float3 f_spec = min(D_GGX(rSquared, NoH) * solidAngle / (4 * NoV), 1.0f) * G_Smith(rSquared, NoV, NoL) * fresnel(F0, HoL);
-    float3 f_diff = (1 - metalness) / PI * solidAngle * NoL * albedo * (1 - fresnel(F0, NoL));
+    float3 f_spec = 0.0f;
+    if(specular)
+        f_spec = min(D_GGX(rSquared, NoH) * solidAngle / (4 * NoV), 1.0f) * G_Smith(rSquared, NoV, NoL) * fresnel(F0, HoL);
+    
+    float3 f_diff = 0.0f;
+    if (diffuse)
+        f_diff = (1 - metalness) / PI * solidAngle * NoL * albedo * (1 - fresnel(F0, NoL));
     
 
     return lightSource.color * (f_diff + f_spec) * horizonFalloffFactor(microNormal, worldPosition, lightSource.position, lightSource.radius) *
     horizonFalloffFactor(macroNormal, worldPosition, lightSource.position, lightSource.radius);
 }
 
-float3 FlashLight(SpotLight flashLight,float3 albedo, float metalness, float roughness, float3 normal, float3 position, float3 cameraPosition)
+float3 FlashLight(SpotLight flashLight,float3 albedo, float metalness, float roughness, float3 normal, float3 position, float3 cameraPosition, bool specular, bool diffuse)
 {
     float3 directionToLight = flashLight.position - position;
     float3 view = normalize(cameraPosition - position);
     float solidAngle = SolidAngle(flashLight.radiusOfCone, dot(directionToLight, directionToLight));
-    float3 finalColor = SpotLightCuttOffFactor(flashLight, position, cameraPosition) * PBRLight(flashLight.color, solidAngle, normalize(directionToLight), albedo, metalness, roughness, normal, view);
+    float3 finalColor = SpotLightCuttOffFactor(flashLight, position, cameraPosition) * PBRLight(flashLight.color, solidAngle, normalize(directionToLight), albedo, 
+                                                                                                metalness, roughness, normal, view, specular, diffuse);
     float4 proj = mul(float4(position, 1.0f), lightViewProjection);
     float2 uv = (proj.xy) / proj.w;
     float3 mask = flashlighTexture.Sample(samplerstateFlash, uv * 0.5 + 0.5).rgb;

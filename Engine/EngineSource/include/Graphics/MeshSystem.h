@@ -90,6 +90,33 @@ namespace Engine
 
 		OpaqueInstances() { meshData.create(); materialData.create(); }
 
+		std::vector<I> getInstanceByTransformId(uint32_t transformId)
+		{
+			std::vector<I*> modelInstanes;
+
+			for (size_t i = 0; i < perModel.size(); i++)
+			{
+				for (uint32_t meshIndex = 0; meshIndex < perModel[i].perMesh.size(); ++meshIndex)
+				{
+					const Mesh& mesh = perModel[i].model->m_meshes[meshIndex];
+
+					for (size_t j = 0; j < perModel[i].perMesh[meshIndex].perMaterial.size(); j++)
+					{
+						auto& instances = perModel[i].perMesh[meshIndex].perMaterial[j].instances;
+
+						uint32_t numModelInstances = (uint32_t)instances.size();
+						for (uint32_t index = 0; index < numModelInstances; ++index)
+						{
+							if (transformId == instances[index].transformsId)
+								modelInstanes.pushback(&instances[i].instanceData);
+						}
+					}
+				}
+			}
+
+			return transformId;
+		}
+
 		uint32_t intersect(const ray& r, hitInfo& hInfo)
 		{
 			uint32_t transformId = -1;
@@ -347,6 +374,22 @@ namespace Engine
 			vec3 emmisiveColor;
 		};
 
+		struct PBRInstance
+		{
+			int isSelected;
+			int shouldOverWriteMaterial;
+			float roughness;
+			float metalness;
+		};
+
+		struct EmmisiveMaterial
+		{
+			vec4 padding;
+			bool operator==(const EmmisiveMaterial& other) const
+			{
+				return true;
+			}
+		};
 		OpaqueInstances<Instance, Materials::HologramMaterial> hologramGroup;
 		OpaqueInstances<Instance, Materials::NormVisMaterial> normVisGroup;
 		OpaqueInstances<Instance, Materials::TextureMaterial> textureGroup;

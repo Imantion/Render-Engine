@@ -166,11 +166,23 @@ void Engine::Renderer::setIBLLight(std::shared_ptr<Texture> diffuse, std::shared
 	specularIBL = specular;
 	reflectanceIBL = reflectance;
 	isIBLLighOn = true;
+	perFrameData.IBL = true;
 }
 
 void Engine::Renderer::setIBLLghtState(bool state)
 {
 	isIBLLighOn = state;
+	perFrameData.IBL = state;
+}
+
+void Engine::Renderer::setDiffuseState(bool state)
+{
+	perFrameData.diffuse = state;
+}
+
+void Engine::Renderer::setSpecularState(bool state)
+{
+	perFrameData.specular = state;
 }
 
 Engine::Renderer::Renderer() :
