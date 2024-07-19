@@ -126,6 +126,26 @@ Engine::SpotLight& Engine::LightSystem::GetSpotLight(uint32_t index)
     return m_spotLights[index];
 }
 
+Engine::SpotLight* Engine::LightSystem::GetSpotLightByTransformId(uint32_t index)
+{
+    for (size_t i = 0; i < m_spotLights.size(); i++)
+    {
+        if (m_spotLights[i].bindedObjectId == index)
+            return &m_spotLights[i];
+    }
+    return nullptr;
+}
+
+Engine::PointLight* Engine::LightSystem::GetPointLightByTransformId(uint32_t index)
+{
+    for (size_t i = 0; i < m_pointLights.size(); i++)
+    {
+        if (m_pointLights[i].bindedObjectId == index)
+            return &m_pointLights[i];
+    }
+    return nullptr;
+}
+
 void Engine::LightSystem::UpdateLightsBuffer()
 {
 

@@ -119,7 +119,7 @@
     <ClCompile Include="EngineSource\source\Graphics\PostProcess.cpp">
       <Filter>Source\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="EngineSource\include\Graphics\ReflectionCapture.cpp">
+    <ClCompile Include="EngineSource\source\Graphics\ReflectionCapture.cpp">
       <Filter>Source\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="EngineSource\source\Graphics\TransformSystem.cpp">

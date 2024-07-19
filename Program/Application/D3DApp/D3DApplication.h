@@ -57,5 +57,11 @@ private:
 		Drag,
 		Select
 	} objectInteractions = Drag;
+
+	enum SelectedObject
+	{
+		Opaque,
+		Emmisive
+	} selectedObject;
 };
 

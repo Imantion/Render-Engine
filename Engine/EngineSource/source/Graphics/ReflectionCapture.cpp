@@ -1,11 +1,11 @@
-#include "ReflectionCapture.h"
+#include "Graphics/ReflectionCapture.h"
 #include "Math/vec.h"
 #include "Math/matrix.h"
 #include "Math/math.h"
 #include "DirectXTex.h"
-#include "Buffers.h"
-#include "ShaderManager.h"
-#include "TextureManager.h"
+#include "Graphics/Buffers.h"
+#include "Graphics/ShaderManager.h"
+#include "Graphics/TextureManager.h"
 
 #define BREAK __debugbreak();
 

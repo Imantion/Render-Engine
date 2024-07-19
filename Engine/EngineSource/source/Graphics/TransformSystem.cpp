@@ -44,7 +44,7 @@ std::vector<Engine::TransformSystem::transforms>& Engine::TransformSystem::GetMo
 
 void Engine::TransformSystem::SetModelPosition(uint32_t id, const std::vector<vec3>& position)
 {
-	auto transformations = m_transforms.at(id);
+	auto& transformations = m_transforms.at(id);
 
 	DEV_ASSERT(!(transformations.size() != position.size()))
 
@@ -59,9 +59,20 @@ void Engine::TransformSystem::SetModelMeshPosition(uint32_t id, uint32_t meshInd
 	reinterpret_cast<vec3&>(*m_transforms.at(id)[meshIndex].modelToWold[3]) = position;
 }
 
+void Engine::TransformSystem::ScaleModelTransform(uint32_t id, float scale)
+{
+	auto& transformations = m_transforms.at(id);
+	for (size_t i = 0; i < transformations.size(); i++)
+	{
+		transformations[i].modelToWold[0][0] *= scale;
+		transformations[i].modelToWold[1][1] *= scale;
+		transformations[i].modelToWold[2][2] *= scale;
+	}
+}
+
 void Engine::TransformSystem::TranslateModel(uint32_t id, vec3 position)
 {
-	auto transformations = m_transforms.at(id);
+	auto& transformations = m_transforms.at(id);
 
 	for (size_t i = 0; i < transformations.size(); i++)
 	{

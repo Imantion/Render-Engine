@@ -10,8 +10,14 @@ namespace Engine
 	public:
 
 		virtual void update(void* instances, uint32_t size) = 0;
+		virtual void update(void* instance) = 0;
+
+		uint32_t getTransformId() { return m_transformId; }
 
 		virtual ~ISelected() = default;
+
+	protected:
+		uint32_t m_transformId;
 	};
 
 	template <typename I> 
@@ -32,14 +38,26 @@ namespace Engine
 			MeshSystem::Init()->updateInstanceBuffers();
 		}
 
+		virtual void update(void* instances)
+		{
+			I* typedInstances = static_cast<I*>(instances);
+
+			for (size_t i = 0; i < m_instances.size(); i++)
+			{
+				*m_instances[i] = typedInstances[0];
+			}
+
+			MeshSystem::Init()->updateInstanceBuffers();
+		}
+
 	private:
 		std::vector<I*> m_instances;
-		uint32_t m_transformId;
 	};
 
 	template<typename I>
-	inline IInstanceSelected<I>::IInstanceSelected(uint32_t transformId, std::vector<I*>&& instances) : m_transformId(transformId)
+	inline IInstanceSelected<I>::IInstanceSelected(uint32_t transformId, std::vector<I*>&& instances)
 	{
+		m_transformId = transformId;
 		m_instances = instances;
 	}
 }

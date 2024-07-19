@@ -98,6 +98,8 @@ namespace Engine
 		void AddSpotLight(const SpotLight& spotLight);
 
 		SpotLight& GetSpotLight(uint32_t index);
+		SpotLight* GetSpotLightByTransformId(uint32_t index);
+		PointLight* GetPointLightByTransformId(uint32_t index);
 
 		void UpdateLightsBuffer();
 		void BindLigtsBuffer(UINT slot, UINT typeOfShader);

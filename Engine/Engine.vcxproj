@@ -154,7 +154,7 @@
     <ClCompile Include="..\imgui\imgui_draw.cpp" />
     <ClCompile Include="..\imgui\imgui_tables.cpp" />
     <ClCompile Include="..\imgui\imgui_widgets.cpp" />
-    <ClCompile Include="EngineSource\include\Graphics\ReflectionCapture.cpp" />
+    <ClCompile Include="EngineSource\source\Graphics\ReflectionCapture.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\LightSystem.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\PostProcess.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\DDSTextureLoader11.cpp" />

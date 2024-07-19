@@ -299,11 +299,20 @@ void D3DApplication::UpdateInput(float deltaTime)
 
 		Engine::hitInfo hInfo; hInfo.reset_parameter_t();
 		auto& opaqueGroup = Engine::MeshSystem::Init()->opaqueGroup;
-		uint32_t hitId = opaqueGroup.intersect(r, hInfo);
+		uint32_t opaqueHit = opaqueGroup.intersect(r, hInfo);
 
-		if (hitId != -1)
+		auto& emmisiveGroup = Engine::MeshSystem::Init()->emmisiveGroup;
+		uint32_t emmisiveHit = emmisiveGroup.intersect(r, hInfo);
+
+		if (emmisiveHit != -1)
 		{
-			selected = std::make_unique<Engine::IInstanceSelected<Engine::MeshSystem::PBRInstance>>(hitId, std::move(opaqueGroup.getInstanceByTransformId(hitId)));
+			selectedObject = Emmisive;
+			selected = std::make_unique<Engine::IInstanceSelected<Engine::MeshSystem::EmmisiveInstance>>(emmisiveHit, std::move(emmisiveGroup.getInstanceByTransformId(emmisiveHit)));
+		}
+		else if (opaqueHit != -1)
+		{
+			selectedObject = Opaque;
+			selected = std::make_unique<Engine::IInstanceSelected<Engine::MeshSystem::PBRInstance>>(opaqueHit, std::move(opaqueGroup.getInstanceByTransformId(opaqueHit)));
 		}
 	}
 	else if (selected && objectInteractions != Select)
@@ -400,14 +409,63 @@ void D3DApplication::GUI()
 				break;
 			case D3DApplication::Select:
 				ImGui::Text("Select Mode");
+				
 				if (selected)
 				{
-					ImGui::Checkbox("Overwrite Roughness and Metalness of texture", &overwrite);
-					ImGui::SliderFloat("Roughness", &roughness, 0.05f, 1.0f);
-					ImGui::SliderFloat("Metalness", &metalness, 0.05f, 1.0f);
+					switch (selectedObject)
+					{
+					case D3DApplication::Opaque:
+					{
+						ImGui::Checkbox("Overwrite Roughness and Metalness of texture", &overwrite);
+						if (overwrite)
+						{
+							roughness = roughness > 1.0f ? 1.0f : roughness;
+							metalness = metalness > 1.0f ? 1.0f : metalness;
+							ImGui::SliderFloat("Roughness", &roughness, 0.05f, 1.0f);
+							ImGui::SliderFloat("Metalness", &metalness, 0.05f, 1.0f);
+						}
+						else
+						{
+							ImGui::SliderFloat("Roughness", &roughness, 0.05f, 10.0f);
+							ImGui::SliderFloat("Metalness", &metalness, 0.05f, 10.0f);
+						}
 
-					auto instance = Engine::MeshSystem::PBRInstance{ true, overwrite, roughness, metalness };
-					selected->update((void*)&instance, 1.0f);
+						if (ImGui::Button("Reset"))
+						{
+							roughness = 1.0f;
+							metalness = 1.0f;
+							overwrite = false;
+						}
+
+						auto instance = Engine::MeshSystem::PBRInstance{ true, overwrite, roughness, metalness };
+						selected->update((void*)&instance);
+						break;
+					}
+					case D3DApplication::Emmisive:
+					{
+						Engine::PointLight* pl = Engine::LightSystem::Init()->GetPointLightByTransformId(selected->getTransformId());
+						float previousRadius = pl->radius;
+
+						ImGui::InputFloat("Radius", &pl->radius);
+						ImGui::InputFloat3("Color", (float*)&pl->color);
+
+						pl->radius = pl->radius > 0.0f ? pl->radius : 0.01f;
+
+						pl->color.x = pl->color.x >= 0.0f ? pl->color.x : 0.01f;
+						pl->color.y = pl->color.y >= 0.0f ? pl->color.y : 0.01f;
+						pl->color.z = pl->color.z >= 0.0f ? pl->color.z : 0.01f;
+
+						selected->update((void*)&pl->color);
+						if (previousRadius != pl->radius)
+						{
+							Engine::TransformSystem::Init()->ScaleModelTransform(selected->getTransformId(), pl->radius / previousRadius);
+						}
+					
+						break;
+					}
+					default:
+						break;
+					}
 				}
 				break;
 			default:
