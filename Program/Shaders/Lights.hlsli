@@ -16,6 +16,24 @@ static const int MAX_SL = MAX_SPOT_LIGHTS;
 static const int MAX_SL = 5;
 #endif
 
+#if MAX_AREA_LIGHTS
+static const int MAX_AL = MAX_AREA_LIGHTS;
+#else
+static const int MAX_AL = 1;
+#endif
+
+#if MAX_AREA_LIGHTS_VERTICES
+static const int MAX_AREA_VERT = MAX_AREA_LIGHTS_VERTICES;
+#else
+static const int MAX_AREA_VERT = 4;
+#endif
+
+#if MAX_AREA_LIGHTS_INDICES
+static const int MAX_AREA_IND = MAX_AREA_LIGHTS_INDICES;
+#else
+static const int MAX_AREA_IND = 4;
+#endif
+
 #define PI 3.141
 static const float g_MIN_F0 = 0.01;
 
@@ -53,8 +71,18 @@ struct SpotLight
     int bindedObjectId; // -1 means no object is bound
 };
 
+struct AreaLight
+{
+    float3 color;
+    uint verticesAmount;
+    float4 vertices[MAX_AREA_VERT];
+    uint boundedIndices[MAX_AREA_IND * 2];
+    uint indicesAmount;
+};
+
 cbuffer LightData : register(b3)
 {
+    AreaLight areaLights[MAX_AL];
     DirectionalLight directionalLights[MAX_DL];
     PointLight pointLights[MAX_PL];
     SpotLight spotLights[MAX_SL];
@@ -63,6 +91,7 @@ cbuffer LightData : register(b3)
     uint dlSize;
     uint plSize;
     uint slSize;
+    uint alSize;
 }
 
 float SpotLightCuttOffFactor(SpotLight spotLight, float3 position, float3 cameraPosition)
@@ -263,7 +292,76 @@ float3 FlashLight(SpotLight flashLight,float3 albedo, float metalness, float rou
     return finalColor * mask;
 }
 
+static const float LUT_SIZE = 64.0; // ltc_texture size
+static const float LUT_SCALE = (64.0 - 1.0) / 64.0;
+static const float LUT_BIAS = 0.5 / 64.0;
 
+float3 IntegrateEdge(float3 v1, float3 v2, float3 N)
+{
+    float x = dot(v1, v2);
+    float y = abs(x);
+    float a = 0.8543985 + (0.4965155 + 0.0145206 * y) * y;
+    float b = 3.4175940 + (4.1616724 + y) * y;
+    float v = a / b;
+    float theta_sintheta = (x > 0.0) ? v : 0.5 * rsqrt(max(1.0 - x * x, 1e-7)) - v;
+    return dot(cross(v1, v2) * theta_sintheta, N);
+}
 
+float3 LTC_Evaluate(float3 N, float3 V, float3 P, float3x3 Minv, float3 points[4], bool twoSided)
+{
+    // Construct orthonormal basis around N
+    float3 T1 = normalize(V - N * dot(V, N));
+    float3 T2 = cross(N, T1);
 
- 
+    // Rotate area light in (T1, T2, N) basis
+    Minv = mul(Minv, float3x3(T1, T2, N));
+
+    // Polygon (allocate 4 vertices for clipping)
+    float3 L[4];
+
+    // Transform polygon from LTC back to origin Do (cosine weighted)
+    L[0] = mul(Minv, (points[0] - P));
+    L[1] = mul(Minv, (points[1] - P));
+    L[2] = mul(Minv, (points[2] - P));
+    L[3] = mul(Minv, (points[3] - P));
+
+    // Use tabulated horizon-clipped sphere
+    // Check if the shading point is behind the light
+    float3 dir = points[0] - P; // LTC space
+    float3 lightNormal = cross(points[1] - points[0], points[3] - points[0]);
+    bool behind = (dot(dir, lightNormal) < 0.0);
+
+    // Cos weighted space
+    L[0] = normalize(L[0]);
+    L[1] = normalize(L[1]);
+    L[2] = normalize(L[2]);
+    L[3] = normalize(L[3]);
+
+    // Integrate
+    float3 vsum = float3(0.0, 0.0, 0.0);
+    vsum += IntegrateEdge(L[0], L[1], N);
+    vsum += IntegrateEdge(L[1], L[2], N);
+    vsum += IntegrateEdge(L[2], L[3], N);
+    vsum += IntegrateEdge(L[3], L[0], N);
+
+    // Form factor of the polygon in direction vsum
+    float len = length(vsum);
+
+    float z = vsum.z / len;
+    if (behind)
+        z = -z;
+
+    float2 uv = float2(z * 0.5f + 0.5f, len); // range [0, 1]
+    uv = uv * LUT_SCALE + LUT_BIAS;
+
+    //// Fetch the form factor for horizon clipping
+    //float scale = tex2D(LTC2, uv).w;
+
+    float sum = len;
+    if (!behind && !twoSided)
+        sum = 0.0;
+
+    // Outgoing radiance (solid angle) for the entire polygon
+    float3 Lo_i = float3(sum, sum, sum);
+    return Lo_i;
+}

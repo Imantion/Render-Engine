@@ -11,6 +11,10 @@ namespace Engine
 	#define MAX_SPOT_LIGHTS 10
 	#define MAX_POINT_LIGHTS 10
 	#define MAX_DIRECTIONAL_LIGHTS 1
+	#define MAX_AREA_LIGHTS 1
+	#define MAX_AREA_LIGHTS_VERTICES 4
+	#define MAX_AREA_LIGHTS_INDICES 4
+
 
 	class Texture;
 	class Model;
@@ -72,6 +76,71 @@ namespace Engine
 		int bindedObjectId = -1;
 	};
 
+	class AreaLight
+	{
+	public:
+		AreaLight() = default;
+		AreaLight(const vec3& color, const vec3* vertices, uint32_t vAmount)
+		{
+			this->color = color;
+			this->verticesAmount = vAmount;
+			this->indicesAmount = vAmount;
+
+			for (size_t i = 0; i < vAmount; i++)
+			{
+				this->vertices[i] = vec4(vertices[i], 0.0f);
+				this->boundedIndices[i] = std::make_pair<uint32_t, uint32_t>(i, (i + 1) % 3);
+			}
+
+		}
+		AreaLight(const vec3* vertices, uint32_t vAmount, const std::pair<uint32_t, uint32_t>* boundedIndices, uint32_t iAmount)
+		{
+			this->color = color;
+			this->verticesAmount = vAmount;
+			this->indicesAmount = iAmount;
+
+			for (size_t i = 0; i < vAmount; i++)
+			{
+				this->vertices[i] = vec4(vertices[i],0.0f);
+			}
+
+			for (size_t i = 0; i < iAmount; i++)
+			{
+				this->boundedIndices[i] = boundedIndices[i];
+			}
+		}
+
+		AreaLight(const AreaLight& other)
+		{
+			color = other.color;
+			verticesAmount = other.verticesAmount;
+			indicesAmount = other.indicesAmount;
+			bindedTransform = other.bindedTransform;
+
+			for (size_t i = 0; i < verticesAmount; i++)
+			{
+				vertices[i] = other.vertices[i];
+			}
+
+			for (size_t i = 0; i < indicesAmount; i++)
+			{
+				boundedIndices[i] = other.boundedIndices[i];
+			}
+
+		}
+
+		void bindTransform(uint32_t id) { bindedTransform = id; }
+
+	public:
+		vec3 color;
+		uint32_t verticesAmount;
+		vec4 vertices[MAX_AREA_LIGHTS_VERTICES];
+		std::pair<uint32_t,uint32_t> boundedIndices[MAX_AREA_LIGHTS_INDICES];
+		uint32_t indicesAmount;
+		uint32_t bindedTransform;
+		float padding[2];
+	};
+
 
 	class LightSystem
 	{
@@ -96,6 +165,8 @@ namespace Engine
 		uint32_t AddSpotLight(const vec3& irradiance, float radius, float distance, const vec3& pos, const vec3& direction, float cutoffAngle, std::shared_ptr<Model> model);
 		void AddSpotLight(const vec3& irradiance, float radius, float distance, const vec3& pos, const vec3& direction, float cutoffAngle, int objectToBindID);
 		void AddSpotLight(const SpotLight& spotLight);
+
+		void AddAreaLight(const AreaLight& areaLight);
 
 		SpotLight& GetSpotLight(uint32_t index);
 		SpotLight* GetSpotLightByTransformId(uint32_t index);
@@ -137,10 +208,12 @@ namespace Engine
 		std::vector <DirectionalLight> m_directionalLights;
 		std::vector <PointLight> m_pointLights;
 		std::vector <SpotLight> m_spotLights;
+		std::vector <AreaLight> m_areaLight;
 		std::vector <mat4> m_spotLigtsViewProjection;
 
 		struct LightsData
 		{
+			AreaLight areaLights[MAX_AREA_LIGHTS];
 			DirectionalLight directionalLights[MAX_DIRECTIONAL_LIGHTS];
 			PointLight pointLights[MAX_POINT_LIGHTS];
 			SpotLight spotLights[MAX_SPOT_LIGHTS];
@@ -149,7 +222,7 @@ namespace Engine
 			UINT dlSize = 0;
 			UINT plSize = 0;
 			UINT spSize = 0;
-			UINT padding;
+			UINT alSize = 0;
 		};
 
 		ConstBuffer<LightsData> m_lighsBuffer;

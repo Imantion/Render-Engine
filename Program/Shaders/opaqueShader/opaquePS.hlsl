@@ -11,6 +11,8 @@ Texture2D normalTexture : register(t5);
 TextureCube diffuseIBL : register(t6);
 TextureCube specIrrIBL : register(t7);
 Texture2D reflectanceIBL : register(t8);
+Texture2D LTCmat : register(t9);
+Texture2D LTCamp : register(t10);
 cbuffer MaterialData : register(b2)
 {
     float material_flags;
@@ -31,6 +33,14 @@ struct PSInput
     float metalness : METALNESS;
 };
 
+// Define the four corners of a rectangular area light
+static const float3 areaLightPoints[4] =
+{
+    float3(-1.0, 1.0, 0.0), // Top left
+    float3(1.0, 1.0, 0.0), // Top right
+    float3(1.0, -1.0, 0.0), // Bottom right
+    float3(-1.0, -1.0, 0.0) // Bottom left
+};
 
 
 float4 main(PSInput input) : SV_TARGET
@@ -50,7 +60,7 @@ float4 main(PSInput input) : SV_TARGET
     
     if(input.isSelected)
     {
-        if(input.shouldOverWriteMaterial)
+        if (input.shouldOverWriteMaterial)
         {
             metalness = input.metalness;
             roughness = input.roughness;
@@ -82,13 +92,41 @@ float4 main(PSInput input) : SV_TARGET
     {
         finalColor += PBRLight(directionalLights[i].color, directionalLights[i].solidAngle, -directionalLights[i].direction, albedo, metalness, roughness, normal, v, specular, diffuse);
     }
+    
+    float dotNV = clamp(dot(normal, v), 0.0f, 1.0f);
+
+    // use roughness and sqrt(1-cos_theta) to sample M_texture
+    float2 uv = float2(roughness, sqrt(1.0f - dotNV));
+    uv = uv * LUT_SCALE + LUT_BIAS;
+
+    float4 t1 = LTCmat.Sample(g_linearWrap, uv);
+    float t2 = LTCamp.Sample(g_linearWrap, uv);
+    
+    float3x3 Minv = float3x3(
+    float3(t1.x, 0, t1.y),
+    float3(0, 1, 0),
+    float3(t1.z, 0, t1.w)
+    );
+    
+    float3x3 Identity =
+    {
+        { 1, 0, 0, },
+        { 0, 1, 0, },
+        { 0, 0, 1 },
+    };
+    
+    float3 d = LTC_Evaluate(normal, v, input.worldPos, Identity, areaLightPoints, true);
+    float3 s = LTC_Evaluate(normal, v, input.worldPos, Minv, areaLightPoints, true);
+    
+    finalColor += (d * albedo * (1 - metalness) + s * 0.5);
+    
     finalColor += FlashLight(flashLight, albedo, metalness, roughness, normal, input.worldPos, g_cameraPosition, specular, diffuse);
    
     float2 refl = reflectanceIBL.Sample(g_linearWrap, float2(saturate(dot(normal, v)), roughness));
     float3 F0 = lerp(0.4f, albedo, metalness);
     
-    if(IBL)
-    finalColor += albedo * diffuseIBL.Sample(g_linearWrap, normal).rgb * (1 - metalness) + specIrrIBL.SampleLevel(g_linearWrap, normal, MAX_MIP * roughness).rgb * (refl.r * F0 + refl.g);
+    if (IBL)
+        finalColor += albedo * diffuseIBL.Sample(g_linearWrap, normal).rgb * (1 - metalness) + specIrrIBL.SampleLevel(g_linearWrap, normal, MAX_MIP * roughness).rgb * (refl.r * F0 + refl.g);
     
     
     return float4(finalColor, 1.0f);
