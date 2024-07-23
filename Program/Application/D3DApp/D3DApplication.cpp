@@ -198,7 +198,7 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 
 
 
-	model = Engine::ModelManager::GetInstance()->loadModel("Models\\cube.obj");
+	model = Engine::ModelManager::GetInstance()->loadModel("Models\\cube.obj", true);
 	
 	Engine::MeshSystem::TextureMaterial crateMaterial;
 	crateMaterial = Engine::MeshSystem::TextureMaterial{crateFirst,crateRoughness,crateMetallic, crateNormal};
