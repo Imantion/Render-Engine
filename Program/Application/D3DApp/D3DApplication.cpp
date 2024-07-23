@@ -304,7 +304,7 @@ void D3DApplication::UpdateInput(float deltaTime)
 		auto& emmisiveGroup = Engine::MeshSystem::Init()->emmisiveGroup;
 		uint32_t emmisiveHit = emmisiveGroup.intersect(r, hInfo);
 
-		if (emmisiveHit != -1)
+		if (emmisiveHit != -1 && Engine::LightSystem::Init()->GetPointLightByTransformId(emmisiveHit))
 		{
 			selectedObject = Emmisive;
 			selected = std::make_unique<Engine::IInstanceSelected<Engine::MeshSystem::EmmisiveInstance>>(emmisiveHit, std::move(emmisiveGroup.getInstanceByTransformId(emmisiveHit)));
@@ -444,6 +444,7 @@ void D3DApplication::GUI()
 					case D3DApplication::Emmisive:
 					{
 						Engine::PointLight* pl = Engine::LightSystem::Init()->GetPointLightByTransformId(selected->getTransformId());
+
 						float previousRadius = pl->radius;
 
 						ImGui::InputFloat("Radius", &pl->radius);

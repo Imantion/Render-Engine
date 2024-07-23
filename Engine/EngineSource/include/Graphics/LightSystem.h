@@ -232,6 +232,9 @@ namespace Engine
 		};
 
 		ConstBuffer<LightsData> m_lighsBuffer;
+
+		std::shared_ptr<Texture> m_LTCmat;
+		std::shared_ptr<Texture> m_LTCamp;
 	};
 
 

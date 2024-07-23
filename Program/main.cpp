@@ -147,10 +147,6 @@ int main(int argc, char* argv[])
 	
 	D3DApplication app(800, 400, WindowProc);
 
-	auto test = Engine::TextureManager::Init()->LoadFromFile("LTC", L"Textures\\ltc_mat.dds");
-	test->BindTexture(9u);
-	test = Engine::TextureManager::Init()->LoadFromFile("LTCamp", L"Textures\\ltc_amp.dds");
-	test->BindTexture(10u);
 	while (!app.isClosed())
 	{
 

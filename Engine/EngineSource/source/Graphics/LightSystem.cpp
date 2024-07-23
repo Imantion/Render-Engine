@@ -251,12 +251,17 @@ void Engine::LightSystem::UpdateLightsBuffer()
 
 void Engine::LightSystem::BindLigtsBuffer(UINT slot, UINT typeOfShader)
 {
+    m_LTCmat->BindTexture(9u);
+    m_LTCamp->BindTexture(10u);
     m_lighsBuffer.bind(slot, typeOfShader);
 }
 
 Engine::LightSystem::LightSystem()
 {
     m_lighsBuffer.create();
+
+    m_LTCmat = Engine::TextureManager::Init()->LoadFromFile("LTCmat", L"Textures\\ltc_mat.dds");
+    m_LTCamp = Engine::TextureManager::Init()->LoadFromFile("LTCamp", L"Textures\\ltc_amp.dds");
 }
 
 
