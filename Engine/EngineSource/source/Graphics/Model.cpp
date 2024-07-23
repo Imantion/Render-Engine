@@ -314,3 +314,89 @@ void Engine::ModelManager::initUnitSphere()
 
 	AddModel("UNIT_SPHERE", std::move(model));
 }
+void Engine::ModelManager::initUnitQuad()
+{
+	const uint32_t VERTS_PER_QUAD = 8; // 4 vertices for the front face + 4 for the back face
+	const uint32_t TRIS_PER_QUAD = 4; // 2 triangles for the front face + 2 for the back face
+
+	Engine::Model model;
+	model.m_ranges.resize(1);
+	model.m_ranges[0].indexOffset = 0;
+	model.m_ranges[0].vertexOffset = 0;
+	model.m_ranges[0].vertexNum = VERTS_PER_QUAD;
+	model.m_ranges[0].indexNum = TRIS_PER_QUAD * 3;
+
+	model.name = "UNIT_QUAD";
+	model.box = Engine::Box::unit();
+	model.m_meshes.emplace_back();
+	Engine::Mesh& mesh = model.m_meshes.back();
+	mesh.name = "UNIT_QUAD";
+	mesh.box = model.box;
+	mesh.instances = { Engine::mat4::Identity() };
+	mesh.invInstances = { Engine::mat4::Identity() };
+
+	mesh.vertices.resize(VERTS_PER_QUAD);
+	Mesh::vertex* vertex = mesh.vertices.data();
+
+	// Define the vertices of the quad
+	// Front face
+	vertex[0] = Engine::Mesh::vertex::initial();
+	vertex[0].pos = Engine::vec3(-1.0f, -1.0f, 0.0f);
+	vertex[0].normal = Engine::vec3(0.0f, 0.0f, 1.0f);
+
+	vertex[1] = Engine::Mesh::vertex::initial();
+	vertex[1].pos = Engine::vec3(1.0f, -1.0f, 0.0f);
+	vertex[1].normal = Engine::vec3(0.0f, 0.0f, 1.0f);
+
+	vertex[2] = Engine::Mesh::vertex::initial();
+	vertex[2].pos = Engine::vec3(1.0f, 1.0f, 0.0f);
+	vertex[2].normal = Engine::vec3(0.0f, 0.0f, 1.0f);
+
+	vertex[3] = Engine::Mesh::vertex::initial();
+	vertex[3].pos = Engine::vec3(-1.0f, 1.0f, 0.0f);
+	vertex[3].normal = Engine::vec3(0.0f, 0.0f, 1.0f);
+
+	// Back face
+	vertex[4] = Engine::Mesh::vertex::initial();
+	vertex[4].pos = Engine::vec3(-1.0f, -1.0f, 0.0f);
+	vertex[4].normal = Engine::vec3(0.0f, 0.0f, -1.0f);
+
+	vertex[5] = Engine::Mesh::vertex::initial();
+	vertex[5].pos = Engine::vec3(1.0f, -1.0f, 0.0f);
+	vertex[5].normal = Engine::vec3(0.0f, 0.0f, -1.0f);
+
+	vertex[6] = Engine::Mesh::vertex::initial();
+	vertex[6].pos = Engine::vec3(1.0f, 1.0f, 0.0f);
+	vertex[6].normal = Engine::vec3(0.0f, 0.0f, -1.0f);
+
+	vertex[7] = Engine::Mesh::vertex::initial();
+	vertex[7].pos = Engine::vec3(-1.0f, 1.0f, 0.0f);
+	vertex[7].normal = Engine::vec3(0.0f, 0.0f, -1.0f);
+
+	// Define the indices for the triangles that make up the quad
+	mesh.triangles.resize(TRIS_PER_QUAD);
+	auto* triangle = mesh.triangles.data();
+
+	// Front face triangles
+	triangle[0].indices[0] = 0;
+	triangle[0].indices[1] = 1;
+	triangle[0].indices[2] = 2;
+
+	triangle[1].indices[0] = 2;
+	triangle[1].indices[1] = 3;
+	triangle[1].indices[2] = 0;
+
+	// Back face triangles
+	triangle[2].indices[0] = 4;
+	triangle[2].indices[1] = 6;
+	triangle[2].indices[2] = 5;
+
+	triangle[3].indices[0] = 6;
+	triangle[3].indices[1] = 4;
+	triangle[3].indices[2] = 7;
+
+	mesh.updateOctree();
+
+	AddModel("UNIT_QUAD", std::move(model));
+}
+

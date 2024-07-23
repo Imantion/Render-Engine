@@ -241,6 +241,8 @@ void Engine::LightSystem::UpdateLightsBuffer()
         }
 
         bufferData.areaLights[i].color = m_areaLight[i].color;
+        bufferData.areaLights[i].intensity = m_areaLight[i].intensity;
+        bufferData.areaLights[i].bindedTransform = m_areaLight[i].bindedTransform;
     }
 
 

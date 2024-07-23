@@ -84,6 +84,7 @@ struct AreaLight
     float3 vertices[MAX_AREA_VERT];
     edge boundedIndices[MAX_AREA_IND];
     uint indicesAmount;
+    float intensity;
 };
 
 cbuffer LightData : register(b3)
@@ -223,7 +224,7 @@ float SolidAngle(float radius, float distanceSquared)
 }
 
 
-float3 PBRLight(float3 irradiance, float solidAngle, float3 l ,float3 albedo, float metalness, float roughness, float3 n, float3 v, bool specular = true, bool diffuse = true)
+float3 PBRLight(float3 irradiance, float solidAngle, float3 l, float3 albedo, float metalness, float roughness, float3 n, float3 v, bool specular = true, bool diffuse = true)
 {
     float3 h = normalize(v + l);
     float rSquared = roughness * roughness;
@@ -239,13 +240,13 @@ float3 PBRLight(float3 irradiance, float solidAngle, float3 l ,float3 albedo, fl
         f_spec = min(D_GGX(rSquared, NoH) * solidAngle / (4 * NoV), 1.0f) * G_Smith(rSquared, NoV, NoL) * fresnel(F0, HoL);
     
     float3 f_diff = 0.0f;
-    if(diffuse)
+    if (diffuse)
         f_diff = (1 - metalness) / PI * solidAngle * NoL * albedo * (1 - fresnel(F0, NoL));
     
     return irradiance * (f_diff + f_spec);
 }
 
-float3 PBRLight(PointLight lightSource, float3 worldPosition, float3 albedo, float metalness, float roughness, float3 macroNormal, float3 microNormal, 
+float3 PBRLight(PointLight lightSource, float3 worldPosition, float3 albedo, float metalness, float roughness, float3 macroNormal, float3 microNormal,
                float3 v, bool specular = true, bool diffuse = true)
 {
     float3 relPosition = lightSource.position - worldPosition;
@@ -272,7 +273,7 @@ float3 PBRLight(PointLight lightSource, float3 worldPosition, float3 albedo, flo
     SphereMaxNoH(NoV, NoL, VoL, sinAngular, cosAnglular, true, NoH, NoV);
     
     float3 f_spec = 0.0f;
-    if(specular)
+    if (specular)
         f_spec = min(D_GGX(rSquared, NoH) * solidAngle / (4 * NoV), 1.0f) * G_Smith(rSquared, NoV, NoL) * fresnel(F0, HoL);
     
     float3 f_diff = 0.0f;
@@ -284,12 +285,12 @@ float3 PBRLight(PointLight lightSource, float3 worldPosition, float3 albedo, flo
     horizonFalloffFactor(macroNormal, worldPosition, lightSource.position, lightSource.radius);
 }
 
-float3 FlashLight(SpotLight flashLight,float3 albedo, float metalness, float roughness, float3 normal, float3 position, float3 cameraPosition, bool specular, bool diffuse)
+float3 FlashLight(SpotLight flashLight, float3 albedo, float metalness, float roughness, float3 normal, float3 position, float3 cameraPosition, bool specular, bool diffuse)
 {
     float3 directionToLight = flashLight.position - position;
     float3 view = normalize(cameraPosition - position);
     float solidAngle = SolidAngle(flashLight.radiusOfCone, dot(directionToLight, directionToLight));
-    float3 finalColor = SpotLightCuttOffFactor(flashLight, position, cameraPosition) * PBRLight(flashLight.color, solidAngle, normalize(directionToLight), albedo, 
+    float3 finalColor = SpotLightCuttOffFactor(flashLight, position, cameraPosition) * PBRLight(flashLight.color, solidAngle, normalize(directionToLight), albedo,
                                                                                                 metalness, roughness, normal, view, specular, diffuse);
     float4 proj = mul(float4(position, 1.0f), lightViewProjection);
     float2 uv = (proj.xy) / proj.w;
@@ -313,7 +314,7 @@ float3 IntegrateEdge(float3 v1, float3 v2, float3 N)
     return dot(cross(v1, v2) * theta_sintheta, N);
 }
 
-float3 LTC_Evaluate(float3 N, float3 V, float3 P, float3x3 Minv, float3 points[4], bool twoSided)
+float3 LTC_Evaluate(float3 N, float3 V, float3 P, float3x3 Minv, AreaLight areaLight, bool twoSided)
 {
     // Construct orthonormal basis around N
     float3 T1 = normalize(V - N * dot(V, N));
@@ -323,32 +324,30 @@ float3 LTC_Evaluate(float3 N, float3 V, float3 P, float3x3 Minv, float3 points[4
     Minv = mul(Minv, float3x3(T1, T2, N));
 
     // Polygon (allocate 4 vertices for clipping)
-    float3 L[4];
+    float3 L[MAX_AREA_VERT];
 
-    // Transform polygon from LTC back to origin Do (cosine weighted)
-    L[0] = mul(Minv, (points[0] - P));
-    L[1] = mul(Minv, (points[1] - P));
-    L[2] = mul(Minv, (points[2] - P));
-    L[3] = mul(Minv, (points[3] - P));
+    for (int i = 0; i < areaLight.verticesAmount; i++)
+    {
+         // Transform polygon from LTC back to origin Do (cosine weighted)
+        L[i] = normalize(mul(Minv, (areaLight.vertices[i] - P)));
+    }
 
     // Use tabulated horizon-clipped sphere
     // Check if the shading point is behind the light
-    float3 dir = points[0] - P; // LTC space
-    float3 lightNormal = cross(points[1] - points[0], points[3] - points[0]);
+    float3 dir = areaLight.vertices[0] - P; // LTC space
+    float3 lightNormal = cross(areaLight.vertices[1] - areaLight.vertices[0], areaLight.vertices[2] - areaLight.vertices[1]);
     bool behind = (dot(dir, lightNormal) < 0.0);
 
-    // Cos weighted space
-    L[0] = normalize(L[0]);
-    L[1] = normalize(L[1]);
-    L[2] = normalize(L[2]);
-    L[3] = normalize(L[3]);
+
 
     // Integrate
     float3 vsum = float3(0.0, 0.0, 0.0);
-    vsum += IntegrateEdge(L[0], L[1], N);
-    vsum += IntegrateEdge(L[1], L[2], N);
-    vsum += IntegrateEdge(L[2], L[3], N);
-    vsum += IntegrateEdge(L[3], L[0], N);
+    
+    for (i = 0; i < areaLight.indicesAmount; i++)
+    {
+        vsum += IntegrateEdge(L[areaLight.boundedIndices[i].v1], L[areaLight.boundedIndices[i].v2], N);
+
+    }
 
     // Form factor of the polygon in direction vsum
     float len = length(vsum);
@@ -357,15 +356,10 @@ float3 LTC_Evaluate(float3 N, float3 V, float3 P, float3x3 Minv, float3 points[4
     if (behind)
         z = -z;
 
-    float2 uv = float2(z * 0.5f + 0.5f, len); // range [0, 1]
-    uv = uv * LUT_SCALE + LUT_BIAS;
-
-    //// Fetch the form factor for horizon clipping
-    //float scale = tex2D(LTC2, uv).w;
-
     float sum = len;
-    if (!behind && !twoSided)
+    if (!behind && !twoSided || dot(N, dir) < 0)
         sum = 0.0;
+    
 
     // Outgoing radiance (solid angle) for the entire polygon
     float3 Lo_i = float3(sum, sum, sum);

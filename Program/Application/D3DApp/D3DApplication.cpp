@@ -567,11 +567,19 @@ void D3DApplication::InitLights()
 	Engine::DirectionalLight directionalLight(Engine::vec3(0.707f, -0.707f, 0.0f), Engine::vec3(0.84f * 10.0f, 0.86264f * 10.0f, 0.89019f * 10.0f), 0.15f);
 	Engine::LightSystem::Init()->AddDirectionalLight(directionalLight);
 
+	Engine::TransformSystem::transforms inst = { Engine::transformMatrix(Engine::vec3(0.0f, -5.0f, -1.0f), Engine::vec3(0.0f, 0.0f, 1.0f), Engine::vec3(1.0f, 0.0f, 0.0f), Engine::vec3(0.0f, 1.0f, 0.0f)) };
+	Engine::vec3 vert[4] = { Engine::vec3(-1.0f, 1.0f, 0.0f),  Engine::vec3(1.0f, 1.0f, 0.0f), Engine::vec3(1.0f, -1.0f, 0.0f), Engine::vec3(-1.0f, -1.0f, 0.0f) };
+	Engine::AreaLight areaLight(Engine::vec3(0.0f, .3f, 0.7f), vert, 4, 10.0f);
+	Engine::ModelManager::GetInstance()->initUnitSphere();
+	changepos(inst, Engine::vec3(-2.0f, 0.0f, 7.0f));
+	areaLight.bindedTransform =  Engine::MeshSystem::Init()->emmisiveGroup.addModel(model, Engine::MeshSystem::EmmisiveMaterial{}, inst, Engine::MeshSystem::EmmisiveInstance{ areaLight.color });
+	Engine::LightSystem::Init()->AddAreaLight(areaLight);
+
 	Engine::LightSystem::Init()->UpdateLightsBuffer();
 
 	auto diffuse = Engine::TextureManager::Init()->LoadFromFile("IBLd", L"Textures\\PreCalculatedIBL\\diffuse.dds");
 	auto specular = Engine::TextureManager::Init()->LoadFromFile("IBLs", L"Textures\\PreCalculatedIBL\\specIrrad.dds");
-	auto reflectance = Engine::TextureManager::Init()->LoadFromFile("IBLr", L"Textures\\PreCalculatedIBL\\reflectance.dds");
+	auto reflectance = Engine::TextureManager::Init()->LoadFromFile("IBLr", L"Textures\\PreCalculatedIBL\\reflectance.dds");	
 
 	Engine::Renderer::GetInstance()->setIBLLight(diffuse, specular, reflectance);
 }

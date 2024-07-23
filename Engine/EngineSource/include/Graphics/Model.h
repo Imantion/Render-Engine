@@ -62,6 +62,7 @@ namespace Engine
 		static ModelManager* GetInstance() { return pInstance; }
 
 		void initUnitSphere();
+		void initUnitQuad();
 
 		std::shared_ptr<Model> AddModel(std::string name, Model&& model);
 		std::shared_ptr<Model> loadModel(std::string path, bool flipBT = false);

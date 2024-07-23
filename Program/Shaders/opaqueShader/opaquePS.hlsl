@@ -115,10 +115,13 @@ float4 main(PSInput input) : SV_TARGET
         { 0, 0, 1 },
     };
     
-    float3 d = LTC_Evaluate(normal, v, input.worldPos, Identity, areaLightPoints, true);
-    float3 s = LTC_Evaluate(normal, v, input.worldPos, Minv, areaLightPoints, true);
-    
-    finalColor += (d * albedo * (1 - metalness) + s * 0.5);
+    for (i = 0; i < alSize; i++)
+    {
+        float3 d = LTC_Evaluate(normal, v, input.worldPos, Identity, areaLights[i], true);
+        float3 s = LTC_Evaluate(normal, v, input.worldPos, Minv, areaLights[i], true);
+        finalColor += areaLights[i].color * (d * albedo * (1 - metalness) + s) * (t2.r * areaLights[i].intensity);
+    }
+
     
     finalColor += FlashLight(flashLight, albedo, metalness, roughness, normal, input.worldPos, g_cameraPosition, specular, diffuse);
    

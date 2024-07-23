@@ -80,13 +80,14 @@ namespace Engine
 	{
 	public:
 		AreaLight() = default;
-		AreaLight(const vec3& color, const vec3* vertices, uint32_t vAmount)
+		AreaLight(const vec3& color, const vec3* vertices, uint32_t vAmount, float intensity)
 		{
 			this->color = color;
 			this->verticesAmount = vAmount;
 			this->indicesAmount = vAmount;
+			this->intensity = intensity;
 
-			for (size_t i = 0; i < vAmount; i++)
+			for (uint32_t i = 0; i < vAmount; i++)
 			{
 				this->vertices[i] = vec4(vertices[i], 1.0f);
 				this->edges[i].x = i;
@@ -94,18 +95,19 @@ namespace Engine
 			}
 
 		}
-		AreaLight(const vec3* vertices, uint32_t vAmount, const std::pair<uint32_t, uint32_t>* edges, uint32_t iAmount)
+		AreaLight(const vec3* vertices, uint32_t vAmount, const std::pair<uint32_t, uint32_t>* edges, uint32_t iAmount, float intensity)
 		{
 			this->color = color;
 			this->verticesAmount = vAmount;
 			this->indicesAmount = iAmount;
+			this->intensity = intensity;
 
-			for (size_t i = 0; i < vAmount; i++)
+			for (uint32_t i = 0; i < vAmount; i++)
 			{
 				this->vertices[i] = vec4(vertices[i],1.0f);
 			}
 
-			for (size_t i = 0; i < iAmount; i++)
+			for (uint32_t i = 0; i < iAmount; i++)
 			{
 				this->edges[i].x = edges[i].first;
 				this->edges[i].y = edges[i].second;
@@ -118,6 +120,7 @@ namespace Engine
 			verticesAmount = other.verticesAmount;
 			indicesAmount = other.indicesAmount;
 			bindedTransform = other.bindedTransform;
+			intensity = other.intensity;
 
 			for (size_t i = 0; i < verticesAmount; i++)
 			{
@@ -139,8 +142,9 @@ namespace Engine
 		vec4 vertices[MAX_AREA_LIGHTS_VERTICES];
 		struct edge { uint32_t x, y; uint32_t padding[2];} edges[MAX_AREA_LIGHTS_EDGES];
 		uint32_t indicesAmount;
+		float intensity;
 		uint32_t bindedTransform;
-		float padding[2];
+		float padding;
 	};
 
 
