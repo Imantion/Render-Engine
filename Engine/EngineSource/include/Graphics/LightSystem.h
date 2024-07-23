@@ -13,7 +13,7 @@ namespace Engine
 	#define MAX_DIRECTIONAL_LIGHTS 1
 	#define MAX_AREA_LIGHTS 1
 	#define MAX_AREA_LIGHTS_VERTICES 4
-	#define MAX_AREA_LIGHTS_INDICES 4
+	#define MAX_AREA_LIGHTS_EDGES 4
 
 
 	class Texture;
@@ -88,12 +88,13 @@ namespace Engine
 
 			for (size_t i = 0; i < vAmount; i++)
 			{
-				this->vertices[i] = vec4(vertices[i], 0.0f);
-				this->boundedIndices[i] = std::make_pair<uint32_t, uint32_t>(i, (i + 1) % 3);
+				this->vertices[i] = vec4(vertices[i], 1.0f);
+				this->edges[i].x = i;
+				this->edges[i].y = (i + 1) % vAmount;
 			}
 
 		}
-		AreaLight(const vec3* vertices, uint32_t vAmount, const std::pair<uint32_t, uint32_t>* boundedIndices, uint32_t iAmount)
+		AreaLight(const vec3* vertices, uint32_t vAmount, const std::pair<uint32_t, uint32_t>* edges, uint32_t iAmount)
 		{
 			this->color = color;
 			this->verticesAmount = vAmount;
@@ -101,12 +102,13 @@ namespace Engine
 
 			for (size_t i = 0; i < vAmount; i++)
 			{
-				this->vertices[i] = vec4(vertices[i],0.0f);
+				this->vertices[i] = vec4(vertices[i],1.0f);
 			}
 
 			for (size_t i = 0; i < iAmount; i++)
 			{
-				this->boundedIndices[i] = boundedIndices[i];
+				this->edges[i].x = edges[i].first;
+				this->edges[i].y = edges[i].second;
 			}
 		}
 
@@ -124,7 +126,7 @@ namespace Engine
 
 			for (size_t i = 0; i < indicesAmount; i++)
 			{
-				boundedIndices[i] = other.boundedIndices[i];
+				edges[i] = other.edges[i];
 			}
 
 		}
@@ -135,7 +137,7 @@ namespace Engine
 		vec3 color;
 		uint32_t verticesAmount;
 		vec4 vertices[MAX_AREA_LIGHTS_VERTICES];
-		std::pair<uint32_t,uint32_t> boundedIndices[MAX_AREA_LIGHTS_INDICES];
+		struct edge { uint32_t x, y; uint32_t padding[2];} edges[MAX_AREA_LIGHTS_EDGES];
 		uint32_t indicesAmount;
 		uint32_t bindedTransform;
 		float padding[2];

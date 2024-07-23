@@ -222,45 +222,27 @@ void Engine::LightSystem::UpdateLightsBuffer()
 
     }
 
-  /*  bufferData.alSize = (UINT)m_areaLight.size();
+    bufferData.alSize = (UINT)m_areaLight.size();
     for (size_t i = 0; i < m_areaLight.size(); i++)
     {
+        auto& transform = TS->GetModelTransforms(m_areaLight[i].bindedTransform)[0].modelToWold;
         bufferData.areaLights[i].color = m_areaLight[i].color;
         bufferData.areaLights[i].verticesAmount = m_areaLight[i].verticesAmount;
         bufferData.areaLights[i].indicesAmount = m_areaLight[i].indicesAmount;
 
         for (size_t j = 0; j < m_areaLight[i].verticesAmount; j++)
         {
-            bufferData.areaLights[i].vertices[j] = m_areaLight[i].vertices[j];
+            bufferData.areaLights[i].vertices[j] = m_areaLight[i].vertices[j] * transform;
         }
         
         for (size_t j = 0; j < m_areaLight[i].indicesAmount; j++)
         {
-            bufferData.areaLights[i].boundedIndices[j] = m_areaLight[i].boundedIndices[j];
-        }
-
-        bufferData.areaLights[i].color = m_areaLight[i].color;
-    }*/
-
-    bufferData.alSize = 1;
-    for (size_t i = 0; i < 1; i++)
-    {
-        bufferData.areaLights[i].color = vec3(1.0f);
-        bufferData.areaLights[i].verticesAmount = 4;
-        bufferData.areaLights[i].indicesAmount = 4;
-
-        for (size_t j = 0; j < 4; j++)
-        {
-            bufferData.areaLights[i].vertices[j] = vec4(1.0f,0,0,0) * (j + 1);
-        }
-
-        for (size_t j = 0; j < 4; j++)
-        {
-            bufferData.areaLights[i].boundedIndices[j] = std::pair<uint32_t,uint32_t>(j,j+1);
+            bufferData.areaLights[i].edges[j] = m_areaLight[i].edges[j];
         }
 
         bufferData.areaLights[i].color = m_areaLight[i].color;
     }
+
 
     m_lighsBuffer.updateBuffer(&bufferData);
 }

@@ -71,12 +71,18 @@ struct SpotLight
     int bindedObjectId; // -1 means no object is bound
 };
 
+struct edge
+{
+    uint v1, v2;
+    uint padding1, padding2;
+};
+
 struct AreaLight
 {
     float3 color;
     uint verticesAmount;
-    float4 vertices[MAX_AREA_VERT];
-    uint boundedIndices[MAX_AREA_IND * 2];
+    float3 vertices[MAX_AREA_VERT];
+    edge boundedIndices[MAX_AREA_IND];
     uint indicesAmount;
 };
 
