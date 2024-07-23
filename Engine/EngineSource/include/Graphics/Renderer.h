@@ -14,7 +14,9 @@ namespace Engine
 		float g_time;
 		int diffuse = 1;
 		int specular  = 1;
-		int IBL;
+		int IBL = 1;
+		int LTC = 1;
+		float padding[3];
 	};
 
 	struct PerViewCB
@@ -41,14 +43,17 @@ namespace Engine
 		void PostProcess();
 
 		void setIBLLight(std::shared_ptr<Texture> diffuse, std::shared_ptr<Texture> specular, std::shared_ptr<Texture> reflectance);
+		void setLTCLight(std::shared_ptr<Texture> invMatrix, std::shared_ptr<Texture> amplitude);
 
 		void setIBLLghtState(bool state);
 		void setDiffuseState(bool state);
 		void setSpecularState(bool state);
+		void setLTCState(bool state);
 
 		bool& getIBLLghtState() { return (bool&)perFrameData.IBL; }
 		bool& getDiffuseState() { return (bool&)perFrameData.diffuse; }
 		bool& getSpecularState() { return (bool&)perFrameData.specular; }
+		bool& getLTCState() { return (bool&)perFrameData.LTC; }
 
 	protected:
 		Renderer();
@@ -66,10 +71,12 @@ namespace Engine
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> pDepthStencil;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> pDSState;
 
-		bool isIBLLighOn = false;
 		std::shared_ptr<Texture> diffuseIBL;
 		std::shared_ptr<Texture> specularIBL;
 		std::shared_ptr<Texture> reflectanceIBL;
+
+		std::shared_ptr<Texture> LTCmat;
+		std::shared_ptr<Texture> LTCamp;
 	private:
 		static std::mutex mutex_;
 		static Renderer* pInstance;

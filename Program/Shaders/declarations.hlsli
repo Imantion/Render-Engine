@@ -16,9 +16,10 @@ cbuffer perFrame : register(b1)
 {
     float4 iResolution;
     float g_time;
-    int diffuse;
-    int specular;
-    int IBL;
+    int diffuseState;
+    int specularState;
+    int IBLState;
+    int LTCState;
 }
 
 SamplerState g_pointWrap : register(s0); // No interpolation, Point Wrap

@@ -142,12 +142,19 @@ void Engine::Renderer::Render(Camera* camera)
 	perViewBuffer.updateBuffer(&perView);
 	LightSystem::Init()->BindLigtsBuffer(3u, shaderTypes::PS);
 
-	if (isIBLLighOn)
+	if (perFrameData.IBL)
 	{
 		diffuseIBL->BindTexture(6u);
 		specularIBL->BindTexture(7u);
 		reflectanceIBL->BindTexture(8u);
 	}
+
+	if (perFrameData.LTC)
+	{
+		LTCmat->BindTexture(9u);
+		LTCamp->BindTexture(10u);
+	}
+
 	Engine::LightSystem::Init()->UpdateLightsBuffer();
 	Engine::LightSystem::Init()->BindLightTextures();
 
@@ -165,13 +172,18 @@ void Engine::Renderer::setIBLLight(std::shared_ptr<Texture> diffuse, std::shared
 	diffuseIBL = diffuse;
 	specularIBL = specular;
 	reflectanceIBL = reflectance;
-	isIBLLighOn = true;
 	perFrameData.IBL = true;
+}
+
+void Engine::Renderer::setLTCLight(std::shared_ptr<Texture> invMatrix, std::shared_ptr<Texture> amplitude)
+{
+	LTCmat = invMatrix;
+	LTCamp = amplitude;
+	perFrameData.LTC = true;
 }
 
 void Engine::Renderer::setIBLLghtState(bool state)
 {
-	isIBLLighOn = state;
 	perFrameData.IBL = state;
 }
 
@@ -183,6 +195,11 @@ void Engine::Renderer::setDiffuseState(bool state)
 void Engine::Renderer::setSpecularState(bool state)
 {
 	perFrameData.specular = state;
+}
+
+void Engine::Renderer::setLTCState(bool state)
+{
+	perFrameData.LTC = state;
 }
 
 Engine::Renderer::Renderer() :

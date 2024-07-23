@@ -80,17 +80,17 @@ float4 main(PSInput input) : SV_TARGET
         float3 l = spotLights[i].position - input.worldPos;
         float solidAngle = SolidAngle(spotLights[i].radiusOfCone, dot(l, l));
         l = normalize(l);
-        finalColor += I * PBRLight(spotLights[i].color, solidAngle, l, albedo, metalness, roughness, normal, v, specular, diffuse);
+        finalColor += I * PBRLight(spotLights[i].color, solidAngle, l, albedo, metalness, roughness, normal, v, specularState, diffuseState);
     }
     for (i = 0; i < plSize; ++i)
     {
 
-        finalColor += PBRLight(pointLights[i], input.worldPos, albedo, metalness, roughness, input.tbn._31_32_33, normal, v, specular, diffuse);
+        finalColor += PBRLight(pointLights[i], input.worldPos, albedo, metalness, roughness, input.tbn._31_32_33, normal, v, specularState, diffuseState);
     }
     
     for (i = 0; i < dlSize; ++i)
     {
-        finalColor += PBRLight(directionalLights[i].color, directionalLights[i].solidAngle, -directionalLights[i].direction, albedo, metalness, roughness, normal, v, specular, diffuse);
+        finalColor += PBRLight(directionalLights[i].color, directionalLights[i].solidAngle, -directionalLights[i].direction, albedo, metalness, roughness, normal, v, specularState, diffuseState);
     }
     
     float dotNV = clamp(dot(normal, v), 0.0f, 1.0f);
@@ -115,6 +115,7 @@ float4 main(PSInput input) : SV_TARGET
         { 0, 0, 1 },
     };
     
+    if(LTCState)
     for (i = 0; i < alSize; i++)
     {
         float3 d = LTC_Evaluate(normal, v, input.worldPos, Identity, areaLights[i], true);
@@ -123,12 +124,12 @@ float4 main(PSInput input) : SV_TARGET
     }
 
     
-    finalColor += FlashLight(flashLight, albedo, metalness, roughness, normal, input.worldPos, g_cameraPosition, specular, diffuse);
+    finalColor += FlashLight(flashLight, albedo, metalness, roughness, normal, input.worldPos, g_cameraPosition, specularState, diffuseState);
    
     float2 refl = reflectanceIBL.Sample(g_linearWrap, float2(saturate(dot(normal, v)), roughness));
     float3 F0 = lerp(0.4f, albedo, metalness);
     
-    if (IBL)
+    if (IBLState)
         finalColor += albedo * diffuseIBL.Sample(g_linearWrap, normal).rgb * (1 - metalness) + specIrrIBL.SampleLevel(g_linearWrap, normal, MAX_MIP * roughness).rgb * (refl.r * F0 + refl.g);
     
     

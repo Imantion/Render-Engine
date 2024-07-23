@@ -363,6 +363,7 @@ void D3DApplication::GUI()
 			ImGui::Checkbox("Diffuse State", &renderer->getDiffuseState());
 			ImGui::Checkbox("Specular State", &renderer->getSpecularState());
 			ImGui::Checkbox("IBL State", &renderer->getIBLLghtState());
+			ImGui::Checkbox("LTC State", &renderer->getLTCState());
 
 			ImGui::EndTabItem();
 		}
