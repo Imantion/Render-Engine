@@ -61,7 +61,6 @@ namespace Engine
 		static void Deinit();
 		static ModelManager* GetInstance() { return pInstance; }
 
-		void initUnitSphereFlat();
 		void initUnitSphere();
 
 		std::shared_ptr<Model> AddModel(std::string name, Model&& model);
