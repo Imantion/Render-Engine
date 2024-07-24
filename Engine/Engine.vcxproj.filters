@@ -248,7 +248,7 @@
       <Filter>Include\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="EngineSource\include\Utils\ISelected.h">
-      <Filter>Include</Filter>
+      <Filter>Include\Utils</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
