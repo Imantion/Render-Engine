@@ -1,6 +1,8 @@
 #include "Graphics/Renderer.h"
 #include "Graphics/Model.h"
 #include "Graphics/MeshSystem.h"
+#include "Graphics/PostProcess.h"
+#include "Graphics/LightSystem.h"
 #include "Render/Camera.h"
 
 std::mutex Engine::Renderer::mutex_;
@@ -23,12 +25,37 @@ void Engine::Renderer::Deinit()
     pInstance = nullptr;
 }
 
+
 void Engine::Renderer::InitDepthWithRTV(ID3D11Resource* RenderBuffer, UINT wWidth, UINT wHeight)
 {
-	if (D3D* d3d = D3D::GetInstance())
+	if (auto device = D3D::GetInstance()->GetDevice())
 	{
-		HRESULT hr = d3d->GetDevice()->CreateRenderTargetView(RenderBuffer, nullptr, &pRenderTarget);
+		HRESULT hr = device->CreateRenderTargetView(RenderBuffer, nullptr, &pRenderTarget);
 		assert(SUCCEEDED(hr));
+
+		Microsoft::WRL::ComPtr<ID3D11Texture2D> HDRtexture;
+
+		D3D11_TEXTURE2D_DESC hdrDesc;
+		ZeroMemory(&hdrDesc, sizeof(D3D11_TEXTURE2D_DESC));
+		hdrDesc.Height = wHeight;
+		hdrDesc.Width = wWidth;
+		hdrDesc.MipLevels = 1u;
+		hdrDesc.ArraySize = 1u;
+		hdrDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+		hdrDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+		hdrDesc.SampleDesc.Count = 1u;
+		hdrDesc.Usage = D3D11_USAGE_DEFAULT;
+
+		hr = device->CreateTexture2D(&hdrDesc, nullptr, &HDRtexture);
+		assert(SUCCEEDED(hr));
+
+		hr = device->CreateRenderTargetView(HDRtexture.Get(), nullptr, &pHDRRenderTarget);
+		assert(SUCCEEDED(hr));
+
+		hr = device->CreateShaderResourceView(HDRtexture.Get(), nullptr, &pHDRtextureResource);
+		assert(SUCCEEDED(hr));
+
+
 		InitDepth(wWidth, wHeight);
 
 
@@ -97,12 +124,12 @@ void Engine::Renderer::Render(Camera* camera)
 	Engine::D3D* d3d = Engine::D3D::GetInstance();
 
 
-	d3d->GetContext()->OMSetRenderTargets(1u, pRenderTarget.GetAddressOf(), pViewDepth.Get());
+	d3d->GetContext()->OMSetRenderTargets(1u, pHDRRenderTarget.GetAddressOf(), pViewDepth.Get());
 	d3d->GetContext()->OMSetDepthStencilState(pDSState.Get(), 1u);
 
 	static const float color[] = { 0.5f, 0.5f,0.5f,1.0f };
 	
-	d3d->GetContext()->ClearRenderTargetView(pRenderTarget.Get(), color);
+	d3d->GetContext()->ClearRenderTargetView(pHDRRenderTarget.Get(), color);
 	d3d->GetContext()->ClearDepthStencilView(pViewDepth.Get(), D3D11_CLEAR_DEPTH, 0.0f, 0u);
 
 	vec3 temp = cross(camera->getForward(), camera->getRight());
@@ -113,9 +140,16 @@ void Engine::Renderer::Render(Camera* camera)
 		camera->getPosition()};
 
 	perViewBuffer.updateBuffer(&perView);
-
+	LightSystem::Init()->BindLigtsBuffer(3u, shaderTypes::PS);
+	Engine::LightSystem::Init()->UpdateLightsBuffer();
+	Engine::LightSystem::Init()->BindLightTextures();
 
 	MeshSystem::Init()->render();
+}
+
+void Engine::Renderer::PostProcess()
+{
+	PostProcess::Init()->Resolve(pHDRtextureResource.Get(), pRenderTarget.Get());
 }
 
 Engine::Renderer::Renderer() :

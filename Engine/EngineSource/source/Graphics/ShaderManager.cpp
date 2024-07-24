@@ -80,6 +80,16 @@ std::shared_ptr<Engine::shader> Engine::ShaderManager::CompileAndCreateShader(co
 	const D3D_SHADER_MACRO* vertexShaderMacro,const D3D_SHADER_MACRO* pixelShaderMacro, D3D_PRIMITIVE_TOPOLOGY topology,
 	const char* vsEntryPoint, const char* psEntryPoint)
 {
+	auto existingShader = shaders.find(shaderName);
+	if (existingShader != shaders.end())
+	{
+		std::string tempString = shaderName;
+		std::wstring message = L"Shader with name " + std::wstring(tempString.begin(), tempString.end()) + L" alredy exists";
+		MessageBox(nullptr, message.c_str(), L"Warning", MB_OK);
+
+		return existingShader->second;
+	}
+
 	UINT flags = 0;
 #ifdef _DEBUG 
 	flags |= D3DCOMPILE_DEBUG;
@@ -112,6 +122,16 @@ std::shared_ptr<Engine::shader> Engine::ShaderManager::CompileAndCreateShader(co
 	const D3D_SHADER_MACRO* vertexShaderMacro, const D3D_SHADER_MACRO* pixelShaderMacro, D3D_PRIMITIVE_TOPOLOGY topology,
 	const char* vsEntryPoint, const char* psEntryPoint, const char* hsEntryPoint, const char* dsEntryPoint, const char* gsEntryPoint)
 {
+	auto existingShader = shaders.find(shaderName);
+	if (existingShader != shaders.end())
+	{
+		std::string tempString = shaderName;
+		std::wstring message = L"Shader with name " + std::wstring(tempString.begin(), tempString.end()) + L" alredy exists";
+		MessageBox(nullptr, message.c_str(), L"Warning", MB_OK);
+
+		return existingShader->second;
+	}
+
 	UINT flags = 0;
 #ifdef _DEBUG 
 	flags |= D3DCOMPILE_DEBUG;
@@ -159,8 +179,15 @@ std::shared_ptr<Engine::shader> Engine::ShaderManager::CompileAndCreateShader(co
 
 ID3D11InputLayout* Engine::ShaderManager::CreateInputLayout(const char* InputLayoutName, ID3DBlob* vsBlob, const D3D11_INPUT_ELEMENT_DESC* ied, UINT iedSize)
 {
-	if (inputLayouts.find(InputLayoutName) != inputLayouts.end())
-		return inputLayouts[InputLayoutName].Get();
+	auto existingLayout = inputLayouts.find(InputLayoutName);
+	if (existingLayout != inputLayouts.end())
+	{
+		std::string tempString = InputLayoutName;
+		std::wstring message = L"Input layout with name " + std::wstring(tempString.begin(), tempString.end()) + L" alredy exists";
+		MessageBox(nullptr, message.c_str(), L"Warning", MB_OK);
+
+		return existingLayout->second.Get();
+	}
 
 	inputLayouts[InputLayoutName] = Microsoft::WRL::ComPtr<ID3D11InputLayout>();
 	D3D::GetInstance()->GetDevice()->CreateInputLayout(ied, iedSize, vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), &inputLayouts[InputLayoutName]);

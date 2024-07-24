@@ -77,6 +77,18 @@ Engine::mat4 Engine::mat4::Inverse(const mat4& m)
 	return inverse * OneOverDeterminant;
 }
 
+Engine::mat4 Engine::mat4::Identity()
+{
+	mat4 I;
+
+	for (size_t i = 0; i < 4; i++)
+	{
+		I[i][i] = 1.0f;
+	}
+
+	return I;
+}
+
 Engine::mat4 Engine::mat4::rotateX(float angle)
 {
 	mat4 result;

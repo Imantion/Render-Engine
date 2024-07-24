@@ -12,10 +12,23 @@ namespace Engine
 	class OpaqueInstances;
 	struct ray;
 	struct hitInfo;
+	class ModelManager;
 
 	class Model
 	{
 	public:
+		Model() = default;
+		Model(Model&& other) noexcept
+			:m_meshes(std::move(other.m_meshes)),
+			m_ranges(std::move(other.m_ranges)),
+			m_vertices(std::move(other.m_vertices)),
+			box(std::move(other.box)),
+			m_indices(std::move(other.m_indices)),
+			name(std::move(other.name))
+		{
+			// No additional work needed since std::move takes care of moving resources
+		}
+		Model(Model& other) = default;
 		struct MeshRange
 		{
 			uint32_t vertexOffset; // offset in vertices
@@ -29,6 +42,7 @@ namespace Engine
 		friend class ModelManager;
 		template <typename I, typename M>
 		friend class OpaqueInstances;
+		friend class ModelManager;
 
 	private:
 		std::vector<Mesh> m_meshes;
@@ -47,11 +61,15 @@ namespace Engine
 		static void Deinit();
 		static ModelManager* GetInstance() { return pInstance; }
 
+		void initUnitSphere();
+
+		std::shared_ptr<Model> AddModel(std::string name, Model&& model);
 		std::shared_ptr<Model> loadModel(std::string path);
 		std::shared_ptr<Model> GetModel(std::string name);
 
 	protected:
 		std::unordered_map<std::string, std::shared_ptr<Model>> models;
+		std::vector<Model> DefaultModdels;
 
 	private:
 		static std::mutex mutex_;

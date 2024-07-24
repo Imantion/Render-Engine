@@ -147,6 +147,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="EngineSource\source\Graphics\LightSystem.cpp" />
+    <ClCompile Include="EngineSource\source\Graphics\PostProcess.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\DDSTextureLoader11.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\MeshSystem.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\Model.cpp" />
@@ -156,6 +158,7 @@
     <ClCompile Include="EngineSource\source\Graphics\Engine.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\SkyBox.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\TextureManager.cpp" />
+    <ClCompile Include="EngineSource\source\Graphics\TransformSystem.cpp" />
     <ClCompile Include="EngineSource\source\Math\matrix.cpp" />
     <ClCompile Include="EngineSource\source\Math\quaternion.cpp" />
     <ClCompile Include="EngineSource\source\Render\Camera.cpp" />
@@ -169,13 +172,17 @@
     <ClInclude Include="EngineSource\include\Graphics\D3D.h" />
     <ClInclude Include="EngineSource\include\Graphics\DDSTextureLoader11.h" />
     <ClInclude Include="EngineSource\include\Graphics\Engine.h" />
+    <ClInclude Include="EngineSource\include\Graphics\LightSystem.h" />
     <ClInclude Include="EngineSource\include\Graphics\Mesh.h" />
     <ClInclude Include="EngineSource\include\Graphics\MeshSystem.h" />
     <ClInclude Include="EngineSource\include\Graphics\Model.h" />
+    <ClInclude Include="EngineSource\include\Graphics\PostProcess.h" />
     <ClInclude Include="EngineSource\include\Graphics\Renderer.h" />
     <ClInclude Include="EngineSource\include\Graphics\SkyBox.h" />
     <ClInclude Include="EngineSource\include\Graphics\TextureManager.h" />
+    <ClInclude Include="EngineSource\include\Graphics\TransformSystem.h" />
     <ClInclude Include="EngineSource\include\Math\Box.hpp" />
+    <ClInclude Include="EngineSource\include\Math\Light.h" />
     <ClInclude Include="EngineSource\include\Math\matrix.h" />
     <ClInclude Include="EngineSource\include\Math\math.h" />
     <ClInclude Include="EngineSource\include\Math\quaternion.h" />
@@ -183,6 +190,7 @@
     <ClInclude Include="EngineSource\include\Render\Camera.h" />
     <ClInclude Include="EngineSource\include\Math\vec.h" />
     <ClInclude Include="EngineSource\include\Utils\EnumDefinitions.h" />
+    <ClInclude Include="EngineSource\include\Utils\solid_vector.h" />
     <ClInclude Include="EngineSource\include\Utils\Timer.h" />
     <ClInclude Include="EngineSource\include\Utils\TriangleOctree.hpp" />
     <ClInclude Include="EngineSource\include\Window\Window.h" />

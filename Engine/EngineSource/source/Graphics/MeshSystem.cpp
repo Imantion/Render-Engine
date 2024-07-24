@@ -5,27 +5,19 @@
 std::mutex Engine::MeshSystem::mutex_;
 Engine::MeshSystem* Engine::MeshSystem::pInstance = nullptr;
 
-std::vector<Engine::mat4*> Engine::MeshSystem::intersect(const ray& r, hitInfo& hInfo)
+int Engine::MeshSystem::intersect(const ray& r, hitInfo& hInfo)
 {
-	auto firstPair = hologramGroup.intersect(r, hInfo);
-	auto secondPair = normVisGroup.intersect(r, hInfo);
-	auto thirdPair = textureGroup.intersect(r, hInfo);
-	
-	std::vector<mat4*> transforms;
-	if (thirdPair.modelIndex != -1)
-	{
-		textureGroup.getInstanceTransform(thirdPair.modelIndex, thirdPair.perMaterialIndex, thirdPair.materialIndex, transforms);
-	}
-	else if (secondPair.modelIndex != -1)
-	{
-		normVisGroup.getInstanceTransform(secondPair.modelIndex, secondPair.perMaterialIndex, secondPair.materialIndex, transforms);
-	}
-	else if (firstPair.modelIndex != -1)
-	{
-		hologramGroup.getInstanceTransform(firstPair.modelIndex, firstPair.perMaterialIndex, firstPair.materialIndex, transforms);
-	}
+	int first = hologramGroup.intersect(r, hInfo);
+	int second = normVisGroup.intersect(r, hInfo);
+	int third = textureGroup.intersect(r, hInfo);
+	int firth = opaqueGroup.intersect(r, hInfo);
+	int fifth = emmisiveGroup.intersect(r, hInfo);
+	if (fifth != -1)
+		return fifth;
 
-	return transforms;
+	if (firth != -1)
+		return firth;
+	return third != -1? third: (second != -1? second: first);
 }
 
 void Engine::MeshSystem::updateInstanceBuffers()
@@ -33,6 +25,8 @@ void Engine::MeshSystem::updateInstanceBuffers()
 	normVisGroup.updateInstanceBuffers();
 	hologramGroup.updateInstanceBuffers();
 	textureGroup.updateInstanceBuffers();
+	opaqueGroup.updateInstanceBuffers();
+	emmisiveGroup.updateInstanceBuffers();
 }
 
 void Engine::MeshSystem::render()
@@ -40,6 +34,8 @@ void Engine::MeshSystem::render()
 	normVisGroup.render();
 	hologramGroup.render();
 	textureGroup.render();
+	opaqueGroup.render();
+	emmisiveGroup.render();
 }
 
 Engine::MeshSystem* Engine::MeshSystem::Init()
@@ -56,5 +52,6 @@ Engine::MeshSystem* Engine::MeshSystem::Init()
 void Engine::MeshSystem::Deinit()
 {
 	delete pInstance;
+	pInstance = nullptr;
 }
 

@@ -20,30 +20,28 @@ void Engine::Texture::BindTexture(UINT slot) const
 
 /// ////////////////////////////////////////////////////// Texture Manager
 
-
-std::unordered_map<std::string, std::shared_ptr<Engine::Texture>> Engine::TextureManager::m_textures;
 std::mutex Engine::TextureManager::m_mutex;
-Engine::TextureManager* Engine::TextureManager::m_Instance;
+Engine::TextureManager* Engine::TextureManager::m_instance;
 
 Engine::TextureManager* Engine::TextureManager::Init()
 {
 	std::lock_guard<std::mutex> m(m_mutex);
 
-	if (!m_Instance)
+	if (!m_instance)
 	{
-		m_Instance = new TextureManager();
+		m_instance = new TextureManager();
 	}
 
-	return m_Instance;
+	return m_instance;
 }
 
 void Engine::TextureManager::Deinit()
 {
-	delete m_Instance;
-	m_textures.clear();
+	delete m_instance;
+	m_instance = nullptr;
 }
 
-std::shared_ptr<Engine::Texture> Engine::TextureManager::AddTexture(const char* name, const wchar_t* path)
+std::shared_ptr<Engine::Texture> Engine::TextureManager::LoadFromFile(const char* name, const wchar_t* path)
 {
 	if (m_textures.find(name) != m_textures.end())
 		throw std::runtime_error("Texture with name '" + std::string(name) + "' already exists");
@@ -98,9 +96,9 @@ Engine::TextureManager::TextureManager()
 
 	D3D11_SAMPLER_DESC desc;
 	ZeroMemory(&desc, sizeof(desc));
-	desc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	desc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	desc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	desc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	desc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	desc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
 	desc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
 	desc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
 	desc.MinLOD = 0;
