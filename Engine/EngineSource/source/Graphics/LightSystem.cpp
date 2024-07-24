@@ -31,10 +31,13 @@ void Engine::LightSystem::AddDirectionalLight(const DirectionalLight& other)
     m_directionalLights.push_back(other);
 }
 
-void Engine::LightSystem::AddFlashLight(const SpotLight& spotLight, std::shared_ptr<Texture> texture)
+void Engine::LightSystem::AddFlashLight(const SpotLight& spotLight, std::shared_ptr<Texture> texture, float aspectRatio, float nearClip, float farClip)
 {
     m_flashLight.light = spotLight;
     m_flashLight.flashLightMask = texture;
+    flProjectionData.aspectRatio = aspectRatio;
+    flProjectionData.nearClip = nearClip;
+    flProjectionData.farClip = farClip;
 
     if (m_flashLight.light.bindedObjectId == -1)
     {
@@ -146,7 +149,8 @@ void Engine::LightSystem::UpdateLightsBuffer()
             auto& bindedTransform = TS->GetModelTransforms(m_flashLight.light.bindedObjectId)[0].modelToWold;
             m_flashLight.worldPosition = m_flashLight.light.position + (vec3&)(*bindedTransform[3]);
             m_flashLight.worldDirection = (vec4(m_flashLight.light.direction, 0.0f) * bindedTransform).normalized();
-            m_flashLight.flashLightsViewProjection = mat4::Inverse(bindedTransform) * projectionMatrix(m_flashLight.light.cutoffAngle * 2.0f, 0.1f, 10.0f, 100, 100);;
+            m_flashLight.flashLightsViewProjection = mat4::Inverse(bindedTransform) * projectionMatrix(m_flashLight.light.cutoffAngle * 2.0f, flProjectionData.nearClip,
+                                                                                                       flProjectionData.farClip, flProjectionData.aspectRatio);
         }
            
         bufferData.flashLight.direction = m_flashLight.worldDirection;

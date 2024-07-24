@@ -2,8 +2,8 @@
 
 cbuffer postProcessData : register(b2)
 {
-    float EV100;
-    float gamma;
+    float c_EV100;
+    float c_gamma;
 };
 
 Texture2D text : register(t0);
@@ -51,9 +51,9 @@ struct PSINPUT
 float4 main(PSINPUT input) : SV_TARGET
 {
     float3 color = (float3)text.Sample(g_pointWrap, input.textcord);
-    color = adjustExposure(color, EV100);
+    color = adjustExposure(color, c_EV100);
     color = acesHdr2Ldr(color);
-    color = correctGamma(color, gamma);
+    color = correctGamma(color, c_gamma);
 
     return float4(color, 1.0f);
 }

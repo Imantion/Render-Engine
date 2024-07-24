@@ -181,12 +181,20 @@ namespace Engine
 		projMat[2][3] = 1;
 		projMat[3][2] = -farClip * nearClip / (nearClip - farClip);
 
+		return projMat;
+	}
 
-		/*	projMat[0][0] = (float)viewportHeight / (float)viewportWidth * ctg;
-			projMat[1][1] = ctg;
-			projMat[2][2] = (farClip + nearClip) / (nearClip - farClip);
-			projMat[2][3] = 1;
-			projMat[3][2] = -2 * farClip * nearClip / (nearClip - farClip);*/
+	inline mat4 projectionMatrix(float verticalFov, float nearClip, float farClip, float aspectRatio)
+	{
+		mat4 projMat;
+		float halfFov = verticalFov * 0.5f;
+		float ctg = cosf(halfFov) / sinf(halfFov);
+
+		projMat[0][0] = 1.0f / aspectRatio * ctg;
+		projMat[1][1] = ctg;
+		projMat[2][2] = nearClip / (nearClip - farClip);
+		projMat[2][3] = 1;
+		projMat[3][2] = -farClip * nearClip / (nearClip - farClip);
 
 		return projMat;
 	}

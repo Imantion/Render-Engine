@@ -29,8 +29,15 @@ void Engine::ModelManager::Deinit()
 
 std::shared_ptr<Engine::Model> Engine::ModelManager::AddModel(std::string name, Model&& model_)
 {
-	if (models.find(name) != models.end())
-		throw "Model with this name alredy exists!";
+	auto existingModel = models.find(name);
+	if (existingModel != models.end())
+	{
+		std::wstring message = L"Model with name " + std::wstring(name.begin(), name.end()) + L" alredy exists";
+
+		MessageBox(nullptr, message.c_str(), L"Warning", MB_OK);
+
+		return existingModel->second;
+	}
 
 	models[name] = std::make_shared<Model>(std::move(model_));
 	auto& model = *models[name].get();

@@ -70,7 +70,7 @@ namespace Engine
 		void operator=(const LightSystem& other) = delete;
 		LightSystem(const LightSystem& other) = delete;
 
-		void AddFlashLight(const SpotLight& spotLight, std::shared_ptr<Texture> texture);
+		void AddFlashLight(const SpotLight& spotLight, std::shared_ptr<Texture> texture, float aspectRatio = 1.0f, float nearCLip = 0.01f, float farClip = 10.0f);
 
 
 		void AddDirectionalLight(const vec3& direction, const vec3& color, float intensity);
@@ -110,7 +110,13 @@ namespace Engine
 
 		} m_flashLight;
 
-		mat4 projectionLight;
+		struct FlashLightProjectionData
+		{
+			float aspectRatio;
+			float nearClip;
+			float farClip;
+		} flProjectionData;
+
 		std::vector <DirectionalLight> m_directionalLights;
 		std::vector <PointLight> m_pointLights;
 		std::vector <SpotLight> m_spotLights;
