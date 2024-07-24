@@ -32,11 +32,11 @@ void Engine::LightSystem::AddDirectionalLight(const DirectionalLight& other)
     m_directionalLights.push_back(other);
 }
 
-void Engine::LightSystem::AddFlashLight(const SpotLight& spotLight, std::shared_ptr<Texture> texture, float aspectRatio, float nearClip, float farClip)
+void Engine::LightSystem::AddFlashLight(const SpotLight& spotLight, std::shared_ptr<Texture> texture, float nearClip, float farClip)
 {
     m_flashLight.light = spotLight;
     m_flashLight.flashLightMask = texture;
-    flProjectionData.aspectRatio = aspectRatio;
+    flProjectionData.aspectRatio = (float)texture->getTextureWidth() / (float)texture->getTextureHeight();
     flProjectionData.nearClip = nearClip;
     flProjectionData.farClip = farClip;
 

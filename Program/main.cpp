@@ -89,52 +89,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 
 
-
-Engine::vec3 Fibonacci(float& NoV, int i, int N)
-{
-	const float GOLDEN_RATIO = (1.0f + sqrt(5.0f)) / 2.0f;
-	float theta = 2.0f * (float)M_PI * i / GOLDEN_RATIO;
-	float phiCos = NoV = 1.0f - (i + 0.5f) / N;
-	float phiSin = sqrt(1.0f - phiCos * phiCos);
-	float thetaCos = cosf(theta), thetaSin = sinf(theta);
-	return Engine::vec3(thetaCos * phiSin, thetaSin * phiSin, phiCos).normalized();
-
-}
-
-void basisFromDir(Engine::vec3& right, Engine::vec3& top, Engine::vec3& dir)
-{
-	float k = 1.0f / Engine::Max(1.0f + dir.z, 0.00001f);
-	float a = dir.y * k;
-	float b = dir.y * a;
-	float c = -dir.x * a;
-	right = Engine::vec3(dir.z + b, c, -dir.x);
-	top = Engine::vec3(c, 1.0f - b, -dir.y);
-}
-
-
 int main(int argc, char* argv[])
 {
-
-	float sum = 0;
-	float cosSum = 0;
-	int N = 4096;
-	Engine::vec3 normal = Engine::vec3(0.707f, 0.0f, 0.707f).normalized();
-	for (int i = 0; i < N; i++)
-	{
-		float NoV;
-		Engine::vec3 right, top, direction = Fibonacci(NoV,i, N);
-		cosSum += NoV;
-		basisFromDir(right, top, normal);
-		direction = right * direction.x + top * direction.y + normal * direction.z;
-		sum += Engine::dot(direction,normal);
-	}	
-
-	std::cout << 2 * M_PI * cosSum / N << " " << 2 * M_PI * sum / N;
-
-
 	MSG msg = { 0 };
-
-	
 
 	Engine::Timer timer;
 	
