@@ -27,6 +27,7 @@ UINT Engine::Texture::getTextureWidth()
 	D3D11_TEXTURE2D_DESC textDesc;
 	texture->GetDesc(&textDesc);
 
+	texture->Release();
 	return textDesc.Width;
 }
 
@@ -39,6 +40,7 @@ UINT Engine::Texture::getTextureHeight()
 	D3D11_TEXTURE2D_DESC textDesc;
 	texture->GetDesc(&textDesc);
 
+	texture->Release();
 	return textDesc.Height;
 }
 
