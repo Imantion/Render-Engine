@@ -5,6 +5,7 @@
 TextureCube text : register(t0);
 
 
+
 struct PSInput
 {
     float4 pos : SV_POSITION;

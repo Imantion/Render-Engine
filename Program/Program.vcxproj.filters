@@ -43,6 +43,9 @@
     <Filter Include="Shaders\PostProcess">
       <UniqueIdentifier>{d8d8d29b-51dd-4dad-8355-18ce8d06f2fb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\Shadow">
+      <UniqueIdentifier>{fb91d4ff-eba0-4478-bbb1-dceaa45a9989}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Application\Input\Input.cpp">
@@ -139,6 +142,15 @@
     </None>
     <None Include="Shaders\Lights.hlsli">
       <Filter>Shaders</Filter>
+    </None>
+    <None Include="CubemapGS.hlsl">
+      <Filter>Shaders\Shadow</Filter>
+    </None>
+    <None Include="ShadowVS.hlsl">
+      <Filter>Shaders\Shadow</Filter>
+    </None>
+    <None Include="ShadowPS.hlsl">
+      <Filter>Shaders\Shadow</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

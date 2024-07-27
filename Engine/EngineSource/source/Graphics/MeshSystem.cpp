@@ -1,5 +1,5 @@
 #include "Graphics/MeshSystem.h"
-
+#include "Graphics/LightSystem.h"
 
 
 std::mutex Engine::MeshSystem::mutex_;
@@ -26,6 +26,50 @@ void Engine::MeshSystem::updateInstanceBuffers()
 	emmisiveGroup.updateInstanceBuffers();
 }
 
+void Engine::MeshSystem::renderDepthCubemaps(const std::vector<vec3>& lightPositions)
+{
+	if (dsvs.size() != lightPositions.size())
+		createDepthCubemaps(lightPositions.size());
+
+	auto context = D3D::GetInstance()->GetContext();
+	float farPlane = 100.0f;
+	mat4 projection = projectionMatrix((float)M_PI_2, 0.01f, farPlane, 1.0f);
+
+	struct lightViewProjections 
+	{
+		mat4 lightViewProjection[6];
+	};
+
+	ConstBuffer<lightViewProjections> cbProjections;
+	cbProjections.create();
+
+	ConstBuffer<vec4> psConstBuffer;
+	psConstBuffer.create();
+
+	for (size_t i = 0; i < lightPositions.size(); i++)
+	{
+		lightViewProjections constantBufferData{
+			viewMatrix(lightPositions[i], vec3(1.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f)) * projection,
+			viewMatrix(lightPositions[i], vec3(-1.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f)) * projection,
+			viewMatrix(lightPositions[i], vec3(0.0f, 1.0f, 0.0f), vec3(0.0f, 0.0f, -1.0f)) * projection,
+			viewMatrix(lightPositions[i], vec3(0.0f, -1.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f)) * projection,
+			viewMatrix(lightPositions[i], vec3(0.0f, 0.0f, 1.0f), vec3(0.0f, 1.0f, 0.0f)) * projection,
+			viewMatrix(lightPositions[i], vec3(0.0f, 0.0f, -1.0f), vec3(0.0f, 1.0f, 1.0f)) * projection,
+		};
+
+		vec4 psData(lightPositions[i], farPlane);
+
+		cbProjections.updateBuffer(&constantBufferData);
+		cbProjections.bind(3u, GS);
+
+		psConstBuffer.bind(3u, PS);
+
+		context->OMSetRenderTargets(1, nullptr, dsvs[i].Get());
+
+		shadowGroup.render();
+	}
+}
+
 void Engine::MeshSystem::render()
 {
 	normVisGroup.render();
@@ -49,6 +93,54 @@ void Engine::MeshSystem::Deinit()
 {
 	delete pInstance;
 	pInstance = nullptr;
+}
+
+void Engine::MeshSystem::createDepthCubemaps(size_t amount)
+{
+	dsvs.clear();
+	dsvs.resize(amount);
+
+	auto device = D3D::GetInstance()->GetDevice();
+
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> texture;
+	D3D11_TEXTURE2D_DESC textureDesc = {};
+	textureDesc.Width = 1024;
+	textureDesc.Height = 1024;
+	textureDesc.MipLevels = 1;
+	textureDesc.ArraySize = amount * 6;
+	textureDesc.Format = DXGI_FORMAT_R24G8_TYPELESS;
+	textureDesc.SampleDesc.Count = 1;
+	textureDesc.Usage = D3D11_USAGE_DEFAULT;
+	textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+	textureDesc.CPUAccessFlags = 0;
+	textureDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
+
+	device->CreateTexture2D(&textureDesc, nullptr, &texture);
+
+	D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
+	ZeroMemory(&depthStencilViewDesc, sizeof(D3D11_DEPTH_STENCIL_VIEW_DESC));
+	depthStencilViewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
+	depthStencilViewDesc.Texture2DArray.ArraySize = 6;
+	depthStencilViewDesc.Texture2DArray.MipSlice = 0;
+
+	for (size_t i = 0; i < amount; i++)
+	{
+		depthStencilViewDesc.Texture2DArray.FirstArraySlice = i * 6;
+		device->CreateDepthStencilView(texture.Get(), &depthStencilViewDesc, &dsvs[i]);
+	}
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+	ZeroMemory(&srvDesc, sizeof(srvDesc));
+
+	srvDesc.ViewDimension = D3D_SRV_DIMENSION_TEXTURECUBEARRAY;
+	srvDesc.TextureCubeArray.MipLevels = 0;
+	srvDesc.TextureCubeArray.First2DArrayFace = 0;
+	srvDesc.TextureCubeArray.MostDetailedMip = 0;
+	srvDesc.TextureCubeArray.NumCubes = amount;
+	srvDesc.Format = textureDesc.Format;
+
+	device->CreateShaderResourceView(texture.Get(), &srvDesc, &srvPointLigts);
 }
 
 template <>
