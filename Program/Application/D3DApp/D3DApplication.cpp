@@ -106,6 +106,10 @@ static void InitMeshSystem()
 		L"Shaders\\normalLines\\PixelShader.hlsl", L"Shaders\\normalLines\\HullShader.hlsl", L"Shaders\\normalLines\\DomainShader.hlsl",
 		L"Shaders\\normalLines\\GSnormal.hlsl", nullptr, nullptr, D3D_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
 
+
+	auto shadowShader = Engine::ShaderManager::CompileAndCreateShader("shadowShader", L"Shaders\\ShadowVS.hlsl", L"Shaders\\ShadowPS.hlsl",
+		nullptr, nullptr, L"Shaders\\CubemapGS.hlsl", nullptr, nullptr);
+
 	NormalVisLines->DisableShader();
 	if (!NormalVisColor)
 		throw std::runtime_error("Failed to compile and create shader!");
@@ -127,6 +131,7 @@ static void InitMeshSystem()
 	textureMap->BindInputLyout(thirdLayout);
 	opaqueShader->BindInputLyout(inputLayout);
 	emissiveShader->BindInputLyout(secondInputLayout);
+	shadowShader->BindInputLyout(thirdLayout);
 
 	auto ms = Engine::MeshSystem::Init();
 
@@ -139,6 +144,7 @@ static void InitMeshSystem()
 	ms->opaqueGroup.addShader(NormalVisLines);
 
 	ms->emmisiveGroup.addShader(emissiveShader);
+	ms->shadowGroup.addShader(shadowShader);
 }
 
 D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc windowEvent) :

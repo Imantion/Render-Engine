@@ -12,6 +12,7 @@
 
 namespace Engine
 {
+	class MeshSystem;
 
 	template<typename M>
 	struct MaterialDataType {
@@ -258,21 +259,9 @@ namespace Engine
 			return modelTransformsId;
 		}
 
-		uint32_t addModel(std::shared_ptr<Model> model, const M& material, const TransformSystem::transforms& modelTransforms, const I& instance = {}) // returns model transform ID
-		{
-			auto TS = TransformSystem::Init();
-			uint32_t modelTransformsId = TS->AddModelTransform(modelTransforms, (uint32_t)model->m_meshes.size());
-
-			return addModel(model,material, modelTransformsId, instance);
-		}
+		uint32_t addModel(std::shared_ptr<Model> model, const M& material, const TransformSystem::transforms& modelTransforms, const I& instance = {}); // returns model transform ID
 		
-		uint32_t addModel(std::shared_ptr<Model> model, const std::vector<M>& material, const TransformSystem::transforms& modelTransforms, const I& instance = {}) // returns model transform ID
-		{
-			auto TS = TransformSystem::Init();
-			uint32_t modelTransformsId = TS->AddModelTransform(modelTransforms, (uint32_t)model->m_meshes.size());
-
-			return addModel(model, material, modelTransformsId, instance);
-		}
+		uint32_t addModel(std::shared_ptr<Model> model, const std::vector<M>& material, const TransformSystem::transforms& modelTransforms, const I& instance = {}); // returns model transform ID
 
 		
 
@@ -442,5 +431,24 @@ namespace Engine
 
 
 	
+	template<typename I, typename M>
+	inline uint32_t OpaqueInstances<I, M>::addModel(std::shared_ptr<Model> model, const M& material, const TransformSystem::transforms& modelTransforms, const I& instance)
+	{
+		auto TS = TransformSystem::Init();
+		uint32_t modelTransformsId = TS->AddModelTransform(modelTransforms, (uint32_t)model->m_meshes.size());
+
+		MeshSystem::Init()->shadowGroup.addModel(model, MeshSystem::Material{}, modelTransformsId, MeshSystem::Instance{});
+		return addModel(model, material, modelTransformsId, instance);
+	}
+
+	template<typename I, typename M>
+	inline uint32_t OpaqueInstances<I, M>::addModel(std::shared_ptr<Model> model, const std::vector<M>& material, const TransformSystem::transforms& modelTransforms, const I& instance)
+	{
+		auto TS = TransformSystem::Init();
+		uint32_t modelTransformsId = TS->AddModelTransform(modelTransforms, (uint32_t)model->m_meshes.size());
+
+		MeshSystem::Init()->shadowGroup.addModel(model, MeshSystem::Material{}, modelTransformsId, MeshSystem::Instance{});
+		return addModel(model, material, modelTransformsId, instance);
+	}
 }
 

@@ -154,6 +154,9 @@ void Engine::Renderer::Render(Camera* camera)
 		LTCmat->BindTexture(9u);
 		LTCamp->BindTexture(10u);
 	}
+	std::vector<vec3> pos;
+	pos.push_back(Engine::vec3(5.0f, 0.0f, 3.0f));
+	MeshSystem::Init()->renderDepthCubemaps(pos);
 
 	Engine::LightSystem::Init()->UpdateLightsBuffer();
 	Engine::LightSystem::Init()->BindLightTextures();

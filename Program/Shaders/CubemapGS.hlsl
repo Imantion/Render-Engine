@@ -1,11 +1,11 @@
-cbuffer lightViewProjections : register(b3)
+cbuffer lightViewProjections : register(b0)
 {
     float4x4 lightViewProjection[6];
 };
 
 struct GSInput
 {
-    float3 worldPos : worldPos;
+    float3 worldPos : WORLDPOS;
 };
 
 struct PSInput

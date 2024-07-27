@@ -1,9 +1,10 @@
 #include "Graphics/MeshSystem.h"
 #include "Graphics/LightSystem.h"
-
+#include "Graphics/ReflectionCapture.h"
 
 std::mutex Engine::MeshSystem::mutex_;
 Engine::MeshSystem* Engine::MeshSystem::pInstance = nullptr;
+Microsoft::WRL::ComPtr<ID3D11Texture2D> abbabababababa;
 
 int Engine::MeshSystem::intersect(const ray& r, hitInfo& hInfo)
 {
@@ -24,6 +25,7 @@ void Engine::MeshSystem::updateInstanceBuffers()
 	hologramGroup.updateInstanceBuffers();
 	opaqueGroup.updateInstanceBuffers();
 	emmisiveGroup.updateInstanceBuffers();
+	shadowGroup.updateInstanceBuffers();
 }
 
 void Engine::MeshSystem::renderDepthCubemaps(const std::vector<vec3>& lightPositions)
@@ -45,9 +47,18 @@ void Engine::MeshSystem::renderDepthCubemaps(const std::vector<vec3>& lightPosit
 
 	ConstBuffer<vec4> psConstBuffer;
 	psConstBuffer.create();
+	D3D11_VIEWPORT viewPort = {};
+	viewPort.Width = 1024;
+	viewPort.Height = 1024;
+	viewPort.MinDepth = 0;
+	viewPort.MaxDepth = 1;
+
+	context->RSSetViewports(1, &viewPort);
 
 	for (size_t i = 0; i < lightPositions.size(); i++)
 	{
+		context->ClearDepthStencilView(dsvs[i].Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 0.0f, 0u);
+
 		lightViewProjections constantBufferData{
 			viewMatrix(lightPositions[i], vec3(1.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f)) * projection,
 			viewMatrix(lightPositions[i], vec3(-1.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f)) * projection,
@@ -60,14 +71,16 @@ void Engine::MeshSystem::renderDepthCubemaps(const std::vector<vec3>& lightPosit
 		vec4 psData(lightPositions[i], farPlane);
 
 		cbProjections.updateBuffer(&constantBufferData);
-		cbProjections.bind(3u, GS);
+		cbProjections.bind(0u, GS);
 
-		psConstBuffer.bind(3u, PS);
+		psConstBuffer.bind(0u, PS);
 
-		context->OMSetRenderTargets(1, nullptr, dsvs[i].Get());
+		context->OMSetRenderTargets(0u, nullptr, dsvs[i].Get());
 
 		shadowGroup.render();
 	}
+
+	ReflectionCapture::saveCapture(L"generatedTextureName.dds", Engine::D3D::GetInstance()->GetDevice(), Engine::D3D::GetInstance()->GetContext(), abbabababababa.Get(), false, ReflectionCapture::FileFormat::BC7_LINEAR);
 }
 
 void Engine::MeshSystem::render()
@@ -102,7 +115,7 @@ void Engine::MeshSystem::createDepthCubemaps(size_t amount)
 
 	auto device = D3D::GetInstance()->GetDevice();
 
-	Microsoft::WRL::ComPtr<ID3D11Texture2D> texture;
+	/*Microsoft::WRL::ComPtr<ID3D11Texture2D> texture;*/
 	D3D11_TEXTURE2D_DESC textureDesc = {};
 	textureDesc.Width = 1024;
 	textureDesc.Height = 1024;
@@ -111,11 +124,13 @@ void Engine::MeshSystem::createDepthCubemaps(size_t amount)
 	textureDesc.Format = DXGI_FORMAT_R24G8_TYPELESS;
 	textureDesc.SampleDesc.Count = 1;
 	textureDesc.Usage = D3D11_USAGE_DEFAULT;
-	textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+	textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_DEPTH_STENCIL;
 	textureDesc.CPUAccessFlags = 0;
 	textureDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
 
-	device->CreateTexture2D(&textureDesc, nullptr, &texture);
+	HRESULT hr = device->CreateTexture2D(&textureDesc, nullptr, &abbabababababa);
+
+	assert(SUCCEEDED(hr));
 
 	D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
 	ZeroMemory(&depthStencilViewDesc, sizeof(D3D11_DEPTH_STENCIL_VIEW_DESC));
@@ -127,20 +142,22 @@ void Engine::MeshSystem::createDepthCubemaps(size_t amount)
 	for (size_t i = 0; i < amount; i++)
 	{
 		depthStencilViewDesc.Texture2DArray.FirstArraySlice = i * 6;
-		device->CreateDepthStencilView(texture.Get(), &depthStencilViewDesc, &dsvs[i]);
+		hr = device->CreateDepthStencilView(abbabababababa.Get(), &depthStencilViewDesc, &dsvs[i]);
+		assert(SUCCEEDED(hr));
 	}
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
 	ZeroMemory(&srvDesc, sizeof(srvDesc));
 
 	srvDesc.ViewDimension = D3D_SRV_DIMENSION_TEXTURECUBEARRAY;
-	srvDesc.TextureCubeArray.MipLevels = 0;
+	srvDesc.TextureCubeArray.MipLevels = 1;
 	srvDesc.TextureCubeArray.First2DArrayFace = 0;
 	srvDesc.TextureCubeArray.MostDetailedMip = 0;
 	srvDesc.TextureCubeArray.NumCubes = amount;
-	srvDesc.Format = textureDesc.Format;
+	srvDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
 
-	device->CreateShaderResourceView(texture.Get(), &srvDesc, &srvPointLigts);
+	hr = device->CreateShaderResourceView(abbabababababa.Get(), &srvDesc, &srvPointLigts);
+	assert(SUCCEEDED(hr));
 }
 
 template <>
