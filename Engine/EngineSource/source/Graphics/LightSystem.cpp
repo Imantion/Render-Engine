@@ -155,7 +155,7 @@ void Engine::LightSystem::GetPointLightsPositions(std::vector<vec3>& positions)
 {
     positions.reserve(m_pointLights.size());
     auto TS = TransformSystem::Init();
-    for (size_t i = 0; i < positions.size(); i++)
+    for (size_t i = 0; i < m_pointLights.size(); i++)
     {
         auto& transform = TS->GetModelTransforms(m_pointLights[i].bindedObjectId)[0].modelToWold;
         positions.push_back((vec3&)*transform[3] + m_pointLights[i].position);

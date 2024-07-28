@@ -4,7 +4,6 @@
 
 std::mutex Engine::MeshSystem::mutex_;
 Engine::MeshSystem* Engine::MeshSystem::pInstance = nullptr;
-Microsoft::WRL::ComPtr<ID3D11Texture2D> abbabababababa;
 
 int Engine::MeshSystem::intersect(const ray& r, hitInfo& hInfo)
 {
@@ -34,6 +33,10 @@ void Engine::MeshSystem::renderDepthCubemaps(const std::vector<vec3>& lightPosit
 		createDepthCubemaps(lightPositions.size());
 
 	auto context = D3D::GetInstance()->GetContext();
+
+	ID3D11ShaderResourceView* const pSRV[1] = { NULL };
+	context->PSSetShaderResources(11, 1u, pSRV);
+
 	float farPlane = 100.0f;
 	mat4 projection = projectionMatrix((float)M_PI_2, 0.01f, farPlane, 1.0f);
 
@@ -47,7 +50,10 @@ void Engine::MeshSystem::renderDepthCubemaps(const std::vector<vec3>& lightPosit
 
 	ConstBuffer<vec4> psConstBuffer;
 	psConstBuffer.create();
+
 	D3D11_VIEWPORT viewPort = {};
+	viewPort.TopLeftX = 0.0f;
+	viewPort.TopLeftY = 0.0f;
 	viewPort.Width = 1024;
 	viewPort.Height = 1024;
 	viewPort.MinDepth = 0;
@@ -72,15 +78,17 @@ void Engine::MeshSystem::renderDepthCubemaps(const std::vector<vec3>& lightPosit
 
 		cbProjections.updateBuffer(&constantBufferData);
 		cbProjections.bind(0u, GS);
-
-		psConstBuffer.bind(0u, PS);
+		
+		psConstBuffer.updateBuffer(&psData);
+		psConstBuffer.bind(10u, PS);
 
 		context->OMSetRenderTargets(0u, nullptr, dsvs[i].Get());
 
 		shadowGroup.render();
 	}
 
-	ReflectionCapture::saveCapture(L"generatedTextureName.dds", Engine::D3D::GetInstance()->GetDevice(), Engine::D3D::GetInstance()->GetContext(), abbabababababa.Get(), false, ReflectionCapture::FileFormat::BC7_LINEAR);
+	context->OMSetRenderTargets(0u, nullptr, nullptr);
+	context->PSSetShaderResources(11, 1, srvPointLigts.GetAddressOf());
 }
 
 void Engine::MeshSystem::render()
@@ -115,7 +123,7 @@ void Engine::MeshSystem::createDepthCubemaps(size_t amount)
 
 	auto device = D3D::GetInstance()->GetDevice();
 
-	/*Microsoft::WRL::ComPtr<ID3D11Texture2D> texture;*/
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> texture;
 	D3D11_TEXTURE2D_DESC textureDesc = {};
 	textureDesc.Width = 1024;
 	textureDesc.Height = 1024;
@@ -128,7 +136,7 @@ void Engine::MeshSystem::createDepthCubemaps(size_t amount)
 	textureDesc.CPUAccessFlags = 0;
 	textureDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
 
-	HRESULT hr = device->CreateTexture2D(&textureDesc, nullptr, &abbabababababa);
+	HRESULT hr = device->CreateTexture2D(&textureDesc, nullptr, &texture);
 
 	assert(SUCCEEDED(hr));
 
@@ -142,7 +150,7 @@ void Engine::MeshSystem::createDepthCubemaps(size_t amount)
 	for (size_t i = 0; i < amount; i++)
 	{
 		depthStencilViewDesc.Texture2DArray.FirstArraySlice = i * 6;
-		hr = device->CreateDepthStencilView(abbabababababa.Get(), &depthStencilViewDesc, &dsvs[i]);
+		hr = device->CreateDepthStencilView(texture.Get(), &depthStencilViewDesc, &dsvs[i]);
 		assert(SUCCEEDED(hr));
 	}
 
@@ -156,7 +164,7 @@ void Engine::MeshSystem::createDepthCubemaps(size_t amount)
 	srvDesc.TextureCubeArray.NumCubes = amount;
 	srvDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
 
-	hr = device->CreateShaderResourceView(abbabababababa.Get(), &srvDesc, &srvPointLigts);
+	hr = device->CreateShaderResourceView(texture.Get(), &srvDesc, &srvPointLigts);
 	assert(SUCCEEDED(hr));
 }
 

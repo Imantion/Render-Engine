@@ -14,7 +14,7 @@
 #include "imgui.h"
 #include "backends/imgui_impl_win32.h"
 #include "backends/imgui_impl_dx11.h"
-
+#include "Graphics/LightSystem.h"
 
 #define FRAME_RATE 60
 
@@ -143,6 +143,8 @@ int main(int argc, char* argv[])
 	/*Engine::ReflectionCapture::IBLspecularIrradiance(L"Textures\\PreCalculatedIBL\\NightspecIrrad.dds", skyboxTexture, 5000, 10);*/
 	//Engine::ReflectionCapture::IBLreflectance(L"Textures\\PreCalculatedIBL\\reflectance.dds", skyboxTexture, 1024, 1024);
 	
+
+
 	D3DApplication app(800, 400, WindowProc);
 
 	while (!app.isClosed())

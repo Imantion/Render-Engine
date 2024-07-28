@@ -38,7 +38,7 @@ static const int MAX_AREA_IND = 4;
 static const float g_MIN_F0 = 0.01;
 
 Texture2D flashlighTexture : register(t1);
-SamplerState samplerstateFlash : register(s0);
+SamplerState samplerstateFlash : register(s4);
 
 struct DirectionalLight
 {

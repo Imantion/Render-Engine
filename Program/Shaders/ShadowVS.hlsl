@@ -1,3 +1,5 @@
+#pragma pack_matrix(row_major)
+
 cbuffer meshData : register(b2)
 {
     float4x4 meshToModel;

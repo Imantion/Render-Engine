@@ -1,4 +1,4 @@
-cbuffer linearDepthTransformData : register(b0)
+cbuffer linearDepthTransformData : register(b10)
 {
     float3 lightPosition;
     float farPlane;

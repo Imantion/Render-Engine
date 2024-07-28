@@ -20,6 +20,8 @@ cbuffer MaterialData : register(b2)
     float material_metalness;
 }
 
+TextureCubeArray pointLightsShadowMap : register(t11);
+
 
 struct PSInput
 {
@@ -84,8 +86,13 @@ float4 main(PSInput input) : SV_TARGET
     }
     for (i = 0; i < plSize; ++i)
     {
-
-        finalColor += PBRLight(pointLights[i], input.worldPos, albedo, metalness, roughness, input.tbn._31_32_33, normal, v, specularState, diffuseState);
+        float3 directionToLigt = input.worldPos - pointLights[i].position;
+        float shadowValue = pointLightsShadowMap.Sample(g_pointWrap, float4(directionToLigt, i));
+        float ourValue = 1.0f - length(directionToLigt) / 100.0f;
+        float a = 0.0f;
+        if (ourValue >= shadowValue)
+            a = 1.0f;
+        finalColor += a * PBRLight(pointLights[i], input.worldPos, albedo, metalness, roughness, input.tbn._31_32_33, normal, v, specularState, diffuseState);
     }
     
     for (i = 0; i < dlSize; ++i)
@@ -115,13 +122,13 @@ float4 main(PSInput input) : SV_TARGET
         { 0, 0, 1 },
     };
     
-    if(LTCState)
-    for (i = 0; i < alSize; i++)
-    {
-        float3 d = LTC_Evaluate(normal, v, input.worldPos, Identity, areaLights[i], true);
-        float3 s = LTC_Evaluate(normal, v, input.worldPos, Minv, areaLights[i], true);
-        finalColor += areaLights[i].color * (d * albedo * (1 - metalness) + s) * (t2.r * areaLights[i].intensity);
-    }
+    if (LTCState)
+        for (i = 0; i < alSize; i++)
+        {
+            float3 d = LTC_Evaluate(normal, v, input.worldPos, Identity, areaLights[i], true);
+            float3 s = LTC_Evaluate(normal, v, input.worldPos, Minv, areaLights[i], true);
+            finalColor += areaLights[i].color * (d * albedo * (1 - metalness) + s) * (t2.r * areaLights[i].intensity);
+        }
 
     
     finalColor += FlashLight(flashLight, albedo, metalness, roughness, normal, input.worldPos, g_cameraPosition, specularState, diffuseState);

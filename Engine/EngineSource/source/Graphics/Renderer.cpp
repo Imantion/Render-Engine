@@ -123,9 +123,24 @@ void Engine::Renderer::Render(Camera* camera)
 {
 	Engine::D3D* d3d = Engine::D3D::GetInstance();
 
+	d3d->GetContext()->OMSetDepthStencilState(pDSState.Get(), 1u);
+
+	std::vector<Engine::vec3> positions;
+	Engine::LightSystem::Init()->GetPointLightsPositions(positions);
+	Engine::MeshSystem::Init()->renderDepthCubemaps(positions);
+
+	D3D11_VIEWPORT viewport;
+	viewport.TopLeftX = 0.0f;
+	viewport.TopLeftY = 0.0f;
+	viewport.Width = 800;
+	viewport.Height = 400;
+	viewport.MinDepth = 0.0f;
+	viewport.MaxDepth = 1.0f;
+
+	d3d->GetContext()->RSSetViewports(1, &viewport);
 
 	d3d->GetContext()->OMSetRenderTargets(1u, pHDRRenderTarget.GetAddressOf(), pViewDepth.Get());
-	d3d->GetContext()->OMSetDepthStencilState(pDSState.Get(), 1u);
+	
 
 	static const float color[] = { 0.5f, 0.5f,0.5f,1.0f };
 	
@@ -154,9 +169,6 @@ void Engine::Renderer::Render(Camera* camera)
 		LTCmat->BindTexture(9u);
 		LTCamp->BindTexture(10u);
 	}
-	std::vector<vec3> pos;
-	pos.push_back(Engine::vec3(5.0f, 0.0f, 3.0f));
-	MeshSystem::Init()->renderDepthCubemaps(pos);
 
 	Engine::LightSystem::Init()->UpdateLightsBuffer();
 	Engine::LightSystem::Init()->BindLightTextures();
