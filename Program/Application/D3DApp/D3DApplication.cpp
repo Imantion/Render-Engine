@@ -354,7 +354,7 @@ void D3DApplication::InitLights()
 	auto TM = Engine::TextureManager::Init();
 
 	float radiance = Engine::Light::radianceFromIrradiance(1.35f, 0.5f, 1.0f);
-	Engine::PointLight pointLight(Engine::vec3(10.0f, 10.0f, 10.0f) * radiance, Engine::vec3(0.0f), 0.5f);
+	Engine::PointLight pointLight(Engine::vec3(1.0f, 1.0f, 1.0f) * radiance, Engine::vec3(0.0f), 0.5f);
 	Engine::PointLight pointLight3(Engine::vec3(0.0f, 1.0f, 0.0f) * radiance, Engine::vec3(0.0f), 0.5f);
 
 	radiance = Engine::Light::radianceFromIrradiance(1.0f, 1.0f, 5.0f);
