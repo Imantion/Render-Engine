@@ -93,11 +93,6 @@ float G_Smith(float roughness4, float NoV, float NoL)
     return 2.0f / denominator;
 }
 
-float radianceFromIrradiance(float irradiance, float radius, float distanceSquared)
-{
-    return irradiance / (1 - sqrt(1 - min(radius * radius / distanceSquared, 1.0f)));
-}
-
 float SolidAngle(float radius, float distanceSquared)
 {
     return 2 * PI * (1 - sqrt(1 - min(radius * radius / distanceSquared, 1.0f)));

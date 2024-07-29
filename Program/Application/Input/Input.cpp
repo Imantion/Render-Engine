@@ -58,6 +58,7 @@ void Input::processKeyboardInput(uint32_t keycode, bool isDown, bool wasKeyDown)
 	case 0x34:
 		keyboard[Input::KeyboardButtons::FOUR].isDown = isDown;
 		keyboard[Input::KeyboardButtons::FOUR].wasDown = wasKeyDown;
+		break;
 	case VK_OEM_PLUS:
 		keyboard[Input::KeyboardButtons::PLUS].isDown = isDown;
 		keyboard[Input::KeyboardButtons::PLUS].wasDown = wasKeyDown;

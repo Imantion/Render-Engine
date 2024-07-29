@@ -57,9 +57,9 @@ void Engine::LightSystem::SetFlashLightAttachedState(bool attach)
     m_flashLight.isAttached = attach;
 }
 
-void Engine::LightSystem::AddDirectionalLight(const vec3& direction, const vec3& color, float radius)
+void Engine::LightSystem::AddDirectionalLight(const vec3& direction, const vec3& color, float solidAngle)
 {
-    DirectionalLight directLight(direction, color, radius);
+    DirectionalLight directLight(direction, color, solidAngle);
     AddDirectionalLight(directLight);
 }
 

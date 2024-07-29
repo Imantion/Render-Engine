@@ -2,7 +2,7 @@
 #include <vector>
 #include <memory>
 #include "Math/matrix.h"
-#include "Math/math.h"
+#include "Graphics/Materials.h"
 #include "Math/hitable.h"
 #include "Graphics/Buffers.h"
 #include "Graphics/Model.h"
@@ -325,33 +325,6 @@ namespace Engine
 	class MeshSystem
 	{
 	public:
-		struct Material
-		{
-			vec3 shortWaveColor;
-			float padding0;
-			vec3 longWaveColor;
-			float padding1;
-			std::shared_ptr<Texture> texture;
-			bool operator==(const Material& other) const
-			{
-				return shortWaveColor == other.shortWaveColor && longWaveColor == other.longWaveColor;
-			}
-		};
-
-		struct TextureMaterial
-		{
-			std::shared_ptr<Texture> albedo;
-			std::shared_ptr<Texture> roughness;
-			std::shared_ptr<Texture> metalness;
-			std::shared_ptr<Texture> normal;
-
-			
-			bool operator==(const TextureMaterial& other) const
-			{
-				return albedo.get() == other.albedo.get() && roughness.get() == other.roughness.get() && metalness.get() == other.metalness.get() && normal.get() == other.normal.get();
-			}
-		};
-
 
 		struct Instance 
 		{
@@ -362,20 +335,11 @@ namespace Engine
 			vec3 emmisiveColor;
 		};
 
-		struct EmmisiveMaterial
-		{
-			vec4 padding;
-			bool operator==(const EmmisiveMaterial& other) const
-			{
-				return true;
-			}
-		};
-
-		OpaqueInstances<Instance, Material> hologramGroup;
-		OpaqueInstances<Instance, Material> normVisGroup;
-		OpaqueInstances<Instance, TextureMaterial> textureGroup;
-		OpaqueInstances<Instance, TextureMaterial> opaqueGroup;
-		OpaqueInstances<EmmisiveInstance, EmmisiveMaterial> emmisiveGroup;
+		OpaqueInstances<Instance, Materials::HologramMaterial> hologramGroup;
+		OpaqueInstances<Instance, Materials::NormVisMaterial> normVisGroup;
+		OpaqueInstances<Instance, Materials::TextureMaterial> textureGroup;
+		OpaqueInstances<Instance, Materials::OpaqueTextureMaterial> opaqueGroup;
+		OpaqueInstances<EmmisiveInstance, Materials::EmmisiveMaterial> emmisiveGroup;
 
 		int intersect(const ray& r, hitInfo& hInfo);
 
@@ -396,6 +360,6 @@ namespace Engine
 	};
 
 	template <>
-	inline void OpaqueInstances<MeshSystem::Instance, MeshSystem::TextureMaterial>::render();
+	inline void OpaqueInstances<MeshSystem::Instance, Materials::OpaqueTextureMaterial>::render();
 }
 

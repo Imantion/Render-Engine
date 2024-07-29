@@ -56,7 +56,7 @@ void Engine::MeshSystem::Deinit()
 }
 
 template <>
-inline void Engine::OpaqueInstances<Engine::MeshSystem::Instance, Engine::MeshSystem::TextureMaterial>::render()
+inline void Engine::OpaqueInstances<Engine::MeshSystem::Instance, Materials::OpaqueTextureMaterial>::render()
 {
 	// Custom render implementation for TextureMaterial
 	if (instanceBuffer.getSize() == 0)
