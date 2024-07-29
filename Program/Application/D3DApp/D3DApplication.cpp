@@ -357,8 +357,8 @@ void D3DApplication::InitLights()
 	auto model = Engine::ModelManager::GetInstance()->GetModel("UNIT_SPHERE");
 
 	Engine::LightSystem::Init()->AddPointLight(Engine::vec3(1.5f, 0.0f, 0.9f), 1.0f, 5.0f, Engine::vec3(-5.0f, 0.0f, 2.0f), model);
-	Engine::LightSystem::Init()->AddPointLight(Engine::vec3(1.35f), 0.5f, 1.0f, Engine::vec3(2.0f, -1.0f, 0.0f), model);
-	Engine::LightSystem::Init()->AddPointLight(Engine::vec3(0.0f, 1.35f, 0.0f), 0.5f, 1.0f, Engine::vec3(2.0f, 2.0f, 0.0f), model);
+	Engine::LightSystem::Init()->AddPointLight(Engine::vec3(2.35f), 0.5f, 1.0f, Engine::vec3(2.0f, -1.0f, 0.0f), model);
+	Engine::LightSystem::Init()->AddPointLight(Engine::vec3(0.0f, 4.0f, 0.0f), 0.5f, 1.0f, Engine::vec3(2.0f, 2.0f, 0.0f), model);
 	Engine::LightSystem::Init()->AddPointLight(Engine::vec3(0.1f), 0.05f, 1.0f, Engine::vec3(0.0f, 0.0f, -0.5f), model);
 
 	Engine::SpotLight spotLight(Engine::vec3(1.0f), 1.0f, 25.0f, Engine::vec3(0.0f, 0.0f, 0.0f), Engine::vec3(.0f, .0f, 1.0f), 0.5 / 2.0f);
