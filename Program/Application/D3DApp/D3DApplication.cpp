@@ -135,9 +135,6 @@ static void InitMeshSystem()
 	ms->hologramGroup.addShader(HologramGroup);
 	ms->hologramGroup.addShader(NormalVisLines);
 
-	ms->textureGroup.addShader(textureMap);
-	ms->textureGroup.addShader(NormalVisLines);
-
 	ms->opaqueGroup.addShader(opaqueShader);
 	ms->opaqueGroup.addShader(NormalVisLines);
 
@@ -449,15 +446,15 @@ void D3DApplication::GUI()
 						float previousRadius = pl->radius;
 
 						ImGui::InputFloat("Radius", &pl->radius);
-						ImGui::InputFloat3("Color", (float*)&pl->color);
+						ImGui::InputFloat3("Color", (float*)&pl->radiance);
 
 						pl->radius = pl->radius > 0.0f ? pl->radius : 0.01f;
 
-						pl->color.x = pl->color.x >= 0.0f ? pl->color.x : 0.01f;
-						pl->color.y = pl->color.y >= 0.0f ? pl->color.y : 0.01f;
-						pl->color.z = pl->color.z >= 0.0f ? pl->color.z : 0.01f;
+						pl->radiance.x = pl->radiance.x >= 0.0f ? pl->radiance.x : 0.01f;
+						pl->radiance.y = pl->radiance.y >= 0.0f ? pl->radiance.y : 0.01f;
+						pl->radiance.z = pl->radiance.z >= 0.0f ? pl->radiance.z : 0.01f;
 
-						selected->update((void*)&pl->color);
+						selected->update((void*)&pl->radiance);
 						if (previousRadius != pl->radius)
 						{
 							Engine::TransformSystem::Init()->ScaleModelTransform(selected->getTransformId(), pl->radius / previousRadius);
@@ -566,18 +563,27 @@ void D3DApplication::InitLights()
 	spotLight.bindedObjectId = camera->getCameraTransformId();
 	Engine::LightSystem::Init()->AddFlashLight(spotLight, TM->LoadFromFile("flashlight", L"Textures\\flashlightMask.dds"));
 
-	Engine::DirectionalLight directionalLight(Engine::vec3(0.707f, -0.707f, 0.0f), Engine::vec3(0.84f * 10.0f, 0.86264f * 10.0f, 0.89019f * 10.0f), 0.15f);
+	Engine::DirectionalLight directionalLight(Engine::vec3(-0.605475307f, -0.795605361f, 0.0203348193f), Engine::vec3(0.84f * 10.0f, 0.86264f * 10.0f, 0.89019f * 10.0f), 0.15f);
 	Engine::LightSystem::Init()->AddDirectionalLight(directionalLight);
 
-	Engine::TransformSystem::transforms inst = { Engine::transformMatrix(Engine::vec3(0.0f, -5.0f, -1.0f), Engine::vec3(0.0f, 0.0f, 1.0f), Engine::vec3(1.0f, 0.0f, 0.0f), Engine::vec3(0.0f, 1.0f, 0.0f)) };
+
 	Engine::vec3 vert[4] = { Engine::vec3(-1.0f, 1.0f, 0.0f),  Engine::vec3(1.0f, 1.0f, 0.0f), Engine::vec3(1.0f, -1.0f, 0.0f), Engine::vec3(-1.0f, -1.0f, 0.0f) };
 	Engine::AreaLight areaLight(Engine::vec3(0.0f, .3f, 0.7f), vert, 4, 10.0f);
-	Engine::ModelManager::GetInstance()->initUnitSphere();
-	changepos(inst, Engine::vec3(-2.0f, 0.0f, 7.0f));
-	areaLight.bindedTransform =  Engine::MeshSystem::Init()->emmisiveGroup.addModel(model, Engine::MeshSystem::EmmisiveMaterial{}, inst, Engine::MeshSystem::EmmisiveInstance{ areaLight.color });
+	Engine::ModelManager::GetInstance()->initUnitQuad();
+	model = Engine::ModelManager::GetInstance()->GetModel("UNIT_QUAD");
+	Engine::TransformSystem::transforms inst = {
+	   Engine::transformMatrix(Engine::vec3(-2.0f, 3.0f, 7.0f), Engine::vec3(0.0f, 0.0f, 1.0f), Engine::vec3(1.0f, 0.0f, 0.0f), Engine::vec3(0.0f, 1.0f, 0.0f))};
+
+	areaLight.bindedTransform = Engine::MeshSystem::Init()->emmisiveGroup.addModel(model, Materials::EmmisiveMaterial{}, inst, Engine::MeshSystem::EmmisiveInstance{ areaLight.color });
 	Engine::LightSystem::Init()->AddAreaLight(areaLight);
 
 	Engine::LightSystem::Init()->UpdateLightsBuffer();
+
+	auto LTCmat = Engine::TextureManager::Init()->LoadFromFile("LTCmat", L"Textures\\ltc_mat.dds");
+	auto LTCamp = Engine::TextureManager::Init()->LoadFromFile("LTCamp", L"Textures\\ltc_amp.dds");
+
+	Engine::Renderer::GetInstance()->setLTCLight(LTCmat, LTCamp);
+
 
 	auto diffuse = Engine::TextureManager::Init()->LoadFromFile("IBLd", L"Textures\\PreCalculatedIBL\\diffuse.dds");
 	auto specular = Engine::TextureManager::Init()->LoadFromFile("IBLs", L"Textures\\PreCalculatedIBL\\specIrrad.dds");
@@ -588,18 +594,24 @@ void D3DApplication::InitLights()
 
 void D3DApplication::InitCrateModel()
 {
-	auto model = Engine::ModelManager::GetInstance()->loadModel("Models\\cube.obj", true);
-
 	auto TM = Engine::TextureManager::Init();
+
+	Materials::OpaqueTextureMaterial goldenSphereTextures = { TM->LoadFromFile("golden_albedo", L"Textures\\Gold\\albedo.dds"),
+		TM->LoadFromFile("golden_roughness", L"Textures\\Gold\\roughness.dds"), TM->LoadFromFile("golden_metallic", L"Textures\\Gold\\metallic.dds"),
+		TM->LoadFromFile("golden_normal",L"Textures\\Gold\\normal.dds") };
+
+	auto model = Engine::ModelManager::GetInstance()->loadModel("Models\\sphere.obj");
+	Engine::TransformSystem::transforms inst = { Engine::transformMatrix(Engine::vec3(0.0f, 4.0f, -1.0f), Engine::vec3(0.0f, 0.0f, 1.0f), Engine::vec3(1.0f, 0.0f, 0.0f), Engine::vec3(0.0f, 1.0f, 0.0f)) };
+	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, goldenSphereTextures, inst);
+	
+
+	model = Engine::ModelManager::GetInstance()->loadModel("Models\\cube.obj", true);
 	auto crateFirst = TM->LoadFromFile("crate", L"Textures\\RedCore\\albedo.dds");
 	auto crateMetallic = TM->LoadFromFile("crateMetallic", L"Textures\\RedCore\\metallic.dds");
 	auto crateRoughness = TM->LoadFromFile("crateRoughness", L"Textures\\RedCore\\roughness.dds");
 	auto crateNormal = TM->LoadFromFile("crateNormal", L"Textures\\RedCore\\normal.dds");
 
 	Materials::OpaqueTextureMaterial crateMaterial = { crateFirst, crateRoughness, crateMetallic, crateNormal };
-
-	Engine::TransformSystem::transforms inst = {
-		Engine::transformMatrix(Engine::vec3(0.0f, -1.0f, 0.0f), Engine::vec3(0.0f, 0.0f, 1.0f), Engine::vec3(1.0f, 0.0f, 0.0f), Engine::vec3(0.0f, 1.0f, 0.0f)) };
 
 	changepos(inst, Engine::vec3(1.0f, -1.0f, 4.0f));
 	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, crateMaterial, inst);

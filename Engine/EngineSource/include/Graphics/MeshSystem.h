@@ -392,7 +392,6 @@ namespace Engine
 		};
 		OpaqueInstances<Instance, Materials::HologramMaterial> hologramGroup;
 		OpaqueInstances<Instance, Materials::NormVisMaterial> normVisGroup;
-		OpaqueInstances<Instance, Materials::TextureMaterial> textureGroup;
 		OpaqueInstances<PBRInstance, Materials::OpaqueTextureMaterial> opaqueGroup;
 		OpaqueInstances<EmmisiveInstance, Materials::EmmisiveMaterial> emmisiveGroup;
 

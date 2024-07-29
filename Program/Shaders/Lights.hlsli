@@ -194,8 +194,9 @@ void SphereMaxNoH(float NoV, inout float NoL, inout float VoL, float sphereSin, 
 float horizonFalloffFactor(float3 normal, float3 planePoint, float3 lightPosition, float lightRadius)
 {
     float distance = normal.x * (lightPosition.x - planePoint.x) + normal.y * (lightPosition.y - planePoint.y) + normal.z * (lightPosition.z - planePoint.z);
+    
     float sum = max(distance + lightRadius, 0.0f);
-    return min(1, sum / 2.0f * lightRadius);
+    return min(1, sum / (2.0f * lightRadius));
 }
 
 float3 fresnel(float3 F0, float angle)
