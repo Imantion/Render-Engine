@@ -354,9 +354,13 @@ void D3DApplication::InitLights()
 {
 	auto TM = Engine::TextureManager::Init();
 
-	Engine::PointLight pointLight(Engine::vec3(10.0f, 10.0f, 10.0f), Engine::vec3(0.0f), 0.5f);
-	Engine::PointLight pointLight2(Engine::vec3(15.0f, 0.0f, 9.0f), Engine::vec3(0.0f), 1.0f);
-	Engine::PointLight pointLight3(Engine::vec3(0.0f, 10.0f, 0.0f), Engine::vec3(0.0f), 0.5f);
+	float radiance = Engine::Light::radianceFromIrradiance(1.35f, 0.5f, 1.0f);
+	Engine::PointLight pointLight(Engine::vec3(10.0f, 10.0f, 10.0f) * radiance, Engine::vec3(0.0f), 0.5f);
+	Engine::PointLight pointLight3(Engine::vec3(0.0f, 1.0f, 0.0f) * radiance, Engine::vec3(0.0f), 0.5f);
+
+	radiance = Engine::Light::radianceFromIrradiance(1.0f, 1.0f, 5.0f);
+	Engine::PointLight pointLight2(Engine::vec3(1.5f, 0.0f, 0.9f) * radiance, Engine::vec3(0.0f), 1.0f);
+	
 
 	Engine::SpotLight spotLight(Engine::vec3(100.0f), Engine::vec3(0.0f, 0.0f, 0.0f), Engine::vec3(.0f, .0f, 1.0f), 0.5 / 2.0f, 1.0f);
 	spotLight.bindedObjectId = camera->getCameraTransformId();

@@ -18,8 +18,8 @@ namespace Engine
 	{
 	public:
 
-		Light() : color(0.0f) {}
-		Light(const vec3& col) : color(col) {}
+		Light() : radiance(0.0f) {}
+		Light(const vec3& radiance) : radiance(radiance) {}
 
 		static float radianceFromIrradiance(float irradiance, float radius, float distanceSquared)
 		{
@@ -27,14 +27,14 @@ namespace Engine
 		}
 
 	public:
-		vec3 color;
+		vec3 radiance;
 	};
 
 	class DirectionalLight : public Light
 	{
 	public:
 		DirectionalLight() : Light() {}
-		DirectionalLight(const vec3& direction, const vec3& color, float solidAngle) : Light(color), solidAngle(solidAngle), direction(direction) {}
+		DirectionalLight(const vec3& direction, const vec3& radiance, float solidAngle) : Light(radiance), solidAngle(solidAngle), direction(direction) {}
 		float solidAngle;
 		vec3 direction;
 		int padding;
@@ -44,7 +44,7 @@ namespace Engine
 	{
 	public:
 		PointLight() : Light() {}
-		PointLight(const vec3& col, const vec3& pos, float radius) : Light(col), radius(radius), position(pos) {};
+		PointLight(const vec3& radiance, const vec3& pos, float radius) : Light(radiance), radius(radius), position(pos) {};
 
 		float radius;
 		vec3 position;
@@ -55,7 +55,7 @@ namespace Engine
 	{
 	public:
 		SpotLight() : Light() { cutoffAngle = 0.0f; }
-		SpotLight(const vec3& col, const vec3& pos, const vec3& direction, float cutoffAngle, float radius) : Light(col), radius(radius), position(pos)
+		SpotLight(const vec3& radiance, const vec3& pos, const vec3& direction, float cutoffAngle, float radius) : Light(radiance), radius(radius), position(pos)
 		{
 			this->direction = direction;
 			this->cutoffAngle = cutoffAngle;
@@ -81,13 +81,13 @@ namespace Engine
 		void AddFlashLight(const SpotLight& spotLight, std::shared_ptr<Texture> texture, float aspectRatio = 1.0f, float nearCLip = 0.01f, float farClip = 10.0f);
 
 
-		void AddDirectionalLight(const vec3& direction, const vec3& color, float solidAngle);
+		void AddDirectionalLight(const vec3& direction, const vec3& radiance, float solidAngle);
 		void AddDirectionalLight(const DirectionalLight& othe);
 
-		void AddPointLight(const vec3& col, const vec3& pos, float intens, int objectToBindId);
+		void AddPointLight(const vec3& radiance, const vec3& pos, float intens, int objectToBindId);
 		void AddPointLight(const PointLight& pointLight);
 
-		void AddSpotLight(const vec3& col, const vec3& pos, const vec3& direction, float cutoffAngle, float intens, int objectToBindID);
+		void AddSpotLight(const vec3& radiance, const vec3& pos, const vec3& direction, float cutoffAngle, float intens, int objectToBindID);
 		void AddSpotLight(const SpotLight& spotLight);
 
 		SpotLight& GetSpotLight(uint32_t index);

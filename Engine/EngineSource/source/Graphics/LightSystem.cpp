@@ -57,9 +57,9 @@ void Engine::LightSystem::SetFlashLightAttachedState(bool attach)
     m_flashLight.isAttached = attach;
 }
 
-void Engine::LightSystem::AddDirectionalLight(const vec3& direction, const vec3& color, float solidAngle)
+void Engine::LightSystem::AddDirectionalLight(const vec3& direction, const vec3& radiance, float solidAngle)
 {
-    DirectionalLight directLight(direction, color, solidAngle);
+    DirectionalLight directLight(direction, radiance, solidAngle);
     AddDirectionalLight(directLight);
 }
 
@@ -72,9 +72,9 @@ void Engine::LightSystem::AddPointLight(const PointLight& other)
     m_pointLights.push_back(other);
 }
 
-void Engine::LightSystem::AddPointLight(const vec3& col, const vec3& pos, float intens, int objectToBindId)
+void Engine::LightSystem::AddPointLight(const vec3& radiance, const vec3& pos, float intens, int objectToBindId)
 {
-    PointLight pointLight(col, pos, intens);
+    PointLight pointLight(radiance, pos, intens);
     pointLight.bindedObjectId = objectToBindId;
     AddPointLight(pointLight);
 }
@@ -118,7 +118,7 @@ void Engine::LightSystem::UpdateLightsBuffer()
         {
             bufferData.pointLights[i].position = m_pointLights[i].position;
         }
-        bufferData.pointLights[i].color = m_pointLights[i].color;
+        bufferData.pointLights[i].radiance = m_pointLights[i].radiance;
         bufferData.pointLights[i].radius = m_pointLights[i].radius;
     }
     
@@ -138,7 +138,7 @@ void Engine::LightSystem::UpdateLightsBuffer()
             bufferData.spotLights[i].direction = m_spotLights[i].direction;
         }
         
-        bufferData.spotLights[i].color = m_spotLights[i].color;
+        bufferData.spotLights[i].radiance = m_spotLights[i].radiance;
         bufferData.spotLights[i].cutoffAngle = cosf(m_spotLights[i].cutoffAngle);
         bufferData.spotLights[i].radius = m_spotLights[i].radius;
     }
@@ -156,7 +156,7 @@ void Engine::LightSystem::UpdateLightsBuffer()
            
         bufferData.flashLight.direction = m_flashLight.worldDirection;
         bufferData.flashLight.position = m_flashLight.worldPosition;
-        bufferData.flashLight.color = m_flashLight.light.color;
+        bufferData.flashLight.radiance = m_flashLight.light.radiance;
         bufferData.flashLight.cutoffAngle = cosf(m_flashLight.light.cutoffAngle);
         bufferData.flashLight.radius = m_flashLight.light.radius;
         bufferData.flashLightsViewProjection = m_flashLight.flashLightsViewProjection;
@@ -177,9 +177,9 @@ Engine::LightSystem::LightSystem()
 }
 
 
-void Engine::LightSystem::AddSpotLight(const vec3& col, const vec3& pos, const vec3& direction, float cutoffAngle, float intens, int objectToBindID)
+void Engine::LightSystem::AddSpotLight(const vec3& radiance, const vec3& pos, const vec3& direction, float cutoffAngle, float intens, int objectToBindID)
 {
-    SpotLight spotLight(col, pos, direction, cutoffAngle, intens);
+    SpotLight spotLight(radiance, pos, direction, cutoffAngle, intens);
     spotLight.bindedObjectId = objectToBindID;
     AddSpotLight(spotLight);
 }
