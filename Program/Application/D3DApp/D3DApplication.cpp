@@ -293,7 +293,6 @@ void D3DApplication::InitSamuraiModel()
 	auto TM = Engine::TextureManager::Init();
 
 	std::shared_ptr<Engine::Texture> emptyTexture = std::make_shared<Engine::Texture>();
-
 	std::vector<Materials::OpaqueTextureMaterial> samuraiTextures = {
 		{ TM->LoadFromFile("samurai_sword", L"Textures\\Samurai\\Sword_BaseColor.dds"),
 		  TM->LoadFromFile("samurai_sword_roughness", L"Textures\\Samurai\\Sword_Roughness.dds"),
@@ -433,7 +432,7 @@ void D3DApplication::InitFloor()
 
 	for (int i = 0; i < 100; i += 2) {
 		for (int j = 0; j < 100; j += 2) {
-			changepos(inst, Engine::vec3(-50 + i, -5.0f, -50 + j));
+			changepos(inst, Engine::vec3(-50.0f + (float)i, -5.0f, -50.0f + (float)j));
 			Engine::MeshSystem::Init()->opaqueGroup.addModel(model, floorMaterial, inst);
 		}
 	}
