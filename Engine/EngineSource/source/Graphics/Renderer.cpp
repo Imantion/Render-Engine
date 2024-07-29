@@ -125,9 +125,32 @@ void Engine::Renderer::Render(Camera* camera)
 
 	d3d->GetContext()->OMSetDepthStencilState(pDSState.Get(), 1u);
 
+	D3D11_SAMPLER_DESC sampDesc = {};
+	sampDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
+	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+	sampDesc.MipLODBias = 0.0f;
+	sampDesc.MaxAnisotropy = 1;
+	sampDesc.ComparisonFunc = D3D11_COMPARISON_GREATER_EQUAL;
+	sampDesc.BorderColor[0] = 1.0f;
+	sampDesc.BorderColor[1] = 1.0f;
+	sampDesc.BorderColor[2] = 1.0f;
+	sampDesc.BorderColor[3] = 1.0f;
+	sampDesc.MinLOD = 0;
+	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> compsampler;
+
+	d3d->GetDevice()->CreateSamplerState(&sampDesc, &compsampler);
+
+	d3d->GetContext()->PSSetSamplers(5, 1, compsampler.GetAddressOf());
+
+	/*d3d->GetContext()->RSSetState(pRasterizerState.Get());*/
 	std::vector<Engine::vec3> positions;
 	Engine::LightSystem::Init()->GetPointLightsPositions(positions);
 	Engine::MeshSystem::Init()->renderDepthCubemaps(positions);
+	d3d->GetContext()->RSSetState(nullptr);
 
 	D3D11_VIEWPORT viewport;
 	viewport.TopLeftX = 0.0f;
@@ -222,4 +245,19 @@ Engine::Renderer::Renderer() :
 {
     perFrameBuffer.create();
     perViewBuffer.create();
+
+	D3D11_RASTERIZER_DESC rasterDesc;
+	ZeroMemory(&rasterDesc, sizeof(rasterDesc));
+	rasterDesc.FillMode = D3D11_FILL_SOLID;
+	rasterDesc.CullMode = D3D11_CULL_BACK;
+	rasterDesc.FrontCounterClockwise = false;
+	rasterDesc.DepthBias = -100000; 
+	rasterDesc.DepthBiasClamp = 0.0f;
+	rasterDesc.SlopeScaledDepthBias = -2.0f; 
+	rasterDesc.DepthClipEnable = true;
+	rasterDesc.ScissorEnable = false;
+	rasterDesc.MultisampleEnable = false;
+	rasterDesc.AntialiasedLineEnable = false;
+
+	D3D::GetInstance()->GetDevice()->CreateRasterizerState(&rasterDesc, &pRasterizerState);
 }

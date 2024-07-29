@@ -22,6 +22,8 @@ cbuffer MaterialData : register(b2)
 
 TextureCubeArray pointLightsShadowMap : register(t11);
 
+SamplerComparisonState compr : register(s5);
+
 
 struct PSInput
 {
@@ -87,12 +89,12 @@ float4 main(PSInput input) : SV_TARGET
     for (i = 0; i < plSize; ++i)
     {
         float3 directionToLigt = input.worldPos - pointLights[i].position;
-        float shadowValue = pointLightsShadowMap.Sample(g_pointWrap, float4(directionToLigt, i));
         float ourValue = 1.0f - length(directionToLigt) / 100.0f;
+        float shadowValue = pointLightsShadowMap.SampleCmp(compr, float4(directionToLigt, i), ourValue).r;
         float a = 0.0f;
         if (ourValue >= shadowValue)
             a = 1.0f;
-        finalColor += a * PBRLight(pointLights[i], input.worldPos, albedo, metalness, roughness, input.tbn._31_32_33, normal, v, specularState, diffuseState);
+        finalColor += shadowValue * PBRLight(pointLights[i], input.worldPos, albedo, metalness, roughness, input.tbn._31_32_33, normal, v, specularState, diffuseState);
     }
     
     for (i = 0; i < dlSize; ++i)
