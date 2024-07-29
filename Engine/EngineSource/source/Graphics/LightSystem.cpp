@@ -1,6 +1,7 @@
 #include "Graphics/LightSystem.h"
 #include "Graphics/TransformSystem.h"
 #include "Graphics/TextureManager.h"
+#include "Graphics/MeshSystem.h"
 
 Engine::LightSystem* Engine::LightSystem::m_instance;
 std::mutex Engine::LightSystem::m_mutex; 
@@ -64,19 +65,52 @@ void Engine::LightSystem::AddDirectionalLight(const vec3& direction, const vec3&
 }
 
 
-void Engine::LightSystem::AddPointLight(const PointLight& other)
+void Engine::LightSystem::AddPointLight(const PointLight& pointLight)
 {
     if (m_pointLights.size() > MAX_POINT_LIGHTS)
         throw "Too many point lights";
 
-    m_pointLights.push_back(other);
+    m_pointLights.push_back(pointLight);
 }
 
-void Engine::LightSystem::AddPointLight(const vec3& radiance, const vec3& pos, float intens, int objectToBindId)
+uint32_t Engine::LightSystem::AddPointLight(const vec3& irradiance, float radius, float distanceSquared, const vec3& pos, std::shared_ptr<Model> model)
 {
-    PointLight pointLight(radiance, pos, intens);
+    PointLight pointLight(irradiance, radius, distanceSquared, vec3(0.0f));
+    Engine::TransformSystem::transforms inst = {
+        Engine::transformMatrix(pos, Engine::vec3(0.0f, 0.0f, 1.0f) * radius, Engine::vec3(1.0f, 0.0f, 0.0f) * radius, Engine::vec3(0.0f, 1.0f, 0.0f) * radius)};
+
+    pointLight.bindedObjectId = Engine::MeshSystem::Init()->emmisiveGroup.addModel(model, Materials::EmmisiveMaterial{}, inst, Engine::MeshSystem::EmmisiveInstance{ pointLight.radiance });
+
+    AddPointLight(pointLight);
+
+    return pointLight.bindedObjectId;
+}
+
+void Engine::LightSystem::AddPointLight(const vec3& irradiance, float radius, float distanceSquared, const vec3& pos, int objectToBindId)
+{
+    PointLight pointLight(irradiance, radius, distanceSquared, pos);
     pointLight.bindedObjectId = objectToBindId;
     AddPointLight(pointLight);
+}
+
+uint32_t Engine::LightSystem::AddSpotLight(const vec3& irradiance, float radius, float distanceSquared, const vec3& pos, const vec3& direction, float cutoffAngle, std::shared_ptr<Model> model)
+{
+    SpotLight spotLight(irradiance, radius, distanceSquared, pos, direction, cutoffAngle);
+    Engine::TransformSystem::transforms inst = {
+    Engine::transformMatrix(pos, Engine::vec3(0.0f, 0.0f, 1.0f) * radius, Engine::vec3(1.0f, 0.0f, 0.0f) * radius, Engine::vec3(0.0f, 1.0f, 0.0f) * radius) };
+
+    spotLight.bindedObjectId = Engine::MeshSystem::Init()->emmisiveGroup.addModel(model, Materials::EmmisiveMaterial{}, inst, Engine::MeshSystem::EmmisiveInstance{ spotLight.radiance });
+
+    AddSpotLight(spotLight);
+
+    return spotLight.bindedObjectId;
+}
+
+void Engine::LightSystem::AddSpotLight(const vec3& irradiance, float radius, float distanceSquared, const vec3& pos, const vec3& direction, float cutoffAngle, int objectToBindID)
+{
+    SpotLight spotLight(irradiance, radius, distanceSquared, pos, direction, cutoffAngle);
+    spotLight.bindedObjectId = objectToBindID;
+    AddSpotLight(spotLight);
 }
 
 void Engine::LightSystem::AddSpotLight(const SpotLight& spotLight)
@@ -175,14 +209,5 @@ Engine::LightSystem::LightSystem()
 {
     m_lighsBuffer.create();
 }
-
-
-void Engine::LightSystem::AddSpotLight(const vec3& radiance, const vec3& pos, const vec3& direction, float cutoffAngle, float intens, int objectToBindID)
-{
-    SpotLight spotLight(radiance, pos, direction, cutoffAngle, intens);
-    spotLight.bindedObjectId = objectToBindID;
-    AddSpotLight(spotLight);
-}
-
 
 

@@ -58,6 +58,7 @@ void Engine::MeshSystem::Deinit()
 template <>
 inline void Engine::OpaqueInstances<Engine::MeshSystem::Instance, Materials::OpaqueTextureMaterial>::render()
 {
+
 	// Custom render implementation for TextureMaterial
 	if (instanceBuffer.getSize() == 0)
 		return;
@@ -83,15 +84,17 @@ inline void Engine::OpaqueInstances<Engine::MeshSystem::Instance, Materials::Opa
 				for (const auto& perMaterial : perModel.perMesh[meshIndex].perMaterial) {
 					if (perMaterial.instances.empty()) continue;
 					const auto& material = perMaterial.material;
-					MaterialData data = { material };
+
+					MaterialData data = { vec4(material.usedTextures, material.roughness, material.metalness,0.0f)};
+
 					materialData.updateBuffer(&data);
 					uint32_t numInstances = uint32_t(perMaterial.instances.size());
 					// Custom rendering logic for TextureMaterial
 
-					perMaterial.material.albedo->BindTexture(2u);
-					perMaterial.material.roughness->BindTexture(3u);
-					perMaterial.material.metalness->BindTexture(4u);
-					perMaterial.material.normal->BindTexture(5u);
+					perMaterial.material.albedoTexture->BindTexture(2u);
+					perMaterial.material.roughnessTexture->BindTexture(3u);
+					perMaterial.material.metalnessTexture->BindTexture(4u);
+					perMaterial.material.normalTexture->BindTexture(5u);
 
 					d3d->GetContext()->DrawIndexedInstanced(meshRange.indexNum, numInstances, meshRange.indexOffset, meshRange.vertexOffset, renderedInstances);
 					renderedInstances += numInstances;

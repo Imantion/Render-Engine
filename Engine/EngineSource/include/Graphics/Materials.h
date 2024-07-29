@@ -22,19 +22,32 @@ namespace Materials
 		}
 	};
 
-
+	enum textureType
+	{
+		ROUGHNESS = 1,
+		METALNESS = 2,
+	};
 
 	struct TextureMaterial
 	{
-		std::shared_ptr<Engine::Texture> albedo;
-		std::shared_ptr<Engine::Texture> roughness;
-		std::shared_ptr<Engine::Texture> metalness;
-		std::shared_ptr<Engine::Texture> normal;
+		std::shared_ptr<Engine::Texture> albedoTexture;
+		std::shared_ptr<Engine::Texture> roughnessTexture;
+		std::shared_ptr<Engine::Texture> metalnessTexture;
+		std::shared_ptr<Engine::Texture> normalTexture;
 
+		int usedTextures =  ROUGHNESS | METALNESS;
+		float roughness = 0.0f;
+		float metalness = 0.0f;
+		float padding;
 
 		bool operator==(const TextureMaterial& other) const
 		{
-			return albedo.get() == other.albedo.get() && roughness.get() == other.roughness.get() && metalness.get() == other.metalness.get() && normal.get() == other.normal.get();
+			if (usedTextures != other.usedTextures)
+				return false;
+			
+			return albedoTexture.get() == other.albedoTexture.get() && roughnessTexture.get() == other.roughnessTexture.get() && 
+				metalnessTexture.get() == other.metalnessTexture.get() && normalTexture.get() == other.normalTexture.get() && 
+				roughness == other.roughness && metalness == other.metalness;
 		}
 	};
 

@@ -13,6 +13,7 @@ namespace Engine
 	#define MAX_DIRECTIONAL_LIGHTS 1
 
 	class Texture;
+	class Model;
 
 	class  Light
 	{
@@ -21,7 +22,7 @@ namespace Engine
 		Light() : radiance(0.0f) {}
 		Light(const vec3& radiance) : radiance(radiance) {}
 
-		static float radianceFromIrradiance(float irradiance, float radius, float distanceSquared)
+		static vec3 radianceFromIrradiance(const vec3& irradiance, float radius, float distanceSquared)
 		{
 			return irradiance / (1 - sqrt(1 - min(radius * radius / distanceSquared, 1.0f)));
 		}
@@ -44,7 +45,10 @@ namespace Engine
 	{
 	public:
 		PointLight() : Light() {}
-		PointLight(const vec3& radiance, const vec3& pos, float radius) : Light(radiance), radius(radius), position(pos) {};
+		PointLight(const vec3& irradiance, float radius, float distanceSquared, const vec3& pos) : radius(radius), position(pos)
+		{
+			radiance = radianceFromIrradiance(irradiance, radius, distanceSquared);
+		}
 
 		float radius;
 		vec3 position;
@@ -55,10 +59,11 @@ namespace Engine
 	{
 	public:
 		SpotLight() : Light() { cutoffAngle = 0.0f; }
-		SpotLight(const vec3& radiance, const vec3& pos, const vec3& direction, float cutoffAngle, float radius) : Light(radiance), radius(radius), position(pos)
+		SpotLight(const vec3& irradiance, float radius, float distanceSquared, const vec3& pos, const vec3& direction, float cutoffAngle) : radius(radius), position(pos)
 		{
 			this->direction = direction;
 			this->cutoffAngle = cutoffAngle;
+			radiance = radianceFromIrradiance(irradiance, radius, distanceSquared);
 		}
 		float radius;
 		vec3 direction;
@@ -84,10 +89,12 @@ namespace Engine
 		void AddDirectionalLight(const vec3& direction, const vec3& radiance, float solidAngle);
 		void AddDirectionalLight(const DirectionalLight& othe);
 
-		void AddPointLight(const vec3& radiance, const vec3& pos, float intens, int objectToBindId);
+		uint32_t AddPointLight(const vec3& irradiance, float radius,float distanceSquared, const vec3& pos, std::shared_ptr<Model> model);
+		void AddPointLight(const vec3& irradiance, float radius,float distanceSquared, const vec3& pos, int objectToBindId);
 		void AddPointLight(const PointLight& pointLight);
 
-		void AddSpotLight(const vec3& radiance, const vec3& pos, const vec3& direction, float cutoffAngle, float intens, int objectToBindID);
+		uint32_t AddSpotLight(const vec3& irradiance, float radius, float distanceSquared, const vec3& pos, const vec3& direction, float cutoffAngle, std::shared_ptr<Model> model);
+		void AddSpotLight(const vec3& irradiance, float radius, float distanceSquared, const vec3& pos, const vec3& direction, float cutoffAngle, int objectToBindID);
 		void AddSpotLight(const SpotLight& spotLight);
 
 		SpotLight& GetSpotLight(uint32_t index);

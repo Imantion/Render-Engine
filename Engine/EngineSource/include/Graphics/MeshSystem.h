@@ -13,6 +13,16 @@
 namespace Engine
 {
 
+	template<typename M>
+	struct MaterialDataType {
+		using type = M;
+	};
+
+	template<>
+	struct MaterialDataType<Materials::OpaqueTextureMaterial> {
+		using type = vec4;
+	};
+
 	template <typename I, typename M>
 	class OpaqueInstances
 	{
@@ -42,9 +52,11 @@ namespace Engine
 			mat4 meshToModel;
 		};
 
+		using MaterialType = typename MaterialDataType<M>::type;
+
 		struct MaterialData
 		{
-			M material;
+			MaterialType material;
 		};
 
 		struct PerMaterial
@@ -361,5 +373,8 @@ namespace Engine
 
 	template <>
 	inline void OpaqueInstances<MeshSystem::Instance, Materials::OpaqueTextureMaterial>::render();
+
+
+	
 }
 

@@ -304,7 +304,7 @@ void D3DApplication::InitSamuraiModel()
 		  TM->LoadFromFile("samurai_head_normal", L"Textures\\Samurai\\Head_Normal.dds") },
 		{ TM->LoadFromFile("samurai_eyes", L"Textures\\Samurai\\Eyes_BaseColor.dds"),
 		  emptyTexture, emptyTexture,
-		  TM->LoadFromFile("samurai_eyes_normal", L"Textures\\Samurai\\Eyes_Normal.dds") },
+		  TM->LoadFromFile("samurai_eyes_normal", L"Textures\\Samurai\\Eyes_Normal.dds"), 0, 0.0f, 0.5f },
 		{ TM->LoadFromFile("samurai_helmet", L"Textures\\Samurai\\Helmet_BaseColor.dds"),
 		  TM->LoadFromFile("samurai_helmet_rougness", L"Textures\\Samurai\\Helmet_Roughness.dds"),
 		  TM->LoadFromFile("samurai_helmet_metallic", L"Textures\\Samurai\\Helmet_Metallic.dds"),
@@ -353,41 +353,21 @@ void D3DApplication::InitLights()
 {
 	auto TM = Engine::TextureManager::Init();
 
-	float radiance = Engine::Light::radianceFromIrradiance(1.35f, 0.5f, 1.0f);
-	Engine::PointLight pointLight(Engine::vec3(1.0f, 1.0f, 1.0f) * radiance, Engine::vec3(0.0f), 0.5f);
-	Engine::PointLight pointLight3(Engine::vec3(0.0f, 1.0f, 0.0f) * radiance, Engine::vec3(0.0f), 0.5f);
-
-	radiance = Engine::Light::radianceFromIrradiance(1.0f, 1.0f, 5.0f);
-	Engine::PointLight pointLight2(Engine::vec3(1.5f, 0.0f, 0.9f) * radiance, Engine::vec3(0.0f), 1.0f);
-	
-
-	Engine::SpotLight spotLight(Engine::vec3(100.0f), Engine::vec3(0.0f, 0.0f, 0.0f), Engine::vec3(.0f, .0f, 1.0f), 0.5 / 2.0f, 1.0f);
-	spotLight.bindedObjectId = camera->getCameraTransformId();
-	Engine::DirectionalLight directionalLight(Engine::vec3(0.707f, -0.707f, 0.0f), Engine::vec3(0.84f * 10.0f, 0.86264f * 10.0f, 0.89019f * 10.0f), 0.15f);
-
 	Engine::ModelManager::GetInstance()->initUnitSphere();
 	auto model = Engine::ModelManager::GetInstance()->GetModel("UNIT_SPHERE");
 
-	Engine::TransformSystem::transforms inst = {
-		Engine::transformMatrix(Engine::vec3(0.0f, -1.0f, 0.0f), Engine::vec3(0.0f, 0.0f, 1.0f), Engine::vec3(1.0f, 0.0f, 0.0f), Engine::vec3(0.0f, 1.0f, 0.0f)) };
+	Engine::LightSystem::Init()->AddPointLight(Engine::vec3(1.5f, 0.0f, 0.9f), 1.0f, 5.0f, Engine::vec3(-5.0f, 0.0f, 2.0f), model);
+	Engine::LightSystem::Init()->AddPointLight(Engine::vec3(1.35f), 0.5f, 1.0f, Engine::vec3(2.0f, -1.0f, 0.0f), model);
+	Engine::LightSystem::Init()->AddPointLight(Engine::vec3(0.0f, 1.35f, 0.0f), 0.5f, 1.0f, Engine::vec3(2.0f, 2.0f, 0.0f), model);
+	Engine::LightSystem::Init()->AddPointLight(Engine::vec3(0.1f), 0.05f, 1.0f, Engine::vec3(0.0f, 0.0f, -0.5f), model);
 
-	auto emmisiveSphereInstance = inst;
-
-	changepos(emmisiveSphereInstance, Engine::vec3(-5.0f, 0.0f, 2.0f));
-	pointLight2.bindedObjectId = Engine::MeshSystem::Init()->emmisiveGroup.addModel(model, Materials::EmmisiveMaterial{}, emmisiveSphereInstance, Engine::MeshSystem::EmmisiveInstance{ Engine::vec3(15.0f, 0.0f, 9.0f) });
-
-	changescale(emmisiveSphereInstance, 0, 0.5f); changescale(emmisiveSphereInstance, 1, 0.5f); changescale(emmisiveSphereInstance, 2, 0.5f);
-	changepos(emmisiveSphereInstance, Engine::vec3(2.0f, -1.0f, 0.0f));
-	pointLight.bindedObjectId = Engine::MeshSystem::Init()->emmisiveGroup.addModel(model, Materials::EmmisiveMaterial{}, emmisiveSphereInstance, Engine::MeshSystem::EmmisiveInstance{ Engine::vec3(10.0f, 10.0f, 10.0f) });
-
-	changepos(emmisiveSphereInstance, Engine::vec3(2.0f, 2.0f, 0.0f));
-	pointLight3.bindedObjectId = Engine::MeshSystem::Init()->emmisiveGroup.addModel(model, Materials::EmmisiveMaterial{}, emmisiveSphereInstance, Engine::MeshSystem::EmmisiveInstance{ Engine::vec3(0.0f, 10.0f, 0.0f) });
-
+	Engine::SpotLight spotLight(Engine::vec3(1.0f), 1.0f, 25.0f, Engine::vec3(0.0f, 0.0f, 0.0f), Engine::vec3(.0f, .0f, 1.0f), 0.5 / 2.0f);
+	spotLight.bindedObjectId = camera->getCameraTransformId();
 	Engine::LightSystem::Init()->AddFlashLight(spotLight, TM->LoadFromFile("flashlight", L"Textures\\flashlightMask.dds"));
-	Engine::LightSystem::Init()->AddPointLight(pointLight);
-	Engine::LightSystem::Init()->AddPointLight(pointLight2);
-	Engine::LightSystem::Init()->AddPointLight(pointLight3);
+
+	Engine::DirectionalLight directionalLight(Engine::vec3(0.707f, -0.707f, 0.0f), Engine::vec3(0.84f * 10.0f, 0.86264f * 10.0f, 0.89019f * 10.0f), 0.15f);
 	Engine::LightSystem::Init()->AddDirectionalLight(directionalLight);
+
 	Engine::LightSystem::Init()->UpdateLightsBuffer();
 }
 

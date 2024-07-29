@@ -107,7 +107,7 @@ float3 PBRLight(float3 irradiance, float solidAngle, float3 l ,float3 albedo, fl
     float NoV = max(dot(n, v), 0.001f);
     float NoL = max(dot(n, l), 0.001f);
     float HoL = max(dot(h, l), 0.001f);
-    float3 F0 = lerp(0.4f, albedo, metalness);
+    float3 F0 = lerp(0.04f, albedo, metalness);
 
     
     float3 f_spec = min(D_GGX(rSquared, NoH) * solidAngle / (4 * NoV), 1.0f) * G_Smith(rSquared, NoV, NoL) * fresnel(F0, HoL);

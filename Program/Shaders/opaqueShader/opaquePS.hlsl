@@ -6,6 +6,12 @@ Texture2D rough : register(t3);
 Texture2D metal : register(t4);
 Texture2D normalTexture : register(t5);
 
+cbuffer MaterialData : register(b2)
+{
+    float material_flags;
+    float material_roughness;
+    float material_metalness;
+}
 
 struct PSInput
 {
@@ -20,9 +26,16 @@ struct PSInput
 float4 main(PSInput input) : SV_TARGET
 {
     float3 albedo = albed.Sample(g_sampler, input.tc);
-    float metalness = metal.Sample(g_sampler, input.tc).r;
-    float roughness = rough.Sample(g_sampler, input.tc).r;
     float3 normal = mul(((normalTexture.Sample(g_sampler, input.tc).rgb - 0.5f) * 2.0f), input.tbn);
+    
+    float metalness = material_metalness;
+    if(material_flags && 2)
+        metalness = metal.Sample(g_sampler, input.tc).r;
+    
+    float roughness = material_roughness;
+    if(material_flags && 1)
+        roughness = rough.Sample(g_sampler, input.tc).r;
+    
     
     float3 finalColor = float3(0, 0, 0);
     for (int i = 0; i < slSize; ++i)
