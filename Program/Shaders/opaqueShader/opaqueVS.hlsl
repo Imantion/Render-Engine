@@ -1,5 +1,5 @@
 #include "..\declarations.hlsli"
-#include "..\Lights.hlsli"
+
 struct VIn
 {
     float3 pos : POSITION;
@@ -24,22 +24,12 @@ struct VOut
     int shouldOverWriteMaterial : SHOULDOVERWRITE;
     float roughness : ROUGHNESS;
     float metalness : METALNESS;
-    float4 ligtSpaceProjection[MAX_PL] : LIGHTSPACE;
+    
 };
 
 cbuffer meshData : register(b2)
 {
     float4x4 meshToModel;
-}
-
-struct lightCubeViewProjections
-{
-    float4x4 viewProjections[6];
-};
-
-cbuffer LightData : register(b4)
-{
-    lightCubeViewProjections lightVP[MAX_PL];
 }
 
 VOut main(VIn input)
@@ -48,7 +38,7 @@ VOut main(VIn input)
     float3x3 normalizedToWorld = float3x3(normalize(input.modelToWorld[0].rgb), normalize(input.modelToWorld[1].rgb), normalize(input.modelToWorld[2].rgb));
     VOut output;
     output.worldPos = mul(mul(float4(input.pos, 1.0f), meshToModel), toWorld);
-    output.pos = mul(float4(output.worldPos, 1.0f), viewProjection);
+    output.pos = mul(float4(output.worldPos,1.0f), viewProjection);
     
     float3x3 transformTBN = mul((float3x3) meshToModel, normalizedToWorld);
     float3 normal = normalize(mul(input.normal, transformTBN));
@@ -63,12 +53,6 @@ VOut main(VIn input)
     output.shouldOverWriteMaterial = input.shouldOverWriteMaterial;
     output.roughness = input.roughness;
     output.metalness = input.metalness;
-    
-    for (int i = 0; i < plSize; i++)
-    {
-        int faceIndex = selectCubeFace(normalize(output.worldPos - pointLights[i].position));
-        output.ligtSpaceProjection[i] = mul(float4(output.worldPos, 1.0f), lightVP[i].viewProjections[faceIndex]);
-    }
     
     return output;
 }

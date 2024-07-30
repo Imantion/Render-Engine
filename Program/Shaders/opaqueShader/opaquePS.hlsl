@@ -13,7 +13,6 @@ TextureCube specIrrIBL : register(t7);
 Texture2D reflectanceIBL : register(t8);
 Texture2D LTCmat : register(t9);
 Texture2D LTCamp : register(t10);
-
 cbuffer MaterialData : register(b2)
 {
     float material_flags;
@@ -21,7 +20,7 @@ cbuffer MaterialData : register(b2)
     float material_metalness;
 }
 
-Texture2DArray pointLightsShadowMap : register(t11);
+TextureCubeArray pointLightsShadowMap : register(t11);
 
 SamplerComparisonState compr : register(s5);
 
@@ -36,7 +35,6 @@ struct PSInput
     int shouldOverWriteMaterial : SHOULDOVERWRITE;
     float roughness : ROUGHNESS;
     float metalness : METALNESS;
-    float4 ligtSpaceProjection[MAX_PL] : LIGHTSPACE;
 };
 
 // Define the four corners of a rectangular area light
@@ -56,15 +54,15 @@ float4 main(PSInput input) : SV_TARGET
     float3 v = normalize(g_cameraPosition - input.worldPos);
     
     float metalness = material_metalness;
-    if(material_flags && 2)
+    if (material_flags && 2)
         metalness = metal.Sample(g_sampler, input.tc).r;
     
     float roughness = material_roughness;
-    if(material_flags && 1)
+    if (material_flags && 1)
         roughness = rough.Sample(g_sampler, input.tc).r;
     
     
-    if(input.isSelected)
+    if (input.isSelected)
     {
         if (input.shouldOverWriteMaterial)
         {
@@ -90,11 +88,10 @@ float4 main(PSInput input) : SV_TARGET
     }
     for (i = 0; i < plSize; ++i)
     {
-        int faceIndex = selectCubeFace(normalize(input.worldPos - pointLights[i].position));
-        float3 homogeneous = input.ligtSpaceProjection[i].xyz / input.ligtSpaceProjection[i].w;
-        
-        float shadowValue = pointLightsShadowMap.SampleCmp(compr, float3(homogeneous.xy, i * 6 + faceIndex), homogeneous.z).r;
-    
+        float3 directionToLigt = input.worldPos - pointLights[i].position;
+        float depth = 1.0f - length(directionToLigt) / 100.0f + 0.005f;
+        float shadowValue = pointLightsShadowMap.SampleCmp(compr, float4(directionToLigt, i), depth).r;
+   
         finalColor += shadowValue * PBRLight(pointLights[i], input.worldPos, albedo, metalness, roughness, input.tbn._31_32_33, normal, v, specularState, diffuseState);
     }
     

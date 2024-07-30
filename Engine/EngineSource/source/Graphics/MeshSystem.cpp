@@ -77,7 +77,7 @@ Engine::MeshSystem::MeshSystem()
 	rasterDesc.FillMode = D3D11_FILL_SOLID;
 	rasterDesc.CullMode = D3D11_CULL_BACK;
 	rasterDesc.FrontCounterClockwise = false;
-	rasterDesc.DepthBias = 0.0f;
+	rasterDesc.DepthBias = -1000.0f;
 	rasterDesc.DepthBiasClamp = 0.0f;
 	rasterDesc.SlopeScaledDepthBias = 0.0f;
 	rasterDesc.DepthClipEnable = true;
@@ -87,8 +87,6 @@ Engine::MeshSystem::MeshSystem()
 
 	hr = D3D::GetInstance()->GetDevice()->CreateRasterizerState(&rasterDesc, &pRasterizerState);
 	assert(SUCCEEDED(hr));
-
-	pointLightCB.create(D3D11_USAGE_DYNAMIC, MAX_POINT_LIGHTS);
 }
 
 void Engine::MeshSystem::createDepthCubemaps(size_t amount)
@@ -132,31 +130,28 @@ void Engine::MeshSystem::createDepthCubemaps(size_t amount)
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
 	ZeroMemory(&srvDesc, sizeof(srvDesc));
 
-	srvDesc.ViewDimension = D3D_SRV_DIMENSION_TEXTURE2DARRAY;
-	srvDesc.Texture2DArray.MipLevels = 1;
-	srvDesc.Texture2DArray.FirstArraySlice = 0;
-	srvDesc.Texture2DArray.MostDetailedMip = 0;
-	srvDesc.Texture2DArray.ArraySize = amount * 6;
+	srvDesc.ViewDimension = D3D_SRV_DIMENSION_TEXTURECUBEARRAY;
+	srvDesc.TextureCubeArray.MipLevels = 1;
+	srvDesc.TextureCubeArray.First2DArrayFace = 0;
+	srvDesc.TextureCubeArray.MostDetailedMip = 0;
+	srvDesc.TextureCubeArray.NumCubes = amount;
 	srvDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
 
 	hr = device->CreateShaderResourceView(texture.Get(), &srvDesc, &srvPointLigts);
 	assert(SUCCEEDED(hr));
 }
 
-void Engine::MeshSystem::bindShadowMapsData(UINT pointLightShadowTexturesSlot, UINT pointLightCBslot)
+void Engine::MeshSystem::bindShadowMapsData(UINT pointLightShadowTexturesSlot, UINT compSamplerSlot)
 {
 	auto context = D3D::GetInstance()->GetContext();
+	context->PSSetSamplers(compSamplerSlot, 1, compsampler.GetAddressOf());
 	context->PSSetShaderResources(pointLightShadowTexturesSlot, 1, srvPointLigts.GetAddressOf());
-	pointLightCB.bind(pointLightCBslot, VS);
 }
 
 void Engine::MeshSystem::renderDepthCubemaps(const std::vector<vec3>& lightPositions)
 {
 	if (dsvs.size() != lightPositions.size())
-	{
 		createDepthCubemaps(lightPositions.size());
-		cbViewProjdata.resize(lightPositions.size());
-	}
 		
 
 	auto context = D3D::GetInstance()->GetContext();
@@ -167,17 +162,13 @@ void Engine::MeshSystem::renderDepthCubemaps(const std::vector<vec3>& lightPosit
 	float farPlane = 100.0f;
 	mat4 projection = projectionMatrix((float)M_PI_2, 0.01f, farPlane, 1.0f);
 
-	struct lightInfo
+	struct lightViewProjections
 	{
-		vec3 position;
-		float radius;
-	} lightBufferData;
+		mat4 lightViewProjection[6];
+	};
 
-	ConstBuffer<cubeViewProjections> cbProjections;
+	ConstBuffer<lightViewProjections> cbProjections;
 	cbProjections.create();
-
-	ConstBuffer<lightInfo> cbLightInfo;
-	cbLightInfo.create();
 
 	ConstBuffer<vec4> psConstBuffer;
 	psConstBuffer.create();
@@ -191,13 +182,13 @@ void Engine::MeshSystem::renderDepthCubemaps(const std::vector<vec3>& lightPosit
 	viewPort.MaxDepth = 1;
 
 	context->RSSetViewports(1, &viewPort);
-	context->PSSetSamplers(5u, 1u, compsampler.GetAddressOf());
-	/*context->RSSetState(pRasterizerState.Get());*/
+	context->RSSetState(pRasterizerState.Get());
 
 	for (size_t i = 0; i < lightPositions.size(); i++)
 	{
 		context->ClearDepthStencilView(dsvs[i].Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 0.0f, 0u);
-		cbViewProjdata[i] = {
+
+		lightViewProjections constantBufferData{
 			viewMatrix(lightPositions[i], vec3(1.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f)) * projection,
 			viewMatrix(lightPositions[i], vec3(-1.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f)) * projection,
 			viewMatrix(lightPositions[i], vec3(0.0f, 1.0f, 0.0f), vec3(0.0f, 0.0f, -1.0f)) * projection,
@@ -208,7 +199,7 @@ void Engine::MeshSystem::renderDepthCubemaps(const std::vector<vec3>& lightPosit
 
 		vec4 psData(lightPositions[i], farPlane);
 
-		cbProjections.updateBuffer(&cbViewProjdata[i]);
+		cbProjections.updateBuffer(&constantBufferData);
 		cbProjections.bind(0u, GS);
 
 		psConstBuffer.updateBuffer(&psData);
@@ -218,8 +209,6 @@ void Engine::MeshSystem::renderDepthCubemaps(const std::vector<vec3>& lightPosit
 
 		shadowGroup.render();
 	}
-
-	pointLightCB.updateBuffer(cbViewProjdata.data(), cbViewProjdata.size());
 
 	context->OMSetRenderTargets(0u, nullptr, nullptr);
 	context->RSSetState(nullptr);

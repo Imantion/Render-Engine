@@ -426,13 +426,6 @@ namespace Engine
 		Microsoft::WRL::ComPtr<ID3D11RasterizerState> pRasterizerState;
 		Microsoft::WRL::ComPtr<ID3D11SamplerState> compsampler;
 
-		struct cubeViewProjections
-		{
-			mat4 viewProjections[6];
-		};
-
-		ConstBuffer<cubeViewProjections> pointLightCB;
-		std::vector<cubeViewProjections> cbViewProjdata;
 	};
 
 	template <>

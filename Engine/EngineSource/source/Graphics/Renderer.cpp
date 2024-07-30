@@ -128,7 +128,7 @@ void Engine::Renderer::Render(Camera* camera)
 	std::vector<Engine::vec3> positions;
 	Engine::LightSystem::Init()->GetPointLightsPositions(positions);
 	Engine::MeshSystem::Init()->renderDepthCubemaps(positions);
-	Engine::MeshSystem::Init()->bindShadowMapsData(11u, 4u);
+	Engine::MeshSystem::Init()->bindShadowMapsData(11u, 5u);
 
 	D3D11_VIEWPORT viewport;
 	viewport.TopLeftX = 0.0f;

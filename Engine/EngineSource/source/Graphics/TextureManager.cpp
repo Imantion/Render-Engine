@@ -95,6 +95,7 @@ void Engine::TextureManager::BindSamplers()
 	static ID3D11SamplerState* samplers[3] = { m_pointSamplareState.Get(), m_linearSamplareState.Get(), m_anisotropicSamplareState.Get() };
 
 	context->PSSetSamplers(0, 3, samplers);
+	context->PSSetSamplers(4, 1, m_pointSamplareState.GetAddressOf());
 }
 
 void Engine::TextureManager::BindSampleByFilter(D3D11_FILTER filter, UINT slot)

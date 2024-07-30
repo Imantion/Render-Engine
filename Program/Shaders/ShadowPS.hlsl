@@ -14,6 +14,5 @@ struct PSInput
 float main(PSInput input) : SV_DEPTH
 {
     float distance = length(lightPosition - input.worldPos);
-    
     return 1.0f - distance / farPlane;
 }
