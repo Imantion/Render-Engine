@@ -27,70 +27,6 @@ void Engine::MeshSystem::updateInstanceBuffers()
 	shadowGroup.updateInstanceBuffers();
 }
 
-void Engine::MeshSystem::renderDepthCubemaps(const std::vector<vec3>& lightPositions)
-{
-	if (dsvs.size() != lightPositions.size())
-		createDepthCubemaps(lightPositions.size());
-
-	auto context = D3D::GetInstance()->GetContext();
-
-	ID3D11ShaderResourceView* const pSRV[1] = { NULL };
-	context->PSSetShaderResources(11, 1u, pSRV);
-
-	float farPlane = 100.0f;
-	mat4 projection = projectionMatrix((float)M_PI_2, 0.01f, farPlane, 1.0f);
-
-	struct lightViewProjections 
-	{
-		mat4 lightViewProjection[6];
-	};
-
-	ConstBuffer<lightViewProjections> cbProjections;
-	cbProjections.create();
-
-	ConstBuffer<vec4> psConstBuffer;
-	psConstBuffer.create();
-
-	D3D11_VIEWPORT viewPort = {};
-	viewPort.TopLeftX = 0.0f;
-	viewPort.TopLeftY = 0.0f;
-	viewPort.Width = 1024;
-	viewPort.Height = 1024;
-	viewPort.MinDepth = 0;
-	viewPort.MaxDepth = 1;
-
-	context->RSSetViewports(1, &viewPort);
-
-	for (size_t i = 0; i < lightPositions.size(); i++)
-	{
-		context->ClearDepthStencilView(dsvs[i].Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 0.0f, 0u);
-
-		lightViewProjections constantBufferData{
-			viewMatrix(lightPositions[i], vec3(1.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f)) * projection,
-			viewMatrix(lightPositions[i], vec3(-1.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f)) * projection,
-			viewMatrix(lightPositions[i], vec3(0.0f, 1.0f, 0.0f), vec3(0.0f, 0.0f, -1.0f)) * projection,
-			viewMatrix(lightPositions[i], vec3(0.0f, -1.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f)) * projection,
-			viewMatrix(lightPositions[i], vec3(0.0f, 0.0f, 1.0f), vec3(0.0f, 1.0f, 0.0f)) * projection,
-			viewMatrix(lightPositions[i], vec3(0.0f, 0.0f, -1.0f), vec3(0.0f, 1.0f, 1.0f)) * projection,
-		};
-
-		vec4 psData(lightPositions[i], farPlane);
-
-		cbProjections.updateBuffer(&constantBufferData);
-		cbProjections.bind(0u, GS);
-		
-		psConstBuffer.updateBuffer(&psData);
-		psConstBuffer.bind(10u, PS);
-
-		context->OMSetRenderTargets(0u, nullptr, dsvs[i].Get());
-
-		shadowGroup.render();
-	}
-
-	context->OMSetRenderTargets(0u, nullptr, nullptr);
-	context->PSSetShaderResources(11, 1, srvPointLigts.GetAddressOf());
-}
-
 void Engine::MeshSystem::render()
 {
 	normVisGroup.render();
@@ -114,6 +50,45 @@ void Engine::MeshSystem::Deinit()
 {
 	delete pInstance;
 	pInstance = nullptr;
+}
+
+Engine::MeshSystem::MeshSystem()
+{
+	D3D11_SAMPLER_DESC sampDesc = {};
+	sampDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
+	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+	sampDesc.MipLODBias = 0.0f;
+	sampDesc.MaxAnisotropy = 1;
+	sampDesc.ComparisonFunc = D3D11_COMPARISON_GREATER_EQUAL;
+	sampDesc.BorderColor[0] = 1.0f;
+	sampDesc.BorderColor[1] = 1.0f;
+	sampDesc.BorderColor[2] = 1.0f;
+	sampDesc.BorderColor[3] = 1.0f;
+	sampDesc.MinLOD = 0;
+	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+	HRESULT hr = D3D::GetInstance()->GetDevice()->CreateSamplerState(&sampDesc, &compsampler);
+	assert(SUCCEEDED(hr));
+
+	D3D11_RASTERIZER_DESC rasterDesc;
+	ZeroMemory(&rasterDesc, sizeof(rasterDesc));
+	rasterDesc.FillMode = D3D11_FILL_SOLID;
+	rasterDesc.CullMode = D3D11_CULL_NONE;
+	rasterDesc.FrontCounterClockwise = false;
+	rasterDesc.DepthBias = 0.0f;
+	rasterDesc.DepthBiasClamp = 0.0f;
+	rasterDesc.SlopeScaledDepthBias = 0.0f;
+	rasterDesc.DepthClipEnable = true;
+	rasterDesc.ScissorEnable = false;
+	rasterDesc.MultisampleEnable = false;
+	rasterDesc.AntialiasedLineEnable = false;
+
+	hr = D3D::GetInstance()->GetDevice()->CreateRasterizerState(&rasterDesc, &pRasterizerState);
+	assert(SUCCEEDED(hr));
+
+	pointLightCB.create(D3D11_USAGE_DYNAMIC, MAX_POINT_LIGHTS);
 }
 
 void Engine::MeshSystem::createDepthCubemaps(size_t amount)
@@ -157,16 +132,96 @@ void Engine::MeshSystem::createDepthCubemaps(size_t amount)
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
 	ZeroMemory(&srvDesc, sizeof(srvDesc));
 
-	srvDesc.ViewDimension = D3D_SRV_DIMENSION_TEXTURECUBEARRAY;
-	srvDesc.TextureCubeArray.MipLevels = 1;
-	srvDesc.TextureCubeArray.First2DArrayFace = 0;
-	srvDesc.TextureCubeArray.MostDetailedMip = 0;
-	srvDesc.TextureCubeArray.NumCubes = amount;
+	srvDesc.ViewDimension = D3D_SRV_DIMENSION_TEXTURE2DARRAY;
+	srvDesc.Texture2DArray.MipLevels = 1;
+	srvDesc.Texture2DArray.FirstArraySlice = 0;
+	srvDesc.Texture2DArray.MostDetailedMip = 0;
 	srvDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
 
 	hr = device->CreateShaderResourceView(texture.Get(), &srvDesc, &srvPointLigts);
 	assert(SUCCEEDED(hr));
 }
+
+void Engine::MeshSystem::bindShadowMapsData(UINT pointLightShadowTexturesSlot, UINT pointLightCBslot)
+{
+	auto context = D3D::GetInstance()->GetContext();
+	context->PSSetShaderResources(pointLightShadowTexturesSlot, 1, srvPointLigts.GetAddressOf());
+	pointLightCB.bind(pointLightCBslot, PS);
+}
+
+void Engine::MeshSystem::renderDepthCubemaps(const std::vector<vec3>& lightPositions)
+{
+	if (dsvs.size() != lightPositions.size())
+	{
+		createDepthCubemaps(lightPositions.size());
+		cbViewProjdata.resize(lightPositions.size());
+	}
+		
+
+	auto context = D3D::GetInstance()->GetContext();
+
+	ID3D11ShaderResourceView* const pSRV[1] = { NULL };
+	context->PSSetShaderResources(11, 1u, pSRV);
+
+	float farPlane = 100.0f;
+	mat4 projection = projectionMatrix((float)M_PI_2, 0.01f, farPlane, 1.0f);
+
+	struct lightInfo
+	{
+		vec3 position;
+		float radius;
+	} lightBufferData;
+
+	ConstBuffer<cubeViewProjections> cbProjections;
+	cbProjections.create();
+
+	ConstBuffer<lightInfo> cbLightInfo;
+	cbLightInfo.create();
+
+	ConstBuffer<vec4> psConstBuffer;
+	psConstBuffer.create();
+
+	D3D11_VIEWPORT viewPort = {};
+	viewPort.TopLeftX = 0.0f;
+	viewPort.TopLeftY = 0.0f;
+	viewPort.Width = 1024;
+	viewPort.Height = 1024;
+	viewPort.MinDepth = 0;
+	viewPort.MaxDepth = 1;
+
+	context->RSSetViewports(1, &viewPort);
+	context->PSSetSamplers(5u, 1u, compsampler.GetAddressOf());
+	context->RSSetState(pRasterizerState.Get());
+
+	for (size_t i = 0; i < lightPositions.size(); i++)
+	{
+		context->ClearDepthStencilView(dsvs[i].Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 0.0f, 0u);
+		cbViewProjdata[i] = {
+			viewMatrix(lightPositions[i], vec3(1.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f)) * projection,
+			viewMatrix(lightPositions[i], vec3(-1.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f)) * projection,
+			viewMatrix(lightPositions[i], vec3(0.0f, 1.0f, 0.0f), vec3(0.0f, 0.0f, -1.0f)) * projection,
+			viewMatrix(lightPositions[i], vec3(0.0f, -1.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f)) * projection,
+			viewMatrix(lightPositions[i], vec3(0.0f, 0.0f, 1.0f), vec3(0.0f, 1.0f, 0.0f)) * projection,
+			viewMatrix(lightPositions[i], vec3(0.0f, 0.0f, -1.0f), vec3(0.0f, 1.0f, 1.0f)) * projection,
+		};
+
+		vec4 psData(lightPositions[i], farPlane);
+
+		cbProjections.updateBuffer(&cbViewProjdata[i]);
+		cbProjections.bind(0u, GS);
+
+		psConstBuffer.updateBuffer(&psData);
+		psConstBuffer.bind(10u, PS);
+
+		context->OMSetRenderTargets(0u, nullptr, dsvs[i].Get());
+
+		shadowGroup.render();
+	}
+
+	pointLightCB.updateBuffer(cbViewProjdata.data(), cbViewProjdata.size());
+	context->OMSetRenderTargets(0u, nullptr, nullptr);
+}
+
 
 template <>
 inline void Engine::OpaqueInstances<Engine::MeshSystem::PBRInstance, Materials::OpaqueTextureMaterial>::render()

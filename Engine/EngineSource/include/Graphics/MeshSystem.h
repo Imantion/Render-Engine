@@ -396,10 +396,7 @@ namespace Engine
 		OpaqueInstances<Instance, Materials::NormVisMaterial> normVisGroup;
 		OpaqueInstances<PBRInstance, Materials::OpaqueTextureMaterial> opaqueGroup;
 		OpaqueInstances<EmmisiveInstance, Materials::EmmisiveMaterial> emmisiveGroup;
-
-		OpaqueInstances<PBRInstance, TextureMaterial> opaqueGroup;
-		OpaqueInstances<EmmisiveInstance, EmmisiveMaterial> emmisiveGroup;
-		OpaqueInstances<Instance, Material> shadowGroup;
+		OpaqueInstances<Instance, Materials::ShadowMaterial> shadowGroup;
 
 		int intersect(const ray& r, hitInfo& hInfo);
 
@@ -414,7 +411,8 @@ namespace Engine
 
 		static void Deinit();
 	private:
-		MeshSystem() = default;
+		MeshSystem();
+		void createDepthCubemaps(size_t amount);
 
 	protected:
 		static std::mutex mutex_;
@@ -423,7 +421,16 @@ namespace Engine
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srvPointLigts;
 		std::vector<Microsoft::WRL::ComPtr<ID3D11DepthStencilView>> dsvs;
 
-		void createDepthCubemaps(size_t amount);
+		Microsoft::WRL::ComPtr<ID3D11RasterizerState> pRasterizerState;
+		Microsoft::WRL::ComPtr<ID3D11SamplerState> compsampler;
+
+		struct cubeViewProjections
+		{
+			mat4 viewProjections[6];
+		};
+
+		ConstBuffer<cubeViewProjections> pointLightCB;
+		std::vector<cubeViewProjections> cbViewProjdata;
 	};
 
 	template <>
@@ -437,7 +444,7 @@ namespace Engine
 		auto TS = TransformSystem::Init();
 		uint32_t modelTransformsId = TS->AddModelTransform(modelTransforms, (uint32_t)model->m_meshes.size());
 
-		MeshSystem::Init()->shadowGroup.addModel(model, MeshSystem::Material{}, modelTransformsId, MeshSystem::Instance{});
+		MeshSystem::Init()->shadowGroup.addModel(model, Materials::ShadowMaterial{}, modelTransformsId, MeshSystem::Instance{});
 		return addModel(model, material, modelTransformsId, instance);
 	}
 
@@ -447,7 +454,7 @@ namespace Engine
 		auto TS = TransformSystem::Init();
 		uint32_t modelTransformsId = TS->AddModelTransform(modelTransforms, (uint32_t)model->m_meshes.size());
 
-		MeshSystem::Init()->shadowGroup.addModel(model, MeshSystem::Material{}, modelTransformsId, MeshSystem::Instance{});
+		MeshSystem::Init()->shadowGroup.addModel(model, Materials::ShadowMaterial{}, modelTransformsId, MeshSystem::Instance{});
 		return addModel(model, material, modelTransformsId, instance);
 	}
 }

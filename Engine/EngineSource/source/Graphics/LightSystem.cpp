@@ -162,6 +162,15 @@ void Engine::LightSystem::GetPointLightsPositions(std::vector<vec3>& positions)
     }
 }
 
+void Engine::LightSystem::GetPointLightsRadius(std::vector<float>& radiuses)
+{
+    radiuses.reserve(m_pointLights.size());
+    for (size_t i = 0; i < m_pointLights.size(); i++)
+    {
+        radiuses.push_back(m_pointLights[i].radius);
+    }
+}
+
 void Engine::LightSystem::UpdateLightsBuffer()
 {
 

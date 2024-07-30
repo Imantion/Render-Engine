@@ -179,6 +179,7 @@ namespace Engine
 
 		PointLight* GetPointLightByTransformId(uint32_t index);
 		void GetPointLightsPositions(std::vector<vec3>& positions);
+		void GetPointLightsRadius(std::vector<float>& radiuses);
 
 		void UpdateLightsBuffer();
 		void BindLigtsBuffer(UINT slot, UINT typeOfShader);
