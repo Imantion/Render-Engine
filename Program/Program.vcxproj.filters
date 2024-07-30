@@ -137,9 +137,6 @@
     <None Include="Shaders\emissive\emissiveVS.hlsl">
       <Filter>Shaders\emmisive</Filter>
     </None>
-    <None Include="Shaders\opaqueShader\opaqueVS.hlsl">
-      <Filter>Shaders\opaque</Filter>
-    </None>
     <None Include="Shaders\Lights.hlsli">
       <Filter>Shaders</Filter>
     </None>
@@ -167,6 +164,9 @@
     </FxCompile>
     <FxCompile Include="Shaders\ShadowVS.hlsl">
       <Filter>Shaders\Shadow</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\opaqueShader\opaqueVS.hlsl">
+      <Filter>Shaders\opaque</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

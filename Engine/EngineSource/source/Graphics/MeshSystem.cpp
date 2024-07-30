@@ -75,7 +75,7 @@ Engine::MeshSystem::MeshSystem()
 	D3D11_RASTERIZER_DESC rasterDesc;
 	ZeroMemory(&rasterDesc, sizeof(rasterDesc));
 	rasterDesc.FillMode = D3D11_FILL_SOLID;
-	rasterDesc.CullMode = D3D11_CULL_NONE;
+	rasterDesc.CullMode = D3D11_CULL_BACK;
 	rasterDesc.FrontCounterClockwise = false;
 	rasterDesc.DepthBias = 0.0f;
 	rasterDesc.DepthBiasClamp = 0.0f;
@@ -136,6 +136,7 @@ void Engine::MeshSystem::createDepthCubemaps(size_t amount)
 	srvDesc.Texture2DArray.MipLevels = 1;
 	srvDesc.Texture2DArray.FirstArraySlice = 0;
 	srvDesc.Texture2DArray.MostDetailedMip = 0;
+	srvDesc.Texture2DArray.ArraySize = amount * 6;
 	srvDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
 
 	hr = device->CreateShaderResourceView(texture.Get(), &srvDesc, &srvPointLigts);
@@ -146,7 +147,7 @@ void Engine::MeshSystem::bindShadowMapsData(UINT pointLightShadowTexturesSlot, U
 {
 	auto context = D3D::GetInstance()->GetContext();
 	context->PSSetShaderResources(pointLightShadowTexturesSlot, 1, srvPointLigts.GetAddressOf());
-	pointLightCB.bind(pointLightCBslot, PS);
+	pointLightCB.bind(pointLightCBslot, VS);
 }
 
 void Engine::MeshSystem::renderDepthCubemaps(const std::vector<vec3>& lightPositions)
@@ -191,7 +192,7 @@ void Engine::MeshSystem::renderDepthCubemaps(const std::vector<vec3>& lightPosit
 
 	context->RSSetViewports(1, &viewPort);
 	context->PSSetSamplers(5u, 1u, compsampler.GetAddressOf());
-	context->RSSetState(pRasterizerState.Get());
+	/*context->RSSetState(pRasterizerState.Get());*/
 
 	for (size_t i = 0; i < lightPositions.size(); i++)
 	{
@@ -219,7 +220,9 @@ void Engine::MeshSystem::renderDepthCubemaps(const std::vector<vec3>& lightPosit
 	}
 
 	pointLightCB.updateBuffer(cbViewProjdata.data(), cbViewProjdata.size());
+
 	context->OMSetRenderTargets(0u, nullptr, nullptr);
+	context->RSSetState(nullptr);
 }
 
 

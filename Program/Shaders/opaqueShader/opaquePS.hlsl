@@ -13,6 +13,7 @@ TextureCube specIrrIBL : register(t7);
 Texture2D reflectanceIBL : register(t8);
 Texture2D LTCmat : register(t9);
 Texture2D LTCamp : register(t10);
+
 cbuffer MaterialData : register(b2)
 {
     float material_flags;
@@ -20,7 +21,7 @@ cbuffer MaterialData : register(b2)
     float material_metalness;
 }
 
-TextureCubeArray pointLightsShadowMap : register(t11);
+Texture2DArray pointLightsShadowMap : register(t11);
 
 SamplerComparisonState compr : register(s5);
 
@@ -35,6 +36,7 @@ struct PSInput
     int shouldOverWriteMaterial : SHOULDOVERWRITE;
     float roughness : ROUGHNESS;
     float metalness : METALNESS;
+    float4 ligtSpaceProjection[MAX_PL] : LIGHTSPACE;
 };
 
 // Define the four corners of a rectangular area light
@@ -88,12 +90,11 @@ float4 main(PSInput input) : SV_TARGET
     }
     for (i = 0; i < plSize; ++i)
     {
-        float3 directionToLigt = input.worldPos - pointLights[i].position;
-        float ourValue = 1.0f - length(directionToLigt) / 100.0f;
-        float shadowValue = pointLightsShadowMap.SampleCmp(compr, float4(directionToLigt, i), ourValue).r;
-        float a = 0.0f;
-        if (ourValue >= shadowValue)
-            a = 1.0f;
+        int faceIndex = selectCubeFace(normalize(input.worldPos - pointLights[i].position));
+        float3 homogeneous = input.ligtSpaceProjection[i].xyz / input.ligtSpaceProjection[i].w;
+        
+        float shadowValue = pointLightsShadowMap.SampleCmp(compr, float3(homogeneous.xy, i * 6 + faceIndex), homogeneous.z).r;
+    
         finalColor += shadowValue * PBRLight(pointLights[i], input.worldPos, albedo, metalness, roughness, input.tbn._31_32_33, normal, v, specularState, diffuseState);
     }
     

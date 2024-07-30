@@ -403,6 +403,8 @@ namespace Engine
 		void updateInstanceBuffers();
 
 		void renderDepthCubemaps(const std::vector<vec3>& lightPositions);
+		void bindShadowMapsData(UINT pointLightShadowTexturesSlot, UINT pointLightCBslot);
+
 		void render();
 
 

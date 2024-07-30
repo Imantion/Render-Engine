@@ -7,13 +7,13 @@ static const int MAX_DL = 1;
 #if MAX_POINT_LIGHTS
 static const int MAX_PL = MAX_POINT_LIGHTS;
 #else
-static const int MAX_PL = 5;
+static const int MAX_PL = 10;
 #endif
 
 #if MAX_SPOT_LIGHTS
 static const int MAX_SL = MAX_SPOT_LIGHTS;
 #else
-static const int MAX_SL = 5;
+static const int MAX_SL = 10;
 #endif
 
 #if MAX_AREA_LIGHTS
@@ -370,4 +370,12 @@ float3 LTC_Evaluate(float3 N, float3 V, float3 P, float3x3 Minv, AreaLight areaL
     // Outgoing radiance (solid angle) for the entire polygon
     float3 Lo_i = float3(sum, sum, sum);
     return Lo_i;
+}
+
+uint selectCubeFace(float3 unitDir)
+{
+    float maxVal = max(abs(unitDir.x), max(abs(unitDir.y), abs(unitDir.z)));
+    uint maxIndex = abs(unitDir.x) == maxVal ? 0 : (abs(unitDir.y) == maxVal ? 2 : 4);
+    return maxIndex + (asuint(unitDir[maxIndex / 2]) >> 31); // same as:
+    // return maxIndex + (unitDir[maxIndex / 2] < 0.f ? 1u : 0u);
 }
