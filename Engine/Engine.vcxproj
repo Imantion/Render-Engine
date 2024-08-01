@@ -154,7 +154,7 @@
     <ClCompile Include="..\imgui\imgui_draw.cpp" />
     <ClCompile Include="..\imgui\imgui_tables.cpp" />
     <ClCompile Include="..\imgui\imgui_widgets.cpp" />
-    <ClCompile Include="EngineSource\include\Graphics\ShadowManager.cpp" />
+    <ClCompile Include="EngineSource\source\Graphics\ShadowSystem.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\ReflectionCapture.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\LightSystem.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\PostProcess.cpp" />
@@ -196,7 +196,7 @@
     <ClInclude Include="EngineSource\include\Graphics\PostProcess.h" />
     <ClInclude Include="EngineSource\include\Graphics\ReflectionCapture.h" />
     <ClInclude Include="EngineSource\include\Graphics\Renderer.h" />
-    <ClInclude Include="EngineSource\include\Graphics\ShadowManager.h" />
+    <ClInclude Include="EngineSource\include\Graphics\ShadowSystem.h" />
     <ClInclude Include="EngineSource\include\Graphics\SkyBox.h" />
     <ClInclude Include="EngineSource\include\Graphics\TextureManager.h" />
     <ClInclude Include="EngineSource\include\Graphics\TransformSystem.h" />

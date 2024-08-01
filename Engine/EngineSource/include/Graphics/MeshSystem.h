@@ -409,7 +409,6 @@ namespace Engine
 
 		void renderDepthCubemaps(const std::vector<vec3>& lightPositions);
 		void renderDepth2D(const std::vector<SpotLight>& spotlights);
-		void bindShadowMapsData(UINT pointLightShadowTexturesSlot, UINT pointLightCBslot);
 
 		void render();
 
@@ -419,22 +418,13 @@ namespace Engine
 
 		static void Deinit();
 	private:
-		MeshSystem();
-		void createDepthCubemaps(size_t amount);
-		void createDepth2DSpotLightsMap(size_t amount);
+		MeshSystem() = default;
 
 	protected:
 		static std::mutex mutex_;
 		static MeshSystem* pInstance;
 
-		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srvPointLigts;
-		std::vector<Microsoft::WRL::ComPtr<ID3D11DepthStencilView>> plDSVS;
-
-		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srvSpotLigts;
-		std::vector <Microsoft::WRL::ComPtr<ID3D11DepthStencilView>> slDSVS;
-
-		Microsoft::WRL::ComPtr<ID3D11RasterizerState> pRasterizerState;
-		Microsoft::WRL::ComPtr<ID3D11SamplerState> compsampler;
+		
 
 	};
 

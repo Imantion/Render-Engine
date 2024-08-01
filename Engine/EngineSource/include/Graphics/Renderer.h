@@ -71,12 +71,15 @@ namespace Engine
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> pDepthStencil;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> pDSState;
 
+		Microsoft::WRL::ComPtr<ID3D11RasterizerState> pRasterizerState;
+
 		std::shared_ptr<Texture> diffuseIBL;
 		std::shared_ptr<Texture> specularIBL;
 		std::shared_ptr<Texture> reflectanceIBL;
 
 		std::shared_ptr<Texture> LTCmat;
 		std::shared_ptr<Texture> LTCamp;
+
 	private:
 		static std::mutex mutex_;
 		static Renderer* pInstance;

@@ -125,7 +125,7 @@
     <ClCompile Include="EngineSource\source\Graphics\TransformSystem.cpp">
       <Filter>Source\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="EngineSource\include\Graphics\ShadowManager.cpp">
+    <ClCompile Include="EngineSource\source\Graphics\ShadowSystem.cpp">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>
@@ -250,7 +250,7 @@
     <ClInclude Include="EngineSource\include\Utils\ISelected.h">
       <Filter>Include\Utils</Filter>
     </ClInclude>
-    <ClInclude Include="EngineSource\include\Graphics\ShadowManager.h">
+    <ClInclude Include="EngineSource\include\Graphics\ShadowSystem.h">
       <Filter>Include</Filter>
     </ClInclude>
   </ItemGroup>

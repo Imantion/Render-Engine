@@ -9,13 +9,13 @@ namespace Engine
 {
 	struct vec3;
 
-	class ShadowManager
+	class ShadowSystem
 	{
 	public:
-		ShadowManager(const ShadowManager& other) = delete;
-		void operator=(const ShadowManager&) = delete;
+		ShadowSystem(const ShadowSystem& other) = delete;
+		void operator=(const ShadowSystem&) = delete;
 
-		static ShadowManager* Init();
+		static ShadowSystem* Init();
 		static void Deinit();
 
 		void SetShadowShaders(std::shared_ptr<shader> pointLight, std::shared_ptr<shader> spotLight, std::shared_ptr<shader> directionalLight);
@@ -31,11 +31,11 @@ namespace Engine
 		template <typename I, typename M>
 		void RenderSpotLightShadowMaps(const std::vector<SpotLight>& lights, OpaqueInstances<I, M>& renderGroup);
 
-		void BindSRV(UINT slot) { D3D::GetInstance()->GetContext()->PSSetShaderResources(slot, 1u, m_srvPointLigts.GetAddressOf()); }
+		void BindShadowTextures(UINT pointLightTexture, UINT spotLightTexture);
 
 	private:
-		ShadowManager();
-		~ShadowManager() = default;
+		ShadowSystem();
+		~ShadowSystem() = default;
 
 		void createPointLightShadowMaps(size_t amount);
 		void createSpotLightShadowMaps(size_t amount);
@@ -46,6 +46,7 @@ namespace Engine
 
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_srvSpotLigts;
 		std::vector <Microsoft::WRL::ComPtr<ID3D11DepthStencilView>> m_slDSVS;
+		std::vector<mat4> m_slViewProjections;
 
 		D3D11_VIEWPORT m_viewport;
 		UINT m_shadowResolution = 1024;
@@ -61,12 +62,18 @@ namespace Engine
 		std::shared_ptr<shader> m_slShader;
 		std::shared_ptr<shader> m_dlShader;
 	private:
-		static ShadowManager* m_instance;
+		static ShadowSystem* m_instance;
 		static std::mutex m_mutex;
 	};
 
+
+
+
+
+
+
 	template<typename I, typename M>
-	inline void ShadowManager::RenderPointLightShadowMaps(const std::vector<vec3>& lightPositions, OpaqueInstances<I, M>& renderGroup)
+	inline void ShadowSystem::RenderPointLightShadowMaps(const std::vector<vec3>& lightPositions, OpaqueInstances<I, M>& renderGroup)
 	{
 		if (m_plDSVS.size() != lightPositions.size())
 			createPointLightShadowMaps(lightPositions.size());
@@ -134,10 +141,10 @@ namespace Engine
 	}
 
 	template<typename I, typename M>
-	inline void ShadowManager::RenderSpotLightShadowMaps(const std::vector<SpotLight>& lights, OpaqueInstances<I, M>& renderGroup)
+	inline void ShadowSystem::RenderSpotLightShadowMaps(const std::vector<SpotLight>& lights, OpaqueInstances<I, M>& renderGroup)
 	{
 		if (lights.size() != m_slDSVS.size())
-			createPointLightShadowMaps(lights.size());
+			createSpotLightShadowMaps(lights.size());
 
 		auto context = D3D::GetInstance()->GetContext();
 
@@ -154,19 +161,24 @@ namespace Engine
 		for (size_t i = 0; i < lights.size(); i++)
 		{
 			vec3 position = lights[i].position;
+
 			if (lights[i].bindedObjectId != -1)
-				position += (vec3&)*TS->GetModelTransforms(lights[i].bindedObjectId)[0].modelToWold[3];
-			mat4 projection = projectionMatrix(lights[i].cutoffAngle * 2.0f, m_ProjectionInfo.nearPlane, m_ProjectionInfo.farPlane, 1.0f);
+			{
+				auto& transform = TS->GetModelTransforms(lights[i].bindedObjectId)[0].modelToWold;
+				position += (vec3&)*transform[3];
+				vec3 direction = vec4(lights[i].direction, 0.0f) * transform;
 
-			mat4 constantBufferData(viewMatrix(position, lights[i].direction, topFromDir(lights[i].direction)) * projection);
+				mat4 projection = projectionMatrix(lights[i].cutoffAngle * 2.0f, m_ProjectionInfo.nearPlane, m_ProjectionInfo.farPlane, 1.0f);
+				m_slViewProjections[i] =  viewMatrix(position, direction, topFromDir(direction)) * projection;
+			}
 
-			cbProjections.updateBuffer(&constantBufferData);
+			cbProjections.updateBuffer(&m_slViewProjections[i]);
 			cbProjections.bind(4u, VS);
 
 			context->ClearDepthStencilView(m_slDSVS[i].Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 0.0f, 0u);
 			context->OMSetRenderTargets(0u, nullptr, m_slDSVS[i].Get());
 
-			renderGroup.render();
+			renderGroup.renderUsingShader(m_slShader);
 		}
 
 		context->OMSetRenderTargets(0u, nullptr, nullptr);

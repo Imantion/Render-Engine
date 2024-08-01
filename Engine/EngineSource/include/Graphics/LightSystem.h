@@ -186,7 +186,7 @@ namespace Engine
 		void BindLightTextures();
 
 		void SetFlashLightAttachedState(bool attach);
-		bool IsFlashLightAttached() const { return m_flashLight.isAttached; }
+		bool IsFlashLightAttached() const { return m_flashLight.light.bindedObjectId != -1; }
 		SpotLight getFlashLight() const { return m_flashLight.light; }
 		mat4 getFlashLightViewProjection() const { return m_flashLight.flashLightsViewProjection; }
 
@@ -204,7 +204,7 @@ namespace Engine
 			vec3 worldDirection;
 			std::shared_ptr<Texture> flashLightMask;
 			mat4 flashLightsViewProjection;
-			bool isAttached = false;
+			int lastBindedTransform = -1;
 
 		} m_flashLight;
 

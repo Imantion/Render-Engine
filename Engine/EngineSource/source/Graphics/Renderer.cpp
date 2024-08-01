@@ -3,7 +3,7 @@
 #include "Graphics/MeshSystem.h"
 #include "Graphics/PostProcess.h"
 #include "Graphics/LightSystem.h"
-#include "Graphics/ShadowManager.h"
+#include "Graphics/ShadowSystem.h"
 #include "Render/Camera.h"
 
 std::mutex Engine::Renderer::mutex_;
@@ -122,27 +122,28 @@ void Engine::Renderer::updatePerFrameCB(float deltaTime, float wWidth, float wHe
 
 void Engine::Renderer::Render(Camera* camera)
 {
-	Engine::D3D* d3d = Engine::D3D::GetInstance();
+	auto context = Engine::D3D::GetInstance()->GetContext();
 
-	d3d->GetContext()->OMSetDepthStencilState(pDSState.Get(), 1u);
+	context->OMSetDepthStencilState(pDSState.Get(), 1u);
 
+	context->RSSetState(pRasterizerState.Get());
 	std::vector<Engine::vec3> positions;
-	std::vector<float> radiuses;
 	Engine::LightSystem::Init()->GetPointLightsPositions(positions);
 	Engine::MeshSystem::Init()->renderDepthCubemaps(positions);
-	std::vector<SpotLight> sls;
-	sls.push_back(Engine::LightSystem::Init()->getFlashLight());
-	Engine::MeshSystem::Init()->renderDepth2D(sls);
-	Engine::MeshSystem::Init()->bindShadowMapsData(11u, 5u);
-	ShadowManager::Init()->BindSRV(11u);
 
-	d3d->GetContext()->OMSetRenderTargets(1u, pHDRRenderTarget.GetAddressOf(), pViewDepth.Get());
+	std::vector<SpotLight> sl;
+	sl.push_back(Engine::LightSystem::Init()->getFlashLight());
+	Engine::MeshSystem::Init()->renderDepth2D(sl);
+	context->RSSetState(nullptr);
+
+	ShadowSystem::Init()->BindShadowTextures(11u, 12u);
+	context->OMSetRenderTargets(1u, pHDRRenderTarget.GetAddressOf(), pViewDepth.Get());
 	
 
 	static const float color[] = { 0.5f, 0.5f,0.5f,1.0f };
 	
-	d3d->GetContext()->ClearRenderTargetView(pHDRRenderTarget.Get(), color);
-	d3d->GetContext()->ClearDepthStencilView(pViewDepth.Get(), D3D11_CLEAR_DEPTH, 0.0f, 0u);
+	context->ClearRenderTargetView(pHDRRenderTarget.Get(), color);
+	context->ClearDepthStencilView(pViewDepth.Get(), D3D11_CLEAR_DEPTH, 0.0f, 0u);
 
 
 	PerViewCB perView = PerViewCB{ camera->getViewMatrix() * camera->getProjectionMatrix(), vec4(camera->getCameraFrustrum(Camera::LeftDown),.0f),
@@ -166,13 +167,14 @@ void Engine::Renderer::Render(Camera* camera)
 		LTCamp->BindTexture(10u);
 	}
 
-	Engine::LightSystem::Init()->UpdateLightsBuffer();
-	Engine::LightSystem::Init()->BindLightTextures();
+	LightSystem::Init()->UpdateLightsBuffer();
+	LightSystem::Init()->BindLightTextures();
+	TextureManager::Init()->BindComparisonSampler(5u);
 
 	MeshSystem::Init()->render();
 
 	ID3D11ShaderResourceView* const pSRV[2] = { NULL, NULL };
-	d3d->GetContext()->PSSetShaderResources(11, 2u, pSRV);
+	context->PSSetShaderResources(11, 2u, pSRV);
 }
 
 void Engine::Renderer::PostProcess()
@@ -221,4 +223,20 @@ Engine::Renderer::Renderer() :
 {
     perFrameBuffer.create();
     perViewBuffer.create();
+
+	D3D11_RASTERIZER_DESC rasterDesc;
+	ZeroMemory(&rasterDesc, sizeof(rasterDesc));
+	rasterDesc.FillMode = D3D11_FILL_SOLID;
+	rasterDesc.CullMode = D3D11_CULL_NONE;
+	rasterDesc.FrontCounterClockwise = false;
+	rasterDesc.DepthBias = -128;
+	rasterDesc.DepthBiasClamp = 0.0f;
+	rasterDesc.SlopeScaledDepthBias = -1.0f;
+	rasterDesc.DepthClipEnable = true;
+	rasterDesc.ScissorEnable = false;
+	rasterDesc.MultisampleEnable = false;
+	rasterDesc.AntialiasedLineEnable = false;
+
+	HRESULT hr = D3D::GetInstance()->GetDevice()->CreateRasterizerState(&rasterDesc, &pRasterizerState);
+	assert(SUCCEEDED(hr));
 }

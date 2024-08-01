@@ -45,7 +45,7 @@ void Engine::LightSystem::AddFlashLight(const SpotLight& spotLight, std::shared_
         throw "Spotlight must be attached!";
     }
 
-    m_flashLight.isAttached = true;
+    m_flashLight.lastBindedTransform = spotLight.bindedObjectId;
 }
 
 void Engine::LightSystem::BindLightTextures()
@@ -55,7 +55,7 @@ void Engine::LightSystem::BindLightTextures()
 
 void Engine::LightSystem::SetFlashLightAttachedState(bool attach)
 {
-    m_flashLight.isAttached = attach;
+    m_flashLight.light.bindedObjectId = attach ? m_flashLight.lastBindedTransform : -1;
 }
 
 void Engine::LightSystem::AddDirectionalLight(const vec3& direction, const vec3& radiance, float solidAngle)
@@ -221,25 +221,23 @@ void Engine::LightSystem::UpdateLightsBuffer()
         bufferData.spotLights[i].radius = m_spotLights[i].radius;
     }
 
+
     if (m_flashLight.light.bindedObjectId != -1)
     {
-        if (m_flashLight.isAttached)
-        {
-            auto& bindedTransform = TS->GetModelTransforms(m_flashLight.light.bindedObjectId)[0].modelToWold;
-            m_flashLight.worldPosition = m_flashLight.light.position + (vec3&)(*bindedTransform[3]);
-            m_flashLight.worldDirection = (vec4(m_flashLight.light.direction, 0.0f) * bindedTransform).normalized();
-            m_flashLight.flashLightsViewProjection = viewMatrix(m_flashLight.worldPosition,m_flashLight.worldDirection,topFromDir(m_flashLight.worldDirection)) *
-                 projectionMatrix(m_flashLight.light.cutoffAngle * 2.0f, flProjectionData.nearClip, flProjectionData.farClip, flProjectionData.aspectRatio);
-        }
-           
-        bufferData.flashLight.direction = m_flashLight.worldDirection;
-        bufferData.flashLight.position = m_flashLight.worldPosition;
-        bufferData.flashLight.radiance = m_flashLight.light.radiance;
-        bufferData.flashLight.cutoffAngle = cosf(m_flashLight.light.cutoffAngle);
-        bufferData.flashLight.radius = m_flashLight.light.radius;
-        bufferData.flashLightsViewProjection = m_flashLight.flashLightsViewProjection;
-
+        auto& bindedTransform = TS->GetModelTransforms(m_flashLight.light.bindedObjectId)[0].modelToWold;
+        m_flashLight.worldPosition = m_flashLight.light.position + (vec3&)(*bindedTransform[3]);
+        m_flashLight.worldDirection = (vec4(m_flashLight.light.direction, 0.0f) * bindedTransform).normalized();
+        m_flashLight.flashLightsViewProjection = viewMatrix(m_flashLight.worldPosition,m_flashLight.worldDirection,topFromDir(m_flashLight.worldDirection)) *
+                projectionMatrix(m_flashLight.light.cutoffAngle * 2.0f, flProjectionData.nearClip, flProjectionData.farClip, flProjectionData.aspectRatio);
     }
+           
+    bufferData.flashLight.direction = m_flashLight.worldDirection;
+    bufferData.flashLight.position = m_flashLight.worldPosition;
+    bufferData.flashLight.radiance = m_flashLight.light.radiance;
+    bufferData.flashLight.cutoffAngle = cosf(m_flashLight.light.cutoffAngle);
+    bufferData.flashLight.radius = m_flashLight.light.radius;
+    bufferData.flashLightsViewProjection = m_flashLight.flashLightsViewProjection;
+
 
     bufferData.alSize = (UINT)m_areaLight.size();
     for (size_t i = 0; i < m_areaLight.size(); i++)

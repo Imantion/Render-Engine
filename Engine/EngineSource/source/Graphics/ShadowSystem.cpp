@@ -1,38 +1,38 @@
-#include "ShadowManager.h"
+#include "Graphics/ShadowSystem.h"
 #include "Math/math.h"
 #include "Math/matrix.h"
 #include "Graphics/TransformSystem.h"
 #include "Graphics/MeshSystem.h"
 
-Engine::ShadowManager* Engine::ShadowManager::m_instance;
-std::mutex Engine::ShadowManager::m_mutex;
+Engine::ShadowSystem* Engine::ShadowSystem::m_instance;
+std::mutex Engine::ShadowSystem::m_mutex;
 
-Engine::ShadowManager* Engine::ShadowManager::Init()
+Engine::ShadowSystem* Engine::ShadowSystem::Init()
 {
 	std::lock_guard<std::mutex> lock(m_mutex);
 
 	if (m_instance == nullptr)
 	{
-		m_instance = new ShadowManager();
+		m_instance = new ShadowSystem();
 	}
 
 	return m_instance;
 }
 
-void Engine::ShadowManager::Deinit()
+void Engine::ShadowSystem::Deinit()
 {
 	delete m_instance;
 	m_instance = nullptr;
 }
 
-void Engine::ShadowManager::SetShadowShaders(std::shared_ptr<shader> pointLight, std::shared_ptr<shader> spotLight, std::shared_ptr<shader> directionalLight)
+void Engine::ShadowSystem::SetShadowShaders(std::shared_ptr<shader> pointLight, std::shared_ptr<shader> spotLight, std::shared_ptr<shader> directionalLight)
 {
 	m_plShader = pointLight;
 	m_slShader = spotLight;
 	m_dlShader = directionalLight;
 }
 
-void Engine::ShadowManager::SetShadowTextureResolution(UINT resolution)
+void Engine::ShadowSystem::SetShadowTextureResolution(UINT resolution)
 {
 	m_shadowResolution = resolution;
 	m_viewport.Width = (FLOAT)resolution;
@@ -42,18 +42,26 @@ void Engine::ShadowManager::SetShadowTextureResolution(UINT resolution)
 	createSpotLightShadowMaps(m_slDSVS.size());
 }
 
-UINT Engine::ShadowManager::GetShadowTextureResolution()
+UINT Engine::ShadowSystem::GetShadowTextureResolution()
 {
 	return m_shadowResolution;
 }
 
-void Engine::ShadowManager::SetProjectionInfo(float nearPlane, float farPlane)
+void Engine::ShadowSystem::SetProjectionInfo(float nearPlane, float farPlane)
 {
 	m_ProjectionInfo.nearPlane = nearPlane;
 	m_ProjectionInfo.farPlane = farPlane;
 }
 
-Engine::ShadowManager::ShadowManager()
+void Engine::ShadowSystem::BindShadowTextures(UINT pointLightTextureSlot , UINT spotLightTextureSlot)
+{
+	auto context = D3D::GetInstance()->GetContext();
+	
+	context->PSSetShaderResources(pointLightTextureSlot, 1u, m_srvPointLigts.GetAddressOf());
+	context->PSSetShaderResources(spotLightTextureSlot, 1u, m_srvSpotLigts.GetAddressOf());
+}
+
+Engine::ShadowSystem::ShadowSystem()
 {
 	m_viewport.TopLeftX = 0.0f;
 	m_viewport.TopLeftY = 0.0f;
@@ -63,7 +71,7 @@ Engine::ShadowManager::ShadowManager()
 	m_viewport.MaxDepth = 1;
 }
 
-void Engine::ShadowManager::createPointLightShadowMaps(size_t amount)
+void Engine::ShadowSystem::createPointLightShadowMaps(size_t amount)
 {
 	m_plDSVS.clear();
 	m_plDSVS.resize(amount);
@@ -115,9 +123,10 @@ void Engine::ShadowManager::createPointLightShadowMaps(size_t amount)
 	assert(SUCCEEDED(hr));
 }
 
-void Engine::ShadowManager::createSpotLightShadowMaps(size_t amount)
+void Engine::ShadowSystem::createSpotLightShadowMaps(size_t amount)
 {
 	m_slDSVS.resize(amount);
+	m_slViewProjections.resize(amount);
 
 	auto device = D3D::GetInstance()->GetDevice();
 
