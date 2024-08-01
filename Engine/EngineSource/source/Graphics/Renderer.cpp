@@ -126,19 +126,13 @@ void Engine::Renderer::Render(Camera* camera)
 	d3d->GetContext()->OMSetDepthStencilState(pDSState.Get(), 1u);
 
 	std::vector<Engine::vec3> positions;
+	std::vector<float> radiuses;
 	Engine::LightSystem::Init()->GetPointLightsPositions(positions);
 	Engine::MeshSystem::Init()->renderDepthCubemaps(positions);
+	std::vector<SpotLight> sls;
+	sls.push_back(Engine::LightSystem::Init()->getFlashLight());
+	Engine::MeshSystem::Init()->renderDepth2D(sls);
 	Engine::MeshSystem::Init()->bindShadowMapsData(11u, 5u);
-
-	D3D11_VIEWPORT viewport;
-	viewport.TopLeftX = 0.0f;
-	viewport.TopLeftY = 0.0f;
-	viewport.Width = 800;
-	viewport.Height = 400;
-	viewport.MinDepth = 0.0f;
-	viewport.MaxDepth = 1.0f;
-
-	d3d->GetContext()->RSSetViewports(1, &viewport);
 
 	d3d->GetContext()->OMSetRenderTargets(1u, pHDRRenderTarget.GetAddressOf(), pViewDepth.Get());
 	
@@ -148,7 +142,6 @@ void Engine::Renderer::Render(Camera* camera)
 	d3d->GetContext()->ClearRenderTargetView(pHDRRenderTarget.Get(), color);
 	d3d->GetContext()->ClearDepthStencilView(pViewDepth.Get(), D3D11_CLEAR_DEPTH, 0.0f, 0u);
 
-	vec3 temp = cross(camera->getForward(), camera->getRight());
 
 	PerViewCB perView = PerViewCB{ camera->getViewMatrix() * camera->getProjectionMatrix(), vec4(camera->getCameraFrustrum(Camera::LeftDown),.0f),
 		vec4(camera->getCameraFrustrum(Camera::LeftUp) - camera->getCameraFrustrum(Camera::LeftDown),.0f),
@@ -175,6 +168,9 @@ void Engine::Renderer::Render(Camera* camera)
 	Engine::LightSystem::Init()->BindLightTextures();
 
 	MeshSystem::Init()->render();
+
+	ID3D11ShaderResourceView* const pSRV[2] = { NULL, NULL };
+	d3d->GetContext()->PSSetShaderResources(11, 2u, pSRV);
 }
 
 void Engine::Renderer::PostProcess()

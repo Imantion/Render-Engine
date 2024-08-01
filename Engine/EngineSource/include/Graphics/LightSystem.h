@@ -187,6 +187,8 @@ namespace Engine
 
 		void SetFlashLightAttachedState(bool attach);
 		bool IsFlashLightAttached() const { return m_flashLight.isAttached; }
+		SpotLight getFlashLight() const { return m_flashLight.light; }
+		mat4 getFlashLightViewProjection() const { return m_flashLight.flashLightsViewProjection; }
 
 	private:
 		LightSystem();

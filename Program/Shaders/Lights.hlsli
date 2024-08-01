@@ -42,7 +42,7 @@ SamplerState samplerstateFlash : register(s4);
 
 struct DirectionalLight
 {
-    float3 color;
+    float3 radiance;
     float solidAngle;
     float3 direction;
     float padding; // Padding to align structure size
@@ -51,7 +51,7 @@ struct DirectionalLight
 // PointLight structure
 struct PointLight
 {
-    float3 color;
+    float3 radiance;
     float radius;
     float3 position;
     int bindedObjectId; // -1 means no object is bound
@@ -60,7 +60,7 @@ struct PointLight
 // SpotLight structure
 struct SpotLight
 {
-    float3 color;
+    float3 radiance;
     float radiusOfCone;
     float3 direction;
     float cutoffAngle; // in radians
@@ -76,7 +76,7 @@ struct edge
 
 struct AreaLight
 {
-    float3 color;
+    float3 radiance;
     uint verticesAmount;
     float3 vertices[MAX_AREA_VERT];
     edge boundedIndices[MAX_AREA_IND];
@@ -287,8 +287,7 @@ float3 PBRLight(PointLight lightSource, float3 worldPosition, float3 albedo, flo
         f_diff = (1 - metalness) / PI * solidAngle * NoL * albedo * (1 - fresnel(F0, NoL));
     
 
-    return lightSource.color * (f_diff + f_spec) * horizonFalloffFactor(microNormal, worldPosition, lightSource.position, lightSource.radius) *
-    horizonFalloffFactor(macroNormal, worldPosition, lightSource.position, lightSource.radius);
+    return lightSource.radiance * (f_diff + f_spec);
 }
 
 float3 FlashLight(SpotLight flashLight, float3 albedo, float metalness, float roughness, float3 normal, float3 position, float3 cameraPosition, bool specular, bool diffuse)
@@ -296,7 +295,7 @@ float3 FlashLight(SpotLight flashLight, float3 albedo, float metalness, float ro
     float3 directionToLight = flashLight.position - position;
     float3 view = normalize(cameraPosition - position);
     float solidAngle = SolidAngle(flashLight.radiusOfCone, dot(directionToLight, directionToLight));
-    float3 finalColor = SpotLightCuttOffFactor(flashLight, position, cameraPosition) * PBRLight(flashLight.color, solidAngle, normalize(directionToLight), albedo,
+    float3 finalColor = SpotLightCuttOffFactor(flashLight, position, cameraPosition) * PBRLight(flashLight.radiance, solidAngle, normalize(directionToLight), albedo,
                                                                                                 metalness, roughness, normal, view, specular, diffuse);
     float4 proj = mul(float4(position, 1.0f), lightViewProjection);
     float2 uv = (proj.xy) / proj.w;
@@ -378,4 +377,10 @@ uint selectCubeFace(float3 unitDir)
     uint maxIndex = abs(unitDir.x) == maxVal ? 0 : (abs(unitDir.y) == maxVal ? 2 : 4);
     return maxIndex + (asuint(unitDir[maxIndex / 2]) >> 31); // same as:
     // return maxIndex + (unitDir[maxIndex / 2] < 0.f ? 1u : 0u);
+}
+
+float3 offset(float shadowTexelSize, float3 normal, float3 lightDir)
+{
+    float denominator = sqrt(2) * 0.5f;
+    return shadowTexelSize * denominator * (normal - lightDir * (0.9f * dot(normal, lightDir)));
 }

@@ -343,4 +343,23 @@ namespace Engine
 	{
 		return a > b ? a : b;
 	}
+
+	inline void basisFromDir(vec3& right,vec3& top,const vec3& dir)
+	{
+		float k = 1.0f / Max(1.0f + dir.z, 0.00001f);
+		float a = dir.y * k;
+		float b = dir.y * a;
+		float c = -dir.x * a;
+		right = vec3(dir.z + b, c, -dir.x);
+		top = vec3(c, 1.0f - b, -dir.y);
+	}
+
+	inline vec3 topFromDir(const vec3& dir)
+	{
+		float k = 1.0f / Max(1.0f + dir.z, 0.00001f);
+		float a = dir.y * k;
+		float b = dir.y * a;
+		float c = -dir.x * a;
+		return vec3(c, 1.0f - b, -dir.y);
+	}
 }

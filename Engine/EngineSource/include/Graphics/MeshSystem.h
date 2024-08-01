@@ -13,6 +13,7 @@
 namespace Engine
 {
 	class MeshSystem;
+	class SpotLight;
 
 	template<typename M>
 	struct MaterialDataType {
@@ -403,6 +404,7 @@ namespace Engine
 		void updateInstanceBuffers();
 
 		void renderDepthCubemaps(const std::vector<vec3>& lightPositions);
+		void renderDepth2D(const std::vector<SpotLight>& spotlights);
 		void bindShadowMapsData(UINT pointLightShadowTexturesSlot, UINT pointLightCBslot);
 
 		void render();
@@ -415,13 +417,17 @@ namespace Engine
 	private:
 		MeshSystem();
 		void createDepthCubemaps(size_t amount);
+		void createDepth2DSpotLightsMap(size_t amount);
 
 	protected:
 		static std::mutex mutex_;
 		static MeshSystem* pInstance;
 
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srvPointLigts;
-		std::vector<Microsoft::WRL::ComPtr<ID3D11DepthStencilView>> dsvs;
+		std::vector<Microsoft::WRL::ComPtr<ID3D11DepthStencilView>> plDSVS;
+
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srvSpotLigts;
+		std::vector <Microsoft::WRL::ComPtr<ID3D11DepthStencilView>> slDSVS;
 
 		Microsoft::WRL::ComPtr<ID3D11RasterizerState> pRasterizerState;
 		Microsoft::WRL::ComPtr<ID3D11SamplerState> compsampler;

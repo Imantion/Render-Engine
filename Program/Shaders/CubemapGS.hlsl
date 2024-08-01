@@ -17,8 +17,6 @@ struct PSInput
     uint renderTargetArrayIndex : SV_RenderTargetArrayIndex;
 };
 
-static const float2 uvs[3] = { float2(0, 0), float2(2, 0), float2(0, 2) };
-
 [maxvertexcount(18)]
 void main(triangle GSInput input[3], inout TriangleStream<PSInput> outputStream)
 {

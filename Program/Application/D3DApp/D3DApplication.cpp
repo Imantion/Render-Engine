@@ -110,6 +110,8 @@ static void InitMeshSystem()
 	auto shadowShader = Engine::ShaderManager::CompileAndCreateShader("shadowShader", L"Shaders\\ShadowVS.hlsl", L"Shaders\\ShadowPS.hlsl",
 		nullptr, nullptr, L"Shaders\\CubemapGS.hlsl", nullptr, nullptr);
 
+	auto shadowShader2 = Engine::ShaderManager::CompileAndCreateShader("shadowShader2", L"Shaders\\SpotLightShadowVS.hlsl", L"Shaders\\ProjectedShadowPS.hlsl", nullptr, nullptr);
+
 	NormalVisLines->DisableShader();
 	if (!NormalVisColor)
 		throw std::runtime_error("Failed to compile and create shader!");
@@ -132,6 +134,10 @@ static void InitMeshSystem()
 	opaqueShader->BindInputLyout(inputLayout);
 	emissiveShader->BindInputLyout(secondInputLayout);
 	shadowShader->BindInputLyout(thirdLayout);
+	shadowShader2->BindInputLyout(thirdLayout);
+
+	shadowShader->DisableShader();
+	shadowShader2->DisableShader();
 
 	auto ms = Engine::MeshSystem::Init();
 
@@ -145,6 +151,7 @@ static void InitMeshSystem()
 
 	ms->emmisiveGroup.addShader(emissiveShader);
 	ms->shadowGroup.addShader(shadowShader);
+	ms->shadowGroup.addShader(shadowShader2);
 }
 
 D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc windowEvent) :
@@ -497,7 +504,7 @@ void D3DApplication::GUI()
 
 void D3DApplication::InitCamera(int windowWidth, int windowHeight)
 {
-	camera.reset(new Engine::Camera(45.0f, 0.1f, 100.0f));
+	camera.reset(new Engine::Camera(45.0f, 0.01f, 100.0f));
 	camera->calculateProjectionMatrix(windowWidth, windowHeight);
 	camera->calculateRayDirections();
 }
@@ -575,7 +582,7 @@ void D3DApplication::InitLights()
 	Engine::LightSystem::Init()->AddPointLight(Engine::vec3(0.0f, 4.0f, 0.0f), 0.5f, 1.0f, Engine::vec3(2.0f, 2.0f, 0.0f), model);
 	Engine::LightSystem::Init()->AddPointLight(Engine::vec3(0.1f), 0.05f, 1.0f, Engine::vec3(0.0f, 0.0f, -0.5f), model);
 
-	Engine::SpotLight spotLight(Engine::vec3(1.0f), 1.0f, 5.0f, Engine::vec3(0.0f, 0.0f, 0.0f), Engine::vec3(.0f, .0f, 1.0f), 0.5 / 2.0f);
+	Engine::SpotLight spotLight(Engine::vec3(1.0f), 1.0f, 11.18f, Engine::vec3(0.0f, 0.0f, 0.0f), Engine::vec3(.0f, .0f, 1.0f), 0.5 / 2.0f);
 	spotLight.bindedObjectId = camera->getCameraTransformId();
 	Engine::LightSystem::Init()->AddFlashLight(spotLight, TM->LoadFromFile("flashlight", L"Textures\\flashlightMask.dds"));
 

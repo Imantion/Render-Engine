@@ -21,6 +21,7 @@ cbuffer MaterialData : register(b2)
 }
 
 TextureCubeArray pointLightsShadowMap : register(t11);
+Texture2DArray spotLightsShadowMap : register(t12);
 
 SamplerComparisonState compr : register(s5);
 
@@ -36,16 +37,6 @@ struct PSInput
     float roughness : ROUGHNESS;
     float metalness : METALNESS;
 };
-
-// Define the four corners of a rectangular area light
-static const float3 areaLightPoints[4] =
-{
-    float3(-1.0, 1.0, 0.0), // Top left
-    float3(1.0, 1.0, 0.0), // Top right
-    float3(1.0, -1.0, 0.0), // Bottom right
-    float3(-1.0, -1.0, 0.0) // Bottom left
-};
-
 
 float4 main(PSInput input) : SV_TARGET
 {
@@ -84,20 +75,19 @@ float4 main(PSInput input) : SV_TARGET
         float3 l = spotLights[i].position - input.worldPos;
         float solidAngle = SolidAngle(spotLights[i].radiusOfCone, dot(l, l));
         l = normalize(l);
-        finalColor += I * PBRLight(spotLights[i].color, solidAngle, l, albedo, metalness, roughness, normal, v, specularState, diffuseState);
+        finalColor += I * PBRLight(spotLights[i].radiance, solidAngle, l, albedo, metalness, roughness, normal, v, specularState, diffuseState);
     }
     for (i = 0; i < plSize; ++i)
     {
-        float3 directionToLigt = input.worldPos - pointLights[i].position;
-        float depth = 1.0f - length(directionToLigt) / 100.0f + 0.005f;
-        float shadowValue = pointLightsShadowMap.SampleCmp(compr, float4(directionToLigt, i), depth).r;
-   
+        float3 directionToLight = input.worldPos - pointLights[i].position;
+        float depth = 1.0f - length(directionToLight) / 100.0f + 0.0003f;
+        float shadowValue = pointLightsShadowMap.SampleCmpLevelZero(compr, float4(directionToLight, i), depth).r;
         finalColor += shadowValue * PBRLight(pointLights[i], input.worldPos, albedo, metalness, roughness, input.tbn._31_32_33, normal, v, specularState, diffuseState);
     }
     
     for (i = 0; i < dlSize; ++i)
     {
-        finalColor += PBRLight(directionalLights[i].color, directionalLights[i].solidAngle, -directionalLights[i].direction, albedo, metalness, roughness, normal, v, specularState, diffuseState);
+        finalColor += PBRLight(directionalLights[i].radiance, directionalLights[i].solidAngle, -directionalLights[i].direction, albedo, metalness, roughness, normal, v, specularState, diffuseState);
     }
     
     float dotNV = clamp(dot(normal, v), 0.0f, 1.0f);
@@ -127,11 +117,17 @@ float4 main(PSInput input) : SV_TARGET
         {
             float3 d = LTC_Evaluate(normal, v, input.worldPos, Identity, areaLights[i], true);
             float3 s = LTC_Evaluate(normal, v, input.worldPos, Minv, areaLights[i], true);
-            finalColor += areaLights[i].color * (d * albedo * (1 - metalness) + s) * (t2.r * areaLights[i].intensity);
+            finalColor += areaLights[i].radiance * (d * albedo * (1 - metalness) + s) * (t2.r * areaLights[i].intensity);
         }
 
+    float3 directionToLight = flashLight.position - input.worldPos;
+    float4 projected = mul(float4(input.worldPos + offset(1.0f / 1024.0f, normal, directionToLight), 1.0f), lightViewProjection);
+    float3 homogeneus = projected.xyz / projected.w;
+    homogeneus.xy = (homogeneus.xy + 1) * 0.5f;
+    homogeneus.y = 1 - homogeneus.y;
     
-    finalColor += FlashLight(flashLight, albedo, metalness, roughness, normal, input.worldPos, g_cameraPosition, specularState, diffuseState);
+    float shadowValue = spotLightsShadowMap.SampleCmpLevelZero(compr, float3(homogeneus.xy, 0), homogeneus.z + 0.00025f);
+    finalColor += shadowValue * FlashLight(flashLight, albedo, metalness, roughness, normal, input.worldPos, g_cameraPosition, specularState, diffuseState);
    
     float2 refl = reflectanceIBL.Sample(g_sampler, float2(saturate(dot(normal, v)), roughness));
     float3 F0 = lerp(g_MIN_F0, albedo, metalness);

@@ -77,9 +77,9 @@ Engine::MeshSystem::MeshSystem()
 	rasterDesc.FillMode = D3D11_FILL_SOLID;
 	rasterDesc.CullMode = D3D11_CULL_BACK;
 	rasterDesc.FrontCounterClockwise = false;
-	rasterDesc.DepthBias = -1000.0f;
+	rasterDesc.DepthBias = -1024;
 	rasterDesc.DepthBiasClamp = 0.0f;
-	rasterDesc.SlopeScaledDepthBias = 0.0f;
+	rasterDesc.SlopeScaledDepthBias = -1.0f;
 	rasterDesc.DepthClipEnable = true;
 	rasterDesc.ScissorEnable = false;
 	rasterDesc.MultisampleEnable = false;
@@ -91,8 +91,8 @@ Engine::MeshSystem::MeshSystem()
 
 void Engine::MeshSystem::createDepthCubemaps(size_t amount)
 {
-	dsvs.clear();
-	dsvs.resize(amount);
+	plDSVS.clear();
+	plDSVS.resize(amount);
 
 	auto device = D3D::GetInstance()->GetDevice();
 
@@ -101,7 +101,7 @@ void Engine::MeshSystem::createDepthCubemaps(size_t amount)
 	textureDesc.Width = 1024;
 	textureDesc.Height = 1024;
 	textureDesc.MipLevels = 1;
-	textureDesc.ArraySize = amount * 6;
+	textureDesc.ArraySize = (UINT)amount * 6u;
 	textureDesc.Format = DXGI_FORMAT_R24G8_TYPELESS;
 	textureDesc.SampleDesc.Count = 1;
 	textureDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -122,8 +122,8 @@ void Engine::MeshSystem::createDepthCubemaps(size_t amount)
 
 	for (size_t i = 0; i < amount; i++)
 	{
-		depthStencilViewDesc.Texture2DArray.FirstArraySlice = i * 6;
-		hr = device->CreateDepthStencilView(texture.Get(), &depthStencilViewDesc, &dsvs[i]);
+		depthStencilViewDesc.Texture2DArray.FirstArraySlice = (UINT)i * 6u;
+		hr = device->CreateDepthStencilView(texture.Get(), &depthStencilViewDesc, &plDSVS[i]);
 		assert(SUCCEEDED(hr));
 	}
 
@@ -134,10 +134,59 @@ void Engine::MeshSystem::createDepthCubemaps(size_t amount)
 	srvDesc.TextureCubeArray.MipLevels = 1;
 	srvDesc.TextureCubeArray.First2DArrayFace = 0;
 	srvDesc.TextureCubeArray.MostDetailedMip = 0;
-	srvDesc.TextureCubeArray.NumCubes = amount;
+	srvDesc.TextureCubeArray.NumCubes = (UINT)amount;
 	srvDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
 
 	hr = device->CreateShaderResourceView(texture.Get(), &srvDesc, &srvPointLigts);
+	assert(SUCCEEDED(hr));
+}
+
+void Engine::MeshSystem::createDepth2DSpotLightsMap(size_t amount)
+{
+	slDSVS.resize(amount);
+
+	auto device = D3D::GetInstance()->GetDevice();
+
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> texture;
+	D3D11_TEXTURE2D_DESC textureDesc = {};
+	textureDesc.Width = 1024;
+	textureDesc.Height = 1024;
+	textureDesc.MipLevels = 1;
+	textureDesc.ArraySize = (UINT)amount;
+	textureDesc.Format = DXGI_FORMAT_R24G8_TYPELESS;
+	textureDesc.SampleDesc.Count = 1;
+	textureDesc.Usage = D3D11_USAGE_DEFAULT;
+	textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_DEPTH_STENCIL;
+	textureDesc.CPUAccessFlags = 0;
+
+	HRESULT hr = device->CreateTexture2D(&textureDesc, nullptr, &texture);
+	assert(SUCCEEDED(hr));
+
+	D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
+	ZeroMemory(&depthStencilViewDesc, sizeof(D3D11_DEPTH_STENCIL_VIEW_DESC));
+	depthStencilViewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
+	depthStencilViewDesc.Texture2DArray.ArraySize = 1u;
+	depthStencilViewDesc.Texture2DArray.MipSlice = (UINT)0;
+
+	for (size_t i = 0; i < amount; i++)
+	{
+		depthStencilViewDesc.Texture2DArray.FirstArraySlice = (UINT)0;
+		hr = device->CreateDepthStencilView(texture.Get(), &depthStencilViewDesc, slDSVS[i].GetAddressOf());
+		assert(SUCCEEDED(hr));
+	}
+	
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+	ZeroMemory(&srvDesc, sizeof(srvDesc));
+
+	srvDesc.ViewDimension = D3D_SRV_DIMENSION_TEXTURE2DARRAY;
+	srvDesc.Texture2DArray.ArraySize = (UINT)amount;
+	srvDesc.Texture2DArray.FirstArraySlice = 0u;
+	srvDesc.Texture2DArray.MipLevels = 1u;
+	srvDesc.Texture2DArray.MostDetailedMip = 0u;
+	srvDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+
+	hr = device->CreateShaderResourceView(texture.Get(), &srvDesc, &srvSpotLigts);
 	assert(SUCCEEDED(hr));
 }
 
@@ -146,18 +195,18 @@ void Engine::MeshSystem::bindShadowMapsData(UINT pointLightShadowTexturesSlot, U
 	auto context = D3D::GetInstance()->GetContext();
 	context->PSSetSamplers(compSamplerSlot, 1, compsampler.GetAddressOf());
 	context->PSSetShaderResources(pointLightShadowTexturesSlot, 1, srvPointLigts.GetAddressOf());
+	context->PSSetShaderResources(12, 1, srvSpotLigts.GetAddressOf());
 }
 
 void Engine::MeshSystem::renderDepthCubemaps(const std::vector<vec3>& lightPositions)
 {
-	if (dsvs.size() != lightPositions.size())
+	if (plDSVS.size() != lightPositions.size())
 		createDepthCubemaps(lightPositions.size());
-		
+
+	auto shader = ShaderManager::GetShader("shadowShader");
+	shader->EnableShader();
 
 	auto context = D3D::GetInstance()->GetContext();
-
-	ID3D11ShaderResourceView* const pSRV[1] = { NULL };
-	context->PSSetShaderResources(11, 1u, pSRV);
 
 	float farPlane = 100.0f;
 	mat4 projection = projectionMatrix((float)M_PI_2, 0.01f, farPlane, 1.0f);
@@ -173,6 +222,10 @@ void Engine::MeshSystem::renderDepthCubemaps(const std::vector<vec3>& lightPosit
 	ConstBuffer<vec4> psConstBuffer;
 	psConstBuffer.create();
 
+	D3D11_VIEWPORT boundedViewport;
+	UINT numViewports = 1u;
+	context->RSGetViewports(&numViewports, &boundedViewport);
+
 	D3D11_VIEWPORT viewPort = {};
 	viewPort.TopLeftX = 0.0f;
 	viewPort.TopLeftY = 0.0f;
@@ -184,19 +237,29 @@ void Engine::MeshSystem::renderDepthCubemaps(const std::vector<vec3>& lightPosit
 	context->RSSetViewports(1, &viewPort);
 	context->RSSetState(pRasterizerState.Get());
 
+	static const vec3 directions[6] =
+	{
+		vec3(1.0f, 0.0f, 0.0f), // +X
+		vec3(-1.0f, 0.0f, 0.0f), // -X
+		vec3(0.0f, 1.0f, 0.0f), // +Y
+		vec3(0.0f, -1.0f, 0.0f), // -Y
+		vec3(0.0f, 0.0f, 1.0f), // +Z
+		vec3(0.0f, 0.0f, -1.0f) // -Z
+	};
+
 	for (size_t i = 0; i < lightPositions.size(); i++)
 	{
-		context->ClearDepthStencilView(dsvs[i].Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 0.0f, 0u);
+		context->ClearDepthStencilView(plDSVS[i].Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 0.0f, 0u);
 
 		lightViewProjections constantBufferData{
-			viewMatrix(lightPositions[i], vec3(1.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f)) * projection,
-			viewMatrix(lightPositions[i], vec3(-1.0f, 0.0f, 0.0f), vec3(0.0f, 1.0f, 0.0f)) * projection,
-			viewMatrix(lightPositions[i], vec3(0.0f, 1.0f, 0.0f), vec3(0.0f, 0.0f, -1.0f)) * projection,
-			viewMatrix(lightPositions[i], vec3(0.0f, -1.0f, 0.0f), vec3(0.0f, 0.0f, 1.0f)) * projection,
-			viewMatrix(lightPositions[i], vec3(0.0f, 0.0f, 1.0f), vec3(0.0f, 1.0f, 0.0f)) * projection,
-			viewMatrix(lightPositions[i], vec3(0.0f, 0.0f, -1.0f), vec3(0.0f, 1.0f, 1.0f)) * projection,
+			viewMatrix(lightPositions[i], directions[0], vec3(0.0f, 1.0f, 0.0f)) * projection,
+			viewMatrix(lightPositions[i], directions[1], vec3(0.0f, 1.0f, 0.0f)) * projection,
+			viewMatrix(lightPositions[i], directions[2], vec3(0.0f, 0.0f, -1.0f)) * projection,
+			viewMatrix(lightPositions[i], directions[3], vec3(0.0f, 0.0f, 1.0f)) * projection,
+			viewMatrix(lightPositions[i], directions[4], vec3(0.0f, 1.0f, 0.0f)) * projection,
+			viewMatrix(lightPositions[i], directions[5], vec3(0.0f, 1.0f, 1.0f)) * projection,
 		};
-
+	
 		vec4 psData(lightPositions[i], farPlane);
 
 		cbProjections.updateBuffer(&constantBufferData);
@@ -205,13 +268,80 @@ void Engine::MeshSystem::renderDepthCubemaps(const std::vector<vec3>& lightPosit
 		psConstBuffer.updateBuffer(&psData);
 		psConstBuffer.bind(10u, PS);
 
-		context->OMSetRenderTargets(0u, nullptr, dsvs[i].Get());
+		context->OMSetRenderTargets(0u, nullptr, plDSVS[i].Get());
 
 		shadowGroup.render();
 	}
 
 	context->OMSetRenderTargets(0u, nullptr, nullptr);
 	context->RSSetState(nullptr);
+	context->RSSetViewports(1u, &boundedViewport);
+
+	shader->DisableShader();
+}
+
+void Engine::MeshSystem::renderDepth2D(const std::vector<Engine::SpotLight>& spotlights)
+{
+	if (spotlights.size() != slDSVS.size())
+		createDepth2DSpotLightsMap(spotlights.size());
+
+	auto shader = ShaderManager::GetShader("shadowShader2");
+	shader->EnableShader();
+
+	auto context = D3D::GetInstance()->GetContext();
+
+	float farPlane = 100.0f;
+
+	struct lightViewProjections
+	{
+		mat4 lightViewProjection;
+	};
+	
+	ConstBuffer<lightViewProjections> cbProjections;
+	cbProjections.create();
+
+	D3D11_VIEWPORT boundedViewport;
+	UINT numViewports = 1u;
+	context->RSGetViewports(&numViewports, &boundedViewport);
+
+	D3D11_VIEWPORT viewPort = {};
+	viewPort.TopLeftX = 0.0f;
+	viewPort.TopLeftY = 0.0f;
+	viewPort.Width = 1024;
+	viewPort.Height = 1024;
+	viewPort.MinDepth = 0;
+	viewPort.MaxDepth = 1;
+
+	context->RSSetViewports(1, &viewPort);
+	context->RSSetState(pRasterizerState.Get());
+
+
+	static mat4 s;
+
+	if (LightSystem::Init()->IsFlashLightAttached())
+		s = mat4::Inverse(TransformSystem::Init()->GetModelTransforms(spotlights[0].bindedObjectId)[0].modelToWold);
+	for (size_t i = 0; i < spotlights.size(); i++)
+	{
+		mat4 projection = projectionMatrix(spotlights[i].cutoffAngle * 2u, 0.01f, farPlane, 1.0f);
+		lightViewProjections constantBufferData{
+			 LightSystem::Init()->getFlashLightViewProjection(),
+		};
+
+		cbProjections.updateBuffer(&constantBufferData);
+		cbProjections.bind(4u, VS);
+
+
+		context->ClearDepthStencilView(slDSVS[i].Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 0.0f, 0u);
+		context->OMSetRenderTargets(0u, nullptr, slDSVS[i].Get());
+
+		shadowGroup.render();
+	}
+
+	context->OMSetRenderTargets(0u, nullptr, nullptr);
+	context->RSSetState(nullptr);
+	context->RSSetViewports(1u, &boundedViewport);
+
+	shader->DisableShader();
 }
 
 
