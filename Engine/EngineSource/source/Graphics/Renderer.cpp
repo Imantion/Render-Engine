@@ -3,6 +3,7 @@
 #include "Graphics/MeshSystem.h"
 #include "Graphics/PostProcess.h"
 #include "Graphics/LightSystem.h"
+#include "Graphics/ShadowManager.h"
 #include "Render/Camera.h"
 
 std::mutex Engine::Renderer::mutex_;
@@ -133,6 +134,7 @@ void Engine::Renderer::Render(Camera* camera)
 	sls.push_back(Engine::LightSystem::Init()->getFlashLight());
 	Engine::MeshSystem::Init()->renderDepth2D(sls);
 	Engine::MeshSystem::Init()->bindShadowMapsData(11u, 5u);
+	ShadowManager::Init()->BindSRV(11u);
 
 	d3d->GetContext()->OMSetRenderTargets(1u, pHDRRenderTarget.GetAddressOf(), pViewDepth.Get());
 	

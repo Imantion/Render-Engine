@@ -228,8 +228,8 @@ void Engine::LightSystem::UpdateLightsBuffer()
             auto& bindedTransform = TS->GetModelTransforms(m_flashLight.light.bindedObjectId)[0].modelToWold;
             m_flashLight.worldPosition = m_flashLight.light.position + (vec3&)(*bindedTransform[3]);
             m_flashLight.worldDirection = (vec4(m_flashLight.light.direction, 0.0f) * bindedTransform).normalized();
-            m_flashLight.flashLightsViewProjection = mat4::Inverse(bindedTransform) * projectionMatrix(m_flashLight.light.cutoffAngle * 2.0f, flProjectionData.nearClip,
-                                                                                                       flProjectionData.farClip, flProjectionData.aspectRatio);
+            m_flashLight.flashLightsViewProjection = viewMatrix(m_flashLight.worldPosition,m_flashLight.worldDirection,topFromDir(m_flashLight.worldDirection)) *
+                 projectionMatrix(m_flashLight.light.cutoffAngle * 2.0f, flProjectionData.nearClip, flProjectionData.farClip, flProjectionData.aspectRatio);
         }
            
         bufferData.flashLight.direction = m_flashLight.worldDirection;

@@ -15,6 +15,7 @@
 #include "imgui.h"
 #include "backends/imgui_impl_dx11.h"
 #include "backends/imgui_impl_win32.h"
+#include "Graphics/ShadowManager.h"
 #include "Utils/ISelected.h"
 #include <assert.h>
 
@@ -136,10 +137,11 @@ static void InitMeshSystem()
 	shadowShader->BindInputLyout(thirdLayout);
 	shadowShader2->BindInputLyout(thirdLayout);
 
-	shadowShader->DisableShader();
 	shadowShader2->DisableShader();
 
 	auto ms = Engine::MeshSystem::Init();
+
+	Engine::ShadowManager::Init()->SetShadowShaders(shadowShader, shadowShader2, shadowShader2);
 
 	ms->normVisGroup.addShader(NormalVisLines);
 	ms->normVisGroup.addShader(NormalVisColor);
@@ -150,7 +152,7 @@ static void InitMeshSystem()
 	ms->opaqueGroup.addShader(NormalVisLines);
 
 	ms->emmisiveGroup.addShader(emissiveShader);
-	ms->shadowGroup.addShader(shadowShader);
+
 	ms->shadowGroup.addShader(shadowShader2);
 }
 

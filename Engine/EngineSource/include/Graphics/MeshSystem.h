@@ -311,21 +311,26 @@ namespace Engine
 
 		void render()
 		{
-			if (instanceBuffer.getSize() == 0)
-				return;
-
-			D3D* d3d = D3D::GetInstance();
 			for (size_t i = 0; i < m_shaders.size(); i++)
 			{
-				if (!m_shaders[i]->isEnabled)
-					continue;
-				m_shaders[i]->BindShader();
+				if (m_shaders[i]->isEnabled)
+					renderUsingShader(m_shaders[i]);
+				
+			}
+		}
+
+			void renderUsingShader(std::shared_ptr<shader> shaderToRender)
+			{
+				if (instanceBuffer.getSize() == 0)
+					return;
+
+				D3D* d3d = D3D::GetInstance();
+
+				shaderToRender->BindShader();
 				instanceBuffer.bind(1u);
 				meshData.bind(2u, shaderTypes::VS);
 
 				materialData.bind(2u, shaderTypes::PS);
-				
-
 
 				uint32_t renderedInstances = 0;
 				for (const auto& perModel : perModel)
@@ -358,7 +363,6 @@ namespace Engine
 						}
 					}
 				}
-			}
 			}
 			
 	};
@@ -435,7 +439,7 @@ namespace Engine
 	};
 
 	template <>
-	inline void OpaqueInstances<MeshSystem::PBRInstance, Materials::OpaqueTextureMaterial>::render();
+	inline void OpaqueInstances<MeshSystem::PBRInstance, Materials::OpaqueTextureMaterial>::renderUsingShader(std::shared_ptr<shader> shaderToRender);
 
 
 	

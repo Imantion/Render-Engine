@@ -1,6 +1,7 @@
 #include "Graphics/MeshSystem.h"
 #include "Graphics/LightSystem.h"
 #include "Graphics/ReflectionCapture.h"
+#include "Graphics/ShadowManager.h"
 
 std::mutex Engine::MeshSystem::mutex_;
 Engine::MeshSystem* Engine::MeshSystem::pInstance = nullptr;
@@ -77,7 +78,7 @@ Engine::MeshSystem::MeshSystem()
 	rasterDesc.FillMode = D3D11_FILL_SOLID;
 	rasterDesc.CullMode = D3D11_CULL_BACK;
 	rasterDesc.FrontCounterClockwise = false;
-	rasterDesc.DepthBias = -1024;
+	rasterDesc.DepthBias = -128;
 	rasterDesc.DepthBiasClamp = 0.0f;
 	rasterDesc.SlopeScaledDepthBias = -1.0f;
 	rasterDesc.DepthClipEnable = true;
@@ -200,84 +201,7 @@ void Engine::MeshSystem::bindShadowMapsData(UINT pointLightShadowTexturesSlot, U
 
 void Engine::MeshSystem::renderDepthCubemaps(const std::vector<vec3>& lightPositions)
 {
-	if (plDSVS.size() != lightPositions.size())
-		createDepthCubemaps(lightPositions.size());
-
-	auto shader = ShaderManager::GetShader("shadowShader");
-	shader->EnableShader();
-
-	auto context = D3D::GetInstance()->GetContext();
-
-	float farPlane = 100.0f;
-	mat4 projection = projectionMatrix((float)M_PI_2, 0.01f, farPlane, 1.0f);
-
-	struct lightViewProjections
-	{
-		mat4 lightViewProjection[6];
-	};
-
-	ConstBuffer<lightViewProjections> cbProjections;
-	cbProjections.create();
-
-	ConstBuffer<vec4> psConstBuffer;
-	psConstBuffer.create();
-
-	D3D11_VIEWPORT boundedViewport;
-	UINT numViewports = 1u;
-	context->RSGetViewports(&numViewports, &boundedViewport);
-
-	D3D11_VIEWPORT viewPort = {};
-	viewPort.TopLeftX = 0.0f;
-	viewPort.TopLeftY = 0.0f;
-	viewPort.Width = 1024;
-	viewPort.Height = 1024;
-	viewPort.MinDepth = 0;
-	viewPort.MaxDepth = 1;
-
-	context->RSSetViewports(1, &viewPort);
-	context->RSSetState(pRasterizerState.Get());
-
-	static const vec3 directions[6] =
-	{
-		vec3(1.0f, 0.0f, 0.0f), // +X
-		vec3(-1.0f, 0.0f, 0.0f), // -X
-		vec3(0.0f, 1.0f, 0.0f), // +Y
-		vec3(0.0f, -1.0f, 0.0f), // -Y
-		vec3(0.0f, 0.0f, 1.0f), // +Z
-		vec3(0.0f, 0.0f, -1.0f) // -Z
-	};
-
-	for (size_t i = 0; i < lightPositions.size(); i++)
-	{
-		context->ClearDepthStencilView(plDSVS[i].Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 0.0f, 0u);
-
-		lightViewProjections constantBufferData{
-			viewMatrix(lightPositions[i], directions[0], vec3(0.0f, 1.0f, 0.0f)) * projection,
-			viewMatrix(lightPositions[i], directions[1], vec3(0.0f, 1.0f, 0.0f)) * projection,
-			viewMatrix(lightPositions[i], directions[2], vec3(0.0f, 0.0f, -1.0f)) * projection,
-			viewMatrix(lightPositions[i], directions[3], vec3(0.0f, 0.0f, 1.0f)) * projection,
-			viewMatrix(lightPositions[i], directions[4], vec3(0.0f, 1.0f, 0.0f)) * projection,
-			viewMatrix(lightPositions[i], directions[5], vec3(0.0f, 1.0f, 1.0f)) * projection,
-		};
-	
-		vec4 psData(lightPositions[i], farPlane);
-
-		cbProjections.updateBuffer(&constantBufferData);
-		cbProjections.bind(0u, GS);
-
-		psConstBuffer.updateBuffer(&psData);
-		psConstBuffer.bind(10u, PS);
-
-		context->OMSetRenderTargets(0u, nullptr, plDSVS[i].Get());
-
-		shadowGroup.render();
-	}
-
-	context->OMSetRenderTargets(0u, nullptr, nullptr);
-	context->RSSetState(nullptr);
-	context->RSSetViewports(1u, &boundedViewport);
-
-	shader->DisableShader();
+	ShadowManager::Init()->RenderPointLightShadowMaps(lightPositions, opaqueGroup);
 }
 
 void Engine::MeshSystem::renderDepth2D(const std::vector<Engine::SpotLight>& spotlights)
@@ -316,13 +240,14 @@ void Engine::MeshSystem::renderDepth2D(const std::vector<Engine::SpotLight>& spo
 	context->RSSetState(pRasterizerState.Get());
 
 
-	static mat4 s;
-
-	if (LightSystem::Init()->IsFlashLightAttached())
-		s = mat4::Inverse(TransformSystem::Init()->GetModelTransforms(spotlights[0].bindedObjectId)[0].modelToWold);
+	auto TS = TransformSystem::Init();
 	for (size_t i = 0; i < spotlights.size(); i++)
 	{
-		mat4 projection = projectionMatrix(spotlights[i].cutoffAngle * 2u, 0.01f, farPlane, 1.0f);
+		vec3 position = spotlights[i].position;
+		if(spotlights[i].bindedObjectId != -1)
+			position += (vec3&)*TS->GetModelTransforms(spotlights[i].bindedObjectId)[0].modelToWold[3];
+		mat4 projection = projectionMatrix(spotlights[i].cutoffAngle * 2.0f, 0.01f, farPlane, 1.0f);
+
 		lightViewProjections constantBufferData{
 			 LightSystem::Init()->getFlashLightViewProjection(),
 		};
@@ -346,7 +271,7 @@ void Engine::MeshSystem::renderDepth2D(const std::vector<Engine::SpotLight>& spo
 
 
 template <>
-inline void Engine::OpaqueInstances<Engine::MeshSystem::PBRInstance, Materials::OpaqueTextureMaterial>::render()
+inline void Engine::OpaqueInstances<Engine::MeshSystem::PBRInstance, Materials::OpaqueTextureMaterial>::renderUsingShader(std::shared_ptr<shader> shaderToRender)
 {
 
 	// Custom render implementation for TextureMaterial
@@ -354,41 +279,38 @@ inline void Engine::OpaqueInstances<Engine::MeshSystem::PBRInstance, Materials::
 		return;
 
 	D3D* d3d = D3D::GetInstance();
-	for (size_t i = 0; i < m_shaders.size(); i++) {
-		if (!m_shaders[i]->isEnabled)
-			continue;
-		m_shaders[i]->BindShader();
-		instanceBuffer.bind(1u);
-		meshData.bind(2u, shaderTypes::VS);
-		materialData.bind(2u, shaderTypes::PS);
+	
+	shaderToRender->BindShader();
+	instanceBuffer.bind(1u);
+	meshData.bind(2u, shaderTypes::VS);
+	materialData.bind(2u, shaderTypes::PS);
 
-		uint32_t renderedInstances = 0;
-		for (const auto& perModel : perModel) {
-			if (perModel.model.get() == nullptr) continue;
-			perModel.model->m_vertices.bind();
-			perModel.model->m_indices.bind();
-			for (uint32_t meshIndex = 0; meshIndex < perModel.perMesh.size(); ++meshIndex) {
-				const Mesh& mesh = perModel.model->m_meshes[meshIndex];
-				const auto& meshRange = perModel.model->m_ranges[meshIndex];
-				meshData.updateBuffer(reinterpret_cast<const MeshData*>(mesh.instances.data())); // ... update shader local per-mesh uniform buffer
-				for (const auto& perMaterial : perModel.perMesh[meshIndex].perMaterial) {
-					if (perMaterial.instances.empty()) continue;
-					const auto& material = perMaterial.material;
+	uint32_t renderedInstances = 0;
+	for (const auto& perModel : perModel) {
+		if (perModel.model.get() == nullptr) continue;
+		perModel.model->m_vertices.bind();
+		perModel.model->m_indices.bind();
+		for (uint32_t meshIndex = 0; meshIndex < perModel.perMesh.size(); ++meshIndex) {
+			const Mesh& mesh = perModel.model->m_meshes[meshIndex];
+			const auto& meshRange = perModel.model->m_ranges[meshIndex];
+			meshData.updateBuffer(reinterpret_cast<const MeshData*>(mesh.instances.data())); // ... update shader local per-mesh uniform buffer
+			for (const auto& perMaterial : perModel.perMesh[meshIndex].perMaterial) {
+				if (perMaterial.instances.empty()) continue;
+				const auto& material = perMaterial.material;
 
-					MaterialData data = { vec4((float)material.usedTextures, material.roughness, material.metalness,0.0f)};
+				MaterialData data = { vec4((float)material.usedTextures, material.roughness, material.metalness,0.0f)};
 
-					materialData.updateBuffer(&data);
-					uint32_t numInstances = uint32_t(perMaterial.instances.size());
-					// Custom rendering logic for TextureMaterial
+				materialData.updateBuffer(&data);
+				uint32_t numInstances = uint32_t(perMaterial.instances.size());
+				// Custom rendering logic for TextureMaterial
 
-					perMaterial.material.albedoTexture->BindTexture(2u);
-					perMaterial.material.roughnessTexture->BindTexture(3u);
-					perMaterial.material.metalnessTexture->BindTexture(4u);
-					perMaterial.material.normalTexture->BindTexture(5u);
+				perMaterial.material.albedoTexture->BindTexture(2u);
+				perMaterial.material.roughnessTexture->BindTexture(3u);
+				perMaterial.material.metalnessTexture->BindTexture(4u);
+				perMaterial.material.normalTexture->BindTexture(5u);
 
-					d3d->GetContext()->DrawIndexedInstanced(meshRange.indexNum, numInstances, meshRange.indexOffset, meshRange.vertexOffset, renderedInstances);
-					renderedInstances += numInstances;
-				}
+				d3d->GetContext()->DrawIndexedInstanced(meshRange.indexNum, numInstances, meshRange.indexOffset, meshRange.vertexOffset, renderedInstances);
+				renderedInstances += numInstances;
 			}
 		}
 	}

@@ -158,7 +158,7 @@ namespace Engine
 		void operator=(const LightSystem& other) = delete;
 		LightSystem(const LightSystem& other) = delete;
 
-		void AddFlashLight(const SpotLight& spotLight, std::shared_ptr<Texture> texture, float nearCLip = 0.01f, float farClip = 10.0f); // near and far clip for projection matrix
+		void AddFlashLight(const SpotLight& spotLight, std::shared_ptr<Texture> texture, float nearCLip = 0.01f, float farClip = 100.0f); // near and far clip for projection matrix
 
 
 		void AddDirectionalLight(const vec3& direction, const vec3& radiance, float solidAngle);
