@@ -59,7 +59,7 @@ namespace Engine
 		ConstBuffer<mat4> m_dlConstBuff;
 
 		D3D11_VIEWPORT m_viewport;
-		UINT m_shadowResolution = 1024;
+		UINT m_shadowResolution = 2048;
 
 		struct ProjectionInfo
 		{
@@ -231,6 +231,8 @@ namespace Engine
 		  vec3(1.0f, -1.0f, 1.0f) 
 		};
 
+		
+
 		vec3 frustrumCentr;
 
 		for (size_t i = 0; i < 8; i++)
@@ -246,11 +248,31 @@ namespace Engine
 
 		float radius = (clipSpaceCorners[2] - clipSpaceCorners[5]).length() * 0.5f;
 
+		float texelSize = (float)m_shadowResolution / (2.0f * radius);
+
+		mat4 scalarMatrix(vec4(texelSize, 0.0f, 0.0f, 0.0f),
+						  vec4(0.0f, texelSize, 0.0f, 0.0f),
+						  vec4(0.0f, 0.0f, texelSize, 0.0f),
+						  vec4(0.0f, 0.0f, 0.0f, 1.0f));
+
+
 		mat4 ortProjection = orthographicProjecton(radius, -radius, radius, -radius, -radius * 6.0f, radius * 6.0f);
+
+		vec3 zero(0.0f);
+		vec3 up(0.0f, 1.0f, 0.0f);
 		for (size_t i = 0; i < lights.size(); i++)
 		{
-			vec3 eye = frustrumCentr - (lights[i].direction * 2.0f * radius);
-			mat4 view = LookAt(eye, frustrumCentr, vec3(0.0f, 1.0f, 0.0f));
+			mat4 scalaredView = viewMatrix(zero, -lights[i].direction, up) * scalarMatrix;
+			mat4 inversedScalaerView = mat4::Inverse(scalaredView);
+
+			vec3 newFrustrumCentr = vec4(frustrumCentr, 1.0f) * scalaredView;
+			newFrustrumCentr.x = floor(newFrustrumCentr.x);
+			newFrustrumCentr.y = floor(newFrustrumCentr.y);
+
+			newFrustrumCentr = vec4(newFrustrumCentr, 1.0f) * inversedScalaerView;
+
+			vec3 eye = newFrustrumCentr - (lights[i].direction * 2.0f * radius);
+			mat4 view = LookAt(eye, newFrustrumCentr, up);
 			m_dlViewProjections[i] = view * ortProjection;
 
 			cbProjections.updateBuffer(&m_dlViewProjections[i]);
