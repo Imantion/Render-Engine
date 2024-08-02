@@ -35,6 +35,7 @@ namespace Engine
 		const mat4& getViewMatrix() const;
 		const mat4& getInverseViewMatrix() const;
 		const mat4& getProjectionMatrix() const { return projection; }
+		const mat4& getInverseProjectionMatrix() const { return inverseProjection; }
 		vec3 getCameraFrustrum(frustrumCorners fc);
 
 		void setForward(vec3 f);

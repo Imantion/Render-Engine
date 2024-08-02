@@ -176,6 +176,7 @@ namespace Engine
 
 		SpotLight& GetSpotLight(uint32_t index);
 		SpotLight* GetSpotLightByTransformId(uint32_t index);
+		std::vector<SpotLight> GetSpotLights();
 
 		PointLight* GetPointLightByTransformId(uint32_t index);
 		void GetPointLightsPositions(std::vector<vec3>& positions);
@@ -189,6 +190,8 @@ namespace Engine
 		bool IsFlashLightAttached() const { return m_flashLight.light.bindedObjectId != -1; }
 		SpotLight getFlashLight() const { return m_flashLight.light; }
 		mat4 getFlashLightViewProjection() const { return m_flashLight.flashLightsViewProjection; }
+
+		std::vector<DirectionalLight> GetDirectionalLights();
 
 	private:
 		LightSystem();

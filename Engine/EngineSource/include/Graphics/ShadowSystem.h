@@ -1,7 +1,8 @@
 #pragma once
 #include "Graphics/D3D.h"
-#include "MeshSystem.h"
-#include "LightSystem.h"
+#include "Graphics/MeshSystem.h"
+#include "Graphics/LightSystem.h"
+#include "Render/Camera.h"
 #include <vector>
 #include <mutex>
 
@@ -31,14 +32,18 @@ namespace Engine
 		template <typename I, typename M>
 		void RenderSpotLightShadowMaps(const std::vector<SpotLight>& lights, OpaqueInstances<I, M>& renderGroup);
 
-		void BindShadowTextures(UINT pointLightTexture, UINT spotLightTexture);
+		template <typename I, typename M>
+		void RenderDirectLightShadowMaps(const std::vector<DirectionalLight>& lights, const Camera* camera, OpaqueInstances<I, M>& renderGroup);
+
+		void BindShadowTextures(UINT pointLightTexture, UINT spotLightTexture, UINT directionaLightTexture);
+		void BindShadowBuffers(UINT spotLightsBufferSlot, UINT directionalLightsBufferSlot);
 
 	private:
 		ShadowSystem();
 		~ShadowSystem() = default;
 
 		void createPointLightShadowMaps(size_t amount);
-		void createSpotLightShadowMaps(size_t amount);
+		void Create2DShadowMaps(size_t amount, std::vector<Microsoft::WRL::ComPtr<ID3D11DepthStencilView>>& dsvs, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& srv);
 
 	private:
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_srvPointLigts;
@@ -47,6 +52,11 @@ namespace Engine
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_srvSpotLigts;
 		std::vector <Microsoft::WRL::ComPtr<ID3D11DepthStencilView>> m_slDSVS;
 		std::vector<mat4> m_slViewProjections;
+
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_srvDirLigts;
+		std::vector <Microsoft::WRL::ComPtr<ID3D11DepthStencilView>> m_dlDSVS;
+		std::vector<mat4> m_dlViewProjections;
+		ConstBuffer<mat4> m_dlConstBuff;
 
 		D3D11_VIEWPORT m_viewport;
 		UINT m_shadowResolution = 1024;
@@ -144,7 +154,11 @@ namespace Engine
 	inline void ShadowSystem::RenderSpotLightShadowMaps(const std::vector<SpotLight>& lights, OpaqueInstances<I, M>& renderGroup)
 	{
 		if (lights.size() != m_slDSVS.size())
-			createSpotLightShadowMaps(lights.size());
+		{
+			m_slViewProjections.resize(lights.size());
+			Create2DShadowMaps(lights.size(), m_slDSVS, m_srvSpotLigts);
+		}
+			
 
 		auto context = D3D::GetInstance()->GetContext();
 
@@ -180,6 +194,76 @@ namespace Engine
 
 			renderGroup.renderUsingShader(m_slShader);
 		}
+
+		context->OMSetRenderTargets(0u, nullptr, nullptr);
+		context->RSSetViewports(1u, &boundedViewport);
+	}
+
+	template<typename I, typename M>
+	inline void ShadowSystem::RenderDirectLightShadowMaps(const std::vector<DirectionalLight>& lights, const Camera* camera, OpaqueInstances<I, M>& renderGroup)
+	{
+		if (lights.size() != m_dlDSVS.size())
+		{
+			m_dlViewProjections.resize(lights.size());
+			Create2DShadowMaps(lights.size(), m_dlDSVS, m_srvDirLigts);
+		}
+
+
+		auto context = D3D::GetInstance()->GetContext();
+
+		ConstBuffer<mat4> cbProjections;
+		cbProjections.create();
+
+		D3D11_VIEWPORT boundedViewport;
+		UINT numViewports = 1u;
+		context->RSGetViewports(&numViewports, &boundedViewport);
+
+		context->RSSetViewports(1, &m_viewport);
+
+		vec3 clipSpaceCorners[8] = {
+		  vec3(-1.0f, 1.0f, 0.0f),
+		  vec3(1.0f,  1.0f, 0.0f), 
+		  vec3(-1.0f,-1.0f, 0.0f),
+		  vec3(1.0f, -1.0f, 0.0f), 
+		  vec3(-1.0f, 1.0f, 1.0f),
+		  vec3(1.0f, 1.0f, 1.0f), 
+		  vec3(-1.0f, -1.0f, 1.0f), 
+		  vec3(1.0f, -1.0f, 1.0f) 
+		};
+
+		vec3 frustrumCentr;
+
+		for (size_t i = 0; i < 8; i++)
+		{
+			vec4 viewSpace = vec4(clipSpaceCorners[i], 1.0f) * camera->getInverseProjectionMatrix();
+			clipSpaceCorners[i] = (viewSpace / viewSpace.w) * camera->getInverseViewMatrix();
+
+			frustrumCentr += clipSpaceCorners[i];
+		}
+
+		frustrumCentr = frustrumCentr * (1.0f / 8.0f);
+		
+
+		float radius = (clipSpaceCorners[2] - clipSpaceCorners[5]).length() * 0.5f;
+
+		mat4 ortProjection = orthographicProjecton(radius, -radius, radius, -radius, -radius * 6.0f, radius * 6.0f);
+		for (size_t i = 0; i < lights.size(); i++)
+		{
+			vec3 eye = frustrumCentr - (lights[i].direction * 2.0f * radius);
+			mat4 view = LookAt(eye, frustrumCentr, vec3(0.0f, 1.0f, 0.0f));
+			m_dlViewProjections[i] = view * ortProjection;
+
+			cbProjections.updateBuffer(&m_dlViewProjections[i]);
+
+			cbProjections.bind(4u, VS);
+
+			context->ClearDepthStencilView(m_dlDSVS[i].Get(), D3D11_CLEAR_STENCIL | D3D11_CLEAR_DEPTH, 0.0f, 0u);
+			context->OMSetRenderTargets(0, nullptr, m_dlDSVS[i].Get());
+
+			renderGroup.renderUsingShader(m_dlShader);
+		}
+
+		m_dlConstBuff.updateBuffer(&m_dlViewProjections[0]);
 
 		context->OMSetRenderTargets(0u, nullptr, nullptr);
 		context->RSSetViewports(1u, &boundedViewport);

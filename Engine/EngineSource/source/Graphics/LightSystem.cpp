@@ -271,6 +271,11 @@ void Engine::LightSystem::BindLigtsBuffer(UINT slot, UINT typeOfShader)
     m_lighsBuffer.bind(slot, typeOfShader);
 }
 
+std::vector<Engine::DirectionalLight> Engine::LightSystem::GetDirectionalLights()
+{
+    return m_directionalLights;
+}
+
 Engine::LightSystem::LightSystem()
 {
     m_lighsBuffer.create();

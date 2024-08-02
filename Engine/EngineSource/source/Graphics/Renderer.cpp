@@ -134,9 +134,12 @@ void Engine::Renderer::Render(Camera* camera)
 	std::vector<SpotLight> sl;
 	sl.push_back(Engine::LightSystem::Init()->getFlashLight());
 	Engine::MeshSystem::Init()->renderDepth2D(sl);
+
+	Engine::MeshSystem::Init()->renderDepth2DDirectional(LightSystem::Init()->GetDirectionalLights(), camera);
 	context->RSSetState(nullptr);
 
-	ShadowSystem::Init()->BindShadowTextures(11u, 12u);
+	ShadowSystem::Init()->BindShadowTextures(11u, 12u, 13u);
+	ShadowSystem::Init()->BindShadowBuffers(11u, 12u);
 	context->OMSetRenderTargets(1u, pHDRRenderTarget.GetAddressOf(), pViewDepth.Get());
 	
 
@@ -173,8 +176,8 @@ void Engine::Renderer::Render(Camera* camera)
 
 	MeshSystem::Init()->render();
 
-	ID3D11ShaderResourceView* const pSRV[2] = { NULL, NULL };
-	context->PSSetShaderResources(11, 2u, pSRV);
+	ID3D11ShaderResourceView* const pSRV[3] = { NULL, NULL, NULL };
+	context->PSSetShaderResources(11, 3u, pSRV);
 }
 
 void Engine::Renderer::PostProcess()

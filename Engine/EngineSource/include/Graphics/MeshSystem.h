@@ -14,6 +14,8 @@ namespace Engine
 {
 	class MeshSystem;
 	class SpotLight;
+	class DirectionalLight;
+	class Camera;
 
 	template<typename M>
 	struct MaterialDataType {
@@ -409,6 +411,7 @@ namespace Engine
 
 		void renderDepthCubemaps(const std::vector<vec3>& lightPositions);
 		void renderDepth2D(const std::vector<SpotLight>& spotlights);
+		void renderDepth2DDirectional(const std::vector<DirectionalLight>& directionalLights, const Camera* camera);
 
 		void render();
 

@@ -39,7 +39,8 @@ void Engine::ShadowSystem::SetShadowTextureResolution(UINT resolution)
 	m_viewport.Height = (FLOAT)resolution;
 	
 	createPointLightShadowMaps(m_plDSVS.size());
-	createSpotLightShadowMaps(m_slDSVS.size());
+	Create2DShadowMaps(m_slDSVS.size(), m_slDSVS, m_srvSpotLigts);
+	Create2DShadowMaps(m_dlDSVS.size(), m_dlDSVS, m_srvDirLigts);
 }
 
 UINT Engine::ShadowSystem::GetShadowTextureResolution()
@@ -53,12 +54,18 @@ void Engine::ShadowSystem::SetProjectionInfo(float nearPlane, float farPlane)
 	m_ProjectionInfo.farPlane = farPlane;
 }
 
-void Engine::ShadowSystem::BindShadowTextures(UINT pointLightTextureSlot , UINT spotLightTextureSlot)
+void Engine::ShadowSystem::BindShadowTextures(UINT pointLightTextureSlot , UINT spotLightTextureSlot, UINT directionaLightTexture)
 {
 	auto context = D3D::GetInstance()->GetContext();
 	
 	context->PSSetShaderResources(pointLightTextureSlot, 1u, m_srvPointLigts.GetAddressOf());
 	context->PSSetShaderResources(spotLightTextureSlot, 1u, m_srvSpotLigts.GetAddressOf());
+	context->PSSetShaderResources(directionaLightTexture, 1u, m_srvDirLigts.GetAddressOf());
+}
+
+void Engine::ShadowSystem::BindShadowBuffers(UINT spotLightsBufferSlot, UINT directionalLightsBufferSlot)
+{
+	m_dlConstBuff.bind(directionalLightsBufferSlot, PS);
 }
 
 Engine::ShadowSystem::ShadowSystem()
@@ -69,6 +76,8 @@ Engine::ShadowSystem::ShadowSystem()
 	m_viewport.Height = (FLOAT)m_shadowResolution;
 	m_viewport.MinDepth = 0;
 	m_viewport.MaxDepth = 1;
+
+	m_dlConstBuff.create();
 }
 
 void Engine::ShadowSystem::createPointLightShadowMaps(size_t amount)
@@ -123,10 +132,12 @@ void Engine::ShadowSystem::createPointLightShadowMaps(size_t amount)
 	assert(SUCCEEDED(hr));
 }
 
-void Engine::ShadowSystem::createSpotLightShadowMaps(size_t amount)
+void Engine::ShadowSystem::Create2DShadowMaps(size_t amount, std::vector<Microsoft::WRL::ComPtr<ID3D11DepthStencilView>>& dsvs, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>& srv)
 {
-	m_slDSVS.resize(amount);
-	m_slViewProjections.resize(amount);
+	if (amount == 0)
+		return;
+
+	dsvs.resize(amount);
 
 	auto device = D3D::GetInstance()->GetDevice();
 
@@ -155,7 +166,7 @@ void Engine::ShadowSystem::createSpotLightShadowMaps(size_t amount)
 	for (size_t i = 0; i < amount; i++)
 	{
 		depthStencilViewDesc.Texture2DArray.FirstArraySlice = (UINT)i;
-		hr = device->CreateDepthStencilView(texture.Get(), &depthStencilViewDesc, m_slDSVS[i].GetAddressOf());
+		hr = device->CreateDepthStencilView(texture.Get(), &depthStencilViewDesc, dsvs[i].GetAddressOf());
 		assert(SUCCEEDED(hr));
 	}
 
@@ -169,6 +180,6 @@ void Engine::ShadowSystem::createSpotLightShadowMaps(size_t amount)
 	srvDesc.Texture2DArray.MostDetailedMip = 0u;
 	srvDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
 
-	hr = device->CreateShaderResourceView(texture.Get(), &srvDesc, &m_srvSpotLigts);
+	hr = device->CreateShaderResourceView(texture.Get(), &srvDesc, &srv);
 	assert(SUCCEEDED(hr));
 }

@@ -2,6 +2,7 @@
 #include "Graphics/LightSystem.h"
 #include "Graphics/ReflectionCapture.h"
 #include "Graphics/ShadowSystem.h"
+#include "Render/Camera.h"
 
 std::mutex Engine::MeshSystem::mutex_;
 Engine::MeshSystem* Engine::MeshSystem::pInstance = nullptr;
@@ -61,6 +62,11 @@ void Engine::MeshSystem::renderDepthCubemaps(const std::vector<vec3>& lightPosit
 void Engine::MeshSystem::renderDepth2D(const std::vector<Engine::SpotLight>& spotlights)
 {
 	ShadowSystem::Init()->RenderSpotLightShadowMaps(spotlights, opaqueGroup);
+}
+
+void Engine::MeshSystem::renderDepth2DDirectional(const std::vector<DirectionalLight>& directionalLights, const Camera* camera)
+{
+	ShadowSystem::Init()->RenderDirectLightShadowMaps(directionalLights, camera, opaqueGroup);
 }
 
 

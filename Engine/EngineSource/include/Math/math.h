@@ -199,6 +199,22 @@ namespace Engine
 		return projMat;
 	}
 
+	inline mat4 orthographicProjecton(float right, float left, float top, float bottom, float n, float f)
+	{
+		mat4 projection;
+
+		projection[0][0] = 2.0f / (right - left);
+		projection[1][1] = 2.0f / (top - bottom);
+		projection[2][2] = 1.0f / (n - f);
+		projection[3][3] = 1.0f;
+		
+		projection[3][0] = (left + right) / (left - right);
+		projection[3][1] = (bottom + top) / (bottom - top);
+		projection[3][2] = -f / (n - f);
+
+		return projection;
+	}
+
 	inline mat4 transformMatrix(const vec3& position, const vec3& forwardVector, const vec3& rightVector, const vec3& upVector)
 	{
 

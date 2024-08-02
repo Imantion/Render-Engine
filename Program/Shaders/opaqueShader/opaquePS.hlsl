@@ -22,8 +22,25 @@ cbuffer MaterialData : register(b2)
 
 TextureCubeArray pointLightsShadowMap : register(t11);
 Texture2DArray spotLightsShadowMap : register(t12);
+Texture2DArray directionalLightsShadowMap : register(t13);
 
 SamplerComparisonState compr : register(s5);
+
+cbuffer OrtoProjections : register(b12)
+{
+    float4x4 ortProjection;
+}
+
+float3 worldToUV(float3 lightPos, float3 worldPos, float3 normal, float4x4 viewProjectionMatrix)
+{
+    float3 directionToLight = lightPos - worldPos;
+    float4 projected = mul(float4(worldPos + offset(1.0f / 1024.0f, normal, directionToLight), 1.0f), viewProjectionMatrix);
+    float3 homogeneus = projected.xyz / projected.w;
+    homogeneus.xy = (homogeneus.xy + 1) * 0.5f;
+    homogeneus.y = 1 - homogeneus.y;
+    
+    return homogeneus;
+}
 
 
 struct PSInput
@@ -87,7 +104,9 @@ float4 main(PSInput input) : SV_TARGET
     
     for (i = 0; i < dlSize; ++i)
     {
-        finalColor += PBRLight(directionalLights[i].radiance, directionalLights[i].solidAngle, -directionalLights[i].direction, albedo, metalness, roughness, normal, v, specularState, diffuseState);
+        float3 textureUV = worldToUV(directionalLights[i].direction + input.worldPos, input.worldPos, normal, ortProjection);
+        float shadowValue = directionalLightsShadowMap.SampleCmpLevelZero(compr, float3(textureUV.xy, 0), textureUV.z + 0.00025f);
+        finalColor += shadowValue * PBRLight(directionalLights[i].radiance, directionalLights[i].solidAngle, -directionalLights[i].direction, albedo, metalness, roughness, normal, v, specularState, diffuseState);
     }
     
     float dotNV = clamp(dot(normal, v), 0.0f, 1.0f);
@@ -120,13 +139,9 @@ float4 main(PSInput input) : SV_TARGET
             finalColor += areaLights[i].radiance * (d * albedo * (1 - metalness) + s) * (t2.r * areaLights[i].intensity);
         }
 
-    float3 directionToLight = flashLight.position - input.worldPos;
-    float4 projected = mul(float4(input.worldPos + offset(1.0f / 1024.0f, normal, directionToLight), 1.0f), lightViewProjection);
-    float3 homogeneus = projected.xyz / projected.w;
-    homogeneus.xy = (homogeneus.xy + 1) * 0.5f;
-    homogeneus.y = 1 - homogeneus.y;
     
-    float shadowValue = spotLightsShadowMap.SampleCmpLevelZero(compr, float3(homogeneus.xy, 0), homogeneus.z + 0.00025f);
+    float3 textureUV = worldToUV(flashLight.position, input.worldPos, normal, lightViewProjection);
+    float shadowValue = spotLightsShadowMap.SampleCmpLevelZero(compr, float3(textureUV.xy, 0), textureUV.z + 0.00025f);
     finalColor += shadowValue * FlashLight(flashLight, albedo, metalness, roughness, normal, input.worldPos, g_cameraPosition, specularState, diffuseState);
    
     float2 refl = reflectanceIBL.Sample(g_sampler, float2(saturate(dot(normal, v)), roughness));
