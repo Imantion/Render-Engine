@@ -117,6 +117,8 @@ void Engine::Renderer::updatePerFrameCB(float deltaTime, float wWidth, float wHe
 		perFrameData.g_resolution[2] = perFrameData.g_resolution[3] = 1 / (wWidth * wHeight);
 	}
 
+	perFrameData.shadowResolution = (float)ShadowSystem::Init()->GetShadowTextureResolution();
+
 	perFrameBuffer.updateBuffer(&perFrameData);
 }
 
@@ -136,6 +138,7 @@ void Engine::Renderer::Render(Camera* camera)
 	Engine::MeshSystem::Init()->renderDepth2D(sl);
 
 	Engine::MeshSystem::Init()->renderDepth2DDirectional(LightSystem::Init()->GetDirectionalLights(), camera);
+
 	context->RSSetState(nullptr);
 
 	ShadowSystem::Init()->BindShadowTextures(11u, 12u, 13u);
@@ -232,9 +235,9 @@ Engine::Renderer::Renderer() :
 	rasterDesc.FillMode = D3D11_FILL_SOLID;
 	rasterDesc.CullMode = D3D11_CULL_NONE;
 	rasterDesc.FrontCounterClockwise = false;
-	rasterDesc.DepthBias = -128;
+	rasterDesc.DepthBias = -512;
 	rasterDesc.DepthBiasClamp = 0.0f;
-	rasterDesc.SlopeScaledDepthBias = -1.0f;
+	rasterDesc.SlopeScaledDepthBias = -4.0f;
 	rasterDesc.DepthClipEnable = true;
 	rasterDesc.ScissorEnable = false;
 	rasterDesc.MultisampleEnable = false;

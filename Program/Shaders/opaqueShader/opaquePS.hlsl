@@ -3,16 +3,8 @@
 
 #define MAX_MIP 10
 
-Texture2D albed : register(t2);
-Texture2D rough : register(t3);
-Texture2D metal : register(t4);
-Texture2D normalTexture : register(t5);
 
-TextureCube diffuseIBL : register(t6);
-TextureCube specIrrIBL : register(t7);
-Texture2D reflectanceIBL : register(t8);
-Texture2D LTCmat : register(t9);
-Texture2D LTCamp : register(t10);
+
 cbuffer MaterialData : register(b2)
 {
     float material_flags;
@@ -20,26 +12,39 @@ cbuffer MaterialData : register(b2)
     float material_metalness;
 }
 
-TextureCubeArray pointLightsShadowMap : register(t11);
-Texture2DArray spotLightsShadowMap : register(t12);
-Texture2DArray directionalLightsShadowMap : register(t13);
-
-SamplerComparisonState compr : register(s5);
-
 cbuffer OrtoProjections : register(b12)
 {
     float4x4 ortProjection;
 }
 
+float PCF(Texture2DArray textureArray, SamplerComparisonState compSampler, int index, float3 projectedCoord, float texelSize)
+{
+    static const float2 offsets[9] =
+    {
+        float2(-1.0, -1.0), float2(0.0, -1.0), float2(1.0, -1.0),
+    float2(-1.0, 0.0), float2(0.0, 0.0), float2(1.0, 0.0),
+    float2(-1.0, 1.0), float2(0.0, 1.0), float2(1.0, 1.0)
+    };
+    
+    float shadowValue = 0.0f;
+    for (int i = 0; i < 9; i++)
+    {
+        shadowValue += textureArray.SampleCmpLevelZero(compSampler, float3(projectedCoord.xy + offsets[i] * texelSize, index), projectedCoord.z);
+    }
+    shadowValue = shadowValue / 9.0f;
+    return smoothstep(0.33, 1.0f, shadowValue);
+}
+
 float3 worldToUV(float3 lightPos, float3 worldPos, float3 normal, float4x4 viewProjectionMatrix)
 {
     float3 directionToLight = lightPos - worldPos;
-    float4 projected = mul(float4(worldPos + offset(1.0f / 1024.0f, normal, directionToLight), 1.0f), viewProjectionMatrix);
+    float4 projected = mul(float4(worldPos + offset(1.0f / g_shadowResolution, normal, directionToLight), 1.0f), viewProjectionMatrix);
     float3 homogeneus = projected.xyz / projected.w;
     homogeneus.xy = (homogeneus.xy + 1) * 0.5f;
     homogeneus.y = 1 - homogeneus.y;
     
     return homogeneus;
+
 }
 
 
@@ -97,51 +102,30 @@ float4 main(PSInput input) : SV_TARGET
     for (i = 0; i < plSize; ++i)
     {
         float3 directionToLight = input.worldPos - pointLights[i].position;
-        float depth = 1.0f - length(directionToLight) / 100.0f + 0.0003f;
+        
+        float depth = 1.0f - length(directionToLight) / 100.0f + 0.00025;
         float shadowValue = pointLightsShadowMap.SampleCmpLevelZero(compr, float4(directionToLight, i), depth).r;
         finalColor += shadowValue * PBRLight(pointLights[i], input.worldPos, albedo, metalness, roughness, input.tbn._31_32_33, normal, v, specularState, diffuseState);
     }
     
     for (i = 0; i < dlSize; ++i)
     {
-        float3 textureUV = worldToUV(directionalLights[i].direction + input.worldPos, input.worldPos, normal, ortProjection);
-        float shadowValue = directionalLightsShadowMap.SampleCmpLevelZero(compr, float3(textureUV.xy, 0), textureUV.z + 0.00025f);
+        float3 textureUV = worldToUV(directionalLights[i].direction + input.worldPos, input.worldPos, normal, ortProjection) + 0.000025f;
+        float shadowValue = PCF(directionalLightsShadowMap, compr, i, textureUV, 1.0f / g_shadowResolution);
         finalColor += shadowValue * PBRLight(directionalLights[i].radiance, directionalLights[i].solidAngle, -directionalLights[i].direction, albedo, metalness, roughness, normal, v, specularState, diffuseState);
     }
     
-    float dotNV = clamp(dot(normal, v), 0.0f, 1.0f);
-
-    // use roughness and sqrt(1-cos_theta) to sample M_texture
-    float2 uv = float2(roughness, sqrt(1.0f - dotNV));
-    uv = uv * LUT_SCALE + LUT_BIAS;
-
-    float4 t1 = LTCmat.Sample(g_linearWrap, uv);
-    float t2 = LTCamp.Sample(g_linearWrap, uv);
-    
-    float3x3 Minv = float3x3(
-    float3(t1.x, 0, t1.y),
-    float3(0, 1, 0),
-    float3(t1.z, 0, t1.w)
-    );
-    
-    float3x3 Identity =
-    {
-        { 1, 0, 0, },
-        { 0, 1, 0, },
-        { 0, 0, 1 },
-    };
+   
     
     if (LTCState)
         for (i = 0; i < alSize; i++)
         {
-            float3 d = LTC_Evaluate(normal, v, input.worldPos, Identity, areaLights[i], true);
-            float3 s = LTC_Evaluate(normal, v, input.worldPos, Minv, areaLights[i], true);
-            finalColor += areaLights[i].radiance * (d * albedo * (1 - metalness) + s) * (t2.r * areaLights[i].intensity);
+            finalColor += LTC(areaLights[i], input.worldPos, normal, v, albedo, roughness, metalness);
         }
 
     
     float3 textureUV = worldToUV(flashLight.position, input.worldPos, normal, lightViewProjection);
-    float shadowValue = spotLightsShadowMap.SampleCmpLevelZero(compr, float3(textureUV.xy, 0), textureUV.z + 0.00025f);
+    float shadowValue = spotLightsShadowMap.SampleCmpLevelZero(compr, float3(textureUV.xy, 0), textureUV.z + 0.000025f);
     finalColor += shadowValue * FlashLight(flashLight, albedo, metalness, roughness, normal, input.worldPos, g_cameraPosition, specularState, diffuseState);
    
     float2 refl = reflectanceIBL.Sample(g_sampler, float2(saturate(dot(normal, v)), roughness));

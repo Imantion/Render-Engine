@@ -40,6 +40,23 @@ static const float g_MIN_F0 = 0.01;
 Texture2D flashlighTexture : register(t1);
 SamplerState samplerstateFlash : register(s4);
 
+Texture2D albed : register(t2);
+Texture2D rough : register(t3);
+Texture2D metal : register(t4);
+Texture2D normalTexture : register(t5);
+
+TextureCube diffuseIBL : register(t6);
+TextureCube specIrrIBL : register(t7);
+Texture2D reflectanceIBL : register(t8);
+Texture2D LTCmat : register(t9);
+Texture2D LTCamp : register(t10);
+
+TextureCubeArray pointLightsShadowMap : register(t11);
+Texture2DArray spotLightsShadowMap : register(t12);
+Texture2DArray directionalLightsShadowMap : register(t13);
+
+SamplerComparisonState compr : register(s5);
+
 struct DirectionalLight
 {
     float3 radiance;
@@ -383,4 +400,33 @@ float3 offset(float shadowTexelSize, float3 normal, float3 lightDir)
 {
     float denominator = sqrt(2) * 0.5f;
     return shadowTexelSize * denominator * (normal - lightDir * (0.9f * dot(normal, lightDir)));
+}
+
+float3 LTC(AreaLight areaLight,float3 worldPos, float3 normal, float3 view, float3 albedo, float roughness, float metalness)
+{
+    float dotNV = clamp(dot(normal, view), 0.0f, 1.0f);
+
+    // use roughness and sqrt(1-cos_theta) to sample M_texture
+    float2 uv = float2(roughness, sqrt(1.0f - dotNV));
+    uv = uv * LUT_SCALE + LUT_BIAS;
+
+    float4 t1 = LTCmat.Sample(samplerstateFlash, uv);
+    float t2 = LTCamp.Sample(samplerstateFlash, uv);
+    
+    float3x3 Minv = float3x3(
+    float3(t1.x, 0, t1.y),
+    float3(0, 1, 0),
+    float3(t1.z, 0, t1.w)
+    );
+    
+    float3x3 Identity =
+    {
+        { 1, 0, 0, },
+        { 0, 1, 0, },
+        { 0, 0, 1 },
+    };
+    
+    float3 d = LTC_Evaluate(normal, view, worldPos, Identity, areaLight, true);
+    float3 s = LTC_Evaluate(normal, view, worldPos, Minv, areaLight, true);
+    return areaLight.radiance * (d * albedo * (1 - metalness) + s) * (t2.r * areaLight.intensity);
 }

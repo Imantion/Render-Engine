@@ -16,7 +16,8 @@ namespace Engine
 		int specular  = 1;
 		int IBL = 1;
 		int LTC = 1;
-		float padding[3];
+		float shadowResolution;
+		float padding[2];
 	};
 
 	struct PerViewCB
