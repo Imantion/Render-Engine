@@ -199,7 +199,7 @@ namespace Engine
 			renderGroup.renderUsingShader(m_slShader);
 		}
 
-		m_slConstBuff.updateBuffer(m_slViewProjections.data(), m_slViewProjections.size());
+		m_slConstBuff.updateBuffer(m_slViewProjections.data(), (UINT)m_slViewProjections.size());
 
 		context->OMSetRenderTargets(0u, nullptr, nullptr);
 		context->RSSetViewports(1u, &boundedViewport);
@@ -304,7 +304,7 @@ namespace Engine
 			renderGroup.renderUsingShader(m_dlShader);
 		}
 
-		m_dlConstBuff.updateBuffer(m_dlViewProjections.data(), m_dlViewProjections.size());
+		m_dlConstBuff.updateBuffer(m_dlViewProjections.data(), (UINT)m_dlViewProjections.size());
 
 		context->OMSetRenderTargets(0u, nullptr, nullptr);
 		context->RSSetViewports(1u, &boundedViewport);

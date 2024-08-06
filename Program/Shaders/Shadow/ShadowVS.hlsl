@@ -5,6 +5,11 @@ cbuffer meshData : register(b2)
     float4x4 meshToModel;
 }
 
+cbuffer lightViewProjections : register(b4)
+{
+    float4x4 lightViewProjection;
+};
+
 struct VIn
 {
     float3 pos : POSITION;
@@ -15,17 +20,11 @@ struct VIn
     float4 modelToWorld[4] : TOWORLD;
 };
 
-struct VOut
-{
-    float3 worldPos : WORLDPOS;
-};
 
-VOut main(VIn input)
+float4 main(VIn input) : SV_Position
 {
     float4x4 toWorld = float4x4(input.modelToWorld[0], input.modelToWorld[1], input.modelToWorld[2], input.modelToWorld[3]);
-    
-    VOut output;
-    output.worldPos =  mul(mul(float4(input.pos, 1.0f), meshToModel), toWorld);
-    
-    return output;
+   
+    float3 worldPos = mul(mul(float4(input.pos, 1.0f), meshToModel), toWorld);
+    return mul(float4(worldPos, 1.0f), lightViewProjection);
 }
