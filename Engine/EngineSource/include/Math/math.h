@@ -360,6 +360,11 @@ namespace Engine
 		return a > b ? a : b;
 	}
 
+	inline float Min(const float& a, const float& b)
+	{
+		return a < b ? a : b;
+	}
+
 	inline void basisFromDir(vec3& right,vec3& top,const vec3& dir)
 	{
 		float k = 1.0f / Max(1.0f + dir.z, 0.00001f);

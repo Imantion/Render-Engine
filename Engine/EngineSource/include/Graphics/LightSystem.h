@@ -28,7 +28,7 @@ namespace Engine
 
 		static vec3 radianceFromIrradiance(const vec3& irradiance, float radius, float distanceSquared)
 		{
-			return irradiance / (1 - sqrt(1 - min(radius * radius / distanceSquared, 1.0f)));
+			return irradiance / (1 - sqrt(1 - Min(radius * radius / distanceSquared, 1.0f)));
 		}
 
 	public:

@@ -17,7 +17,8 @@ namespace Engine
 		int IBL = 1;
 		int LTC = 1;
 		float shadowResolution;
-		float padding[2];
+		float pointLightFarPlan;
+		float padding;
 	};
 
 	struct PerViewCB
@@ -58,6 +59,8 @@ namespace Engine
 
 	protected:
 		Renderer();
+
+		void Shadows(const Camera* camera);
 	private:
 		ConstBuffer<PerFrameCB> perFrameBuffer;
 		PerFrameCB perFrameData;

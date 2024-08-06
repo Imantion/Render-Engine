@@ -4,7 +4,6 @@
 #define MAX_MIP 10
 
 
-
 cbuffer MaterialData : register(b2)
 {
     float material_flags;
@@ -12,39 +11,14 @@ cbuffer MaterialData : register(b2)
     float material_metalness;
 }
 
-cbuffer OrtoProjections : register(b12)
+cbuffer SLProjections : register(b5)
 {
-    float4x4 ortProjection;
+    float4x4 spotLightViewProejction[MAX_DL];
 }
 
-float PCF(Texture2DArray textureArray, SamplerComparisonState compSampler, int index, float3 projectedCoord, float texelSize)
+cbuffer DLProjections : register(b6)
 {
-    static const float2 offsets[9] =
-    {
-        float2(-1.0, -1.0), float2(0.0, -1.0), float2(1.0, -1.0),
-    float2(-1.0, 0.0), float2(0.0, 0.0), float2(1.0, 0.0),
-    float2(-1.0, 1.0), float2(0.0, 1.0), float2(1.0, 1.0)
-    };
-    
-    float shadowValue = 0.0f;
-    for (int i = 0; i < 9; i++)
-    {
-        shadowValue += textureArray.SampleCmpLevelZero(compSampler, float3(projectedCoord.xy + offsets[i] * texelSize, index), projectedCoord.z);
-    }
-    shadowValue = shadowValue / 9.0f;
-    return smoothstep(0.33, 1.0f, shadowValue);
-}
-
-float3 worldToUV(float3 lightPos, float3 worldPos, float3 normal, float4x4 viewProjectionMatrix)
-{
-    float3 directionToLight = lightPos - worldPos;
-    float4 projected = mul(float4(worldPos + offset(1.0f / g_shadowResolution, normal, directionToLight), 1.0f), viewProjectionMatrix);
-    float3 homogeneus = projected.xyz / projected.w;
-    homogeneus.xy = (homogeneus.xy + 1) * 0.5f;
-    homogeneus.y = 1 - homogeneus.y;
-    
-    return homogeneus;
-
+    float4x4 dirLightViewProejction[MAX_DL];
 }
 
 
@@ -64,6 +38,7 @@ float4 main(PSInput input) : SV_TARGET
 {
     float3 albedo = albed.Sample(g_sampler, input.tc);
     float3 normal = normalize(mul(((normalTexture.Sample(g_sampler, input.tc).rgb - 0.5f) * 2.0f), input.tbn));
+    float3 macroNormal = input.tbn._31_32_33;
     float3 v = normalize(g_cameraPosition - input.worldPos);
     
     float metalness = material_metalness;
@@ -102,15 +77,17 @@ float4 main(PSInput input) : SV_TARGET
     for (i = 0; i < plSize; ++i)
     {
         float3 directionToLight = input.worldPos - pointLights[i].position;
+        float NoL = 1 - saturate(dot(normalize(-directionToLight), macroNormal));
+        float depthOffset = 0.00020f;
         
-        float depth = 1.0f - length(directionToLight) / 100.0f + 0.00025;
+        float depth = 1.0f - length(directionToLight) / g_PointLightFarPlane + depthOffset;
         float shadowValue = pointLightsShadowMap.SampleCmpLevelZero(compr, float4(directionToLight, i), depth).r;
         finalColor += shadowValue * PBRLight(pointLights[i], input.worldPos, albedo, metalness, roughness, input.tbn._31_32_33, normal, v, specularState, diffuseState);
     }
     
     for (i = 0; i < dlSize; ++i)
     {
-        float3 textureUV = worldToUV(directionalLights[i].direction + input.worldPos, input.worldPos, normal, ortProjection) + 0.000025f;
+        float3 textureUV = worldToUV(-directionalLights[i].direction + input.worldPos, input.worldPos, macroNormal, dirLightViewProejction[i]);
         float shadowValue = PCF(directionalLightsShadowMap, compr, i, textureUV, 1.0f / g_shadowResolution);
         finalColor += shadowValue * PBRLight(directionalLights[i].radiance, directionalLights[i].solidAngle, -directionalLights[i].direction, albedo, metalness, roughness, normal, v, specularState, diffuseState);
     }
@@ -124,13 +101,12 @@ float4 main(PSInput input) : SV_TARGET
         }
 
     
-    float3 textureUV = worldToUV(flashLight.position, input.worldPos, normal, lightViewProjection);
+    float3 textureUV = worldToUV(flashLight.position, input.worldPos, macroNormal, spotLightViewProejction[slSize]);
     float shadowValue = spotLightsShadowMap.SampleCmpLevelZero(compr, float3(textureUV.xy, 0), textureUV.z + 0.000025f);
     finalColor += shadowValue * FlashLight(flashLight, albedo, metalness, roughness, normal, input.worldPos, g_cameraPosition, specularState, diffuseState);
    
     float2 refl = reflectanceIBL.Sample(g_sampler, float2(saturate(dot(normal, v)), roughness));
     float3 F0 = lerp(g_MIN_F0, albedo, metalness);
-    
     if (IBLState)
         finalColor += albedo * diffuseIBL.Sample(g_sampler, normal).rgb * (1 - metalness) + specIrrIBL.SampleLevel(g_sampler, normal, MAX_MIP * roughness).rgb * (refl.r * F0 + refl.g);
     

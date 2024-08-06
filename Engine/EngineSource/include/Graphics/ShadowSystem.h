@@ -3,8 +3,10 @@
 #include "Graphics/MeshSystem.h"
 #include "Graphics/LightSystem.h"
 #include "Render/Camera.h"
+#include "Math/math.h"
 #include <vector>
 #include <mutex>
+#undef min
 
 namespace Engine
 {
@@ -25,6 +27,7 @@ namespace Engine
 		UINT GetShadowTextureResolution();
 
 		void SetProjectionInfo(float nearPlane, float farPlane);
+		float GetProjectionFarPlane() { return m_ProjectionInfo.farPlane; }
 
 		template <typename I, typename M>
 		void RenderPointLightShadowMaps(const std::vector<vec3>& lightPositions, OpaqueInstances<I, M>& renderGroup);
@@ -52,6 +55,7 @@ namespace Engine
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_srvSpotLigts;
 		std::vector <Microsoft::WRL::ComPtr<ID3D11DepthStencilView>> m_slDSVS;
 		std::vector<mat4> m_slViewProjections;
+		ConstBuffer<mat4> m_slConstBuff;
 
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_srvDirLigts;
 		std::vector <Microsoft::WRL::ComPtr<ID3D11DepthStencilView>> m_dlDSVS;
@@ -195,6 +199,8 @@ namespace Engine
 			renderGroup.renderUsingShader(m_slShader);
 		}
 
+		m_slConstBuff.updateBuffer(m_slViewProjections.data(), m_slViewProjections.size());
+
 		context->OMSetRenderTargets(0u, nullptr, nullptr);
 		context->RSSetViewports(1u, &boundedViewport);
 	}
@@ -220,7 +226,7 @@ namespace Engine
 
 		context->RSSetViewports(1, &m_viewport);
 
-		vec3 clipSpaceCorners[8] = {
+		vec3 frustrumCorners[8] = {
 		  vec3(-1.0f, 1.0f, 0.0f),
 		  vec3(1.0f,  1.0f, 0.0f), 
 		  vec3(-1.0f,-1.0f, 0.0f),
@@ -231,22 +237,20 @@ namespace Engine
 		  vec3(1.0f, -1.0f, 1.0f) 
 		};
 
-		
-
 		vec3 frustrumCentr;
 
 		for (size_t i = 0; i < 8; i++)
 		{
-			vec4 viewSpace = vec4(clipSpaceCorners[i], 1.0f) * camera->getInverseProjectionMatrix();
-			clipSpaceCorners[i] = (viewSpace / viewSpace.w) * camera->getInverseViewMatrix();
+			vec4 viewSpace = vec4(frustrumCorners[i], 1.0f) * camera->getInverseProjectionMatrix();
+			frustrumCorners[i] = (viewSpace / viewSpace.w) * camera->getInverseViewMatrix();
 
-			frustrumCentr += clipSpaceCorners[i];
+			frustrumCentr += frustrumCorners[i];
 		}
 
-		frustrumCentr = frustrumCentr * (1.0f / 8.0f);
+		frustrumCentr = frustrumCentr / 8.0f;
 		
 
-		float radius = (clipSpaceCorners[2] - clipSpaceCorners[5]).length() * 0.5f;
+		float radius = (frustrumCorners[2] - frustrumCorners[5]).length() * 0.5f;
 
 		float texelSize = (float)m_shadowResolution / (2.0f * radius);
 
@@ -256,7 +260,7 @@ namespace Engine
 						  vec4(0.0f, 0.0f, 0.0f, 1.0f));
 
 
-		mat4 ortProjection = orthographicProjecton(radius, -radius, radius, -radius, -radius * 6.0f, radius * 6.0f);
+		mat4 ortProjection = orthographicProjecton(radius, -radius, radius, -radius, -radius, radius);
 
 		vec3 zero(0.0f);
 		vec3 up(0.0f, 1.0f, 0.0f);
@@ -271,8 +275,23 @@ namespace Engine
 
 			newFrustrumCentr = vec4(newFrustrumCentr, 1.0f) * inversedScalaerView;
 
-			vec3 eye = newFrustrumCentr - (lights[i].direction * 2.0f * radius);
+			vec3 eye = newFrustrumCentr - (lights[i].direction * radius);
 			mat4 view = LookAt(eye, newFrustrumCentr, up);
+			
+			float maxZ = std::numeric_limits<float>::min();
+			float minZ = std::numeric_limits<float>::max();
+
+			for (size_t i = 0; i < 8; i++)
+			{
+				vec4 viewCorner = vec4(frustrumCorners[i], 1.0f) * view;
+				maxZ = Max(maxZ, viewCorner.z);
+				minZ = Min(minZ, viewCorner.z);
+			}
+
+			float z = maxZ - minZ + 10.0f;
+
+			ortProjection[2][2] = 1.0f / (-z - z);
+
 			m_dlViewProjections[i] = view * ortProjection;
 
 			cbProjections.updateBuffer(&m_dlViewProjections[i]);
@@ -285,7 +304,7 @@ namespace Engine
 			renderGroup.renderUsingShader(m_dlShader);
 		}
 
-		m_dlConstBuff.updateBuffer(&m_dlViewProjections[0]);
+		m_dlConstBuff.updateBuffer(m_dlViewProjections.data(), m_dlViewProjections.size());
 
 		context->OMSetRenderTargets(0u, nullptr, nullptr);
 		context->RSSetViewports(1u, &boundedViewport);

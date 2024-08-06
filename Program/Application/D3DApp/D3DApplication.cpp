@@ -108,10 +108,10 @@ static void InitMeshSystem()
 		L"Shaders\\normalLines\\GSnormal.hlsl", nullptr, nullptr, D3D_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
 
 
-	auto shadowShader = Engine::ShaderManager::CompileAndCreateShader("shadowShader", L"Shaders\\ShadowVS.hlsl", L"Shaders\\ShadowPS.hlsl",
-		nullptr, nullptr, L"Shaders\\CubemapGS.hlsl", nullptr, nullptr);
+	auto shadowShader = Engine::ShaderManager::CompileAndCreateShader("shadowShader", L"Shaders\\Shadow\\ShadowVS.hlsl", L"Shaders\\Shadow\\ShadowPS.hlsl",
+		nullptr, nullptr, L"Shaders\\Shadow\\ShadowGS.hlsl", nullptr, nullptr);
 
-	auto shadowShader2 = Engine::ShaderManager::CompileAndCreateShader("shadowShader2", L"Shaders\\SpotLightShadowVS.hlsl", L"Shaders\\ProjectedShadowPS.hlsl", nullptr, nullptr);
+	auto shadowShader2 = Engine::ShaderManager::CompileAndCreateShader("shadowShader2", L"Shaders\\Shadow\\SpotLightShadowVS.hlsl", L"Shaders\\Shadow\\ProjectedShadowPS.hlsl", nullptr, nullptr);
 
 	NormalVisLines->DisableShader();
 	if (!NormalVisColor)
@@ -584,7 +584,7 @@ void D3DApplication::InitLights()
 	spotLight.bindedObjectId = camera->getCameraTransformId();
 	Engine::LightSystem::Init()->AddFlashLight(spotLight, TM->LoadFromFile("flashlight", L"Textures\\flashlightMask.dds"));
 
-	Engine::DirectionalLight directionalLight(Engine::vec3(-0.605475307f, -0.795605361f, 0.0203348193f), Engine::vec3(0.84f * 10.0f, 0.86264f * 10.0f, 0.89019f * 10.0f), 0.15f);
+	Engine::DirectionalLight directionalLight(Engine::vec3(-0.3205475307f, -0.595605361f, -0.10348193f).normalized(), Engine::vec3(0.84f * 10.0f, 0.86264f * 10.0f, 0.89019f * 10.0f), 0.15f);
 	Engine::LightSystem::Init()->AddDirectionalLight(directionalLight);
 
 
@@ -645,7 +645,7 @@ void D3DApplication::InitCrateModel()
 
 	auto rotZ = Engine::mat4::rotateZ(3.14f * (-45.0f) / 360.0f);
 	changescale(inst, 0, 5);
-	changepos(inst, Engine::vec3(-10.0f, 4.0f, 2.0f));
+	changepos(inst, Engine::vec3(-10.0f, 4.0f, 1.2f));
 	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, crateMaterial, Engine::TransformSystem::transforms{ inst.modelToWold * rotZ });
 }
 

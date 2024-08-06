@@ -140,10 +140,10 @@
     <None Include="Shaders\Lights.hlsli">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\CubemapGS.hlsl">
+    <None Include="Shaders\Shadow\ShadowGS.hlsl">
       <Filter>Shaders\Shadow</Filter>
     </None>
-    <None Include="Shaders\ShadowPS.hlsl">
+    <None Include="Shaders\Shadow\ShadowPS.hlsl">
       <Filter>Shaders\Shadow</Filter>
     </None>
     <None Include="Shaders\opaqueShader\opaquePS.hlsl">
@@ -152,8 +152,8 @@
     <None Include="Shaders\opaqueShader\opaqueVS.hlsl">
       <Filter>Shaders\opaque</Filter>
     </None>
-    <None Include="Shaders\ProjectedShadowPS.hlsl" />
-    <None Include="Shaders\SpotLightShadowVS.hlsl" />
+    <None Include="Shaders\Shadow\ProjectedShadowPS.hlsl" />
+    <None Include="Shaders\Shadow\SpotLightShadowVS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\declarations.hlsli">
@@ -167,7 +167,7 @@
     <FxCompile Include="Shaders\PostProcess\PostProcessVS.hlsl">
       <Filter>Shaders\PostProcess</Filter>
     </FxCompile>
-    <FxCompile Include="Shaders\ShadowVS.hlsl">
+    <FxCompile Include="Shaders\Shadow\ShadowVS.hlsl">
       <Filter>Shaders\Shadow</Filter>
     </FxCompile>
   </ItemGroup>

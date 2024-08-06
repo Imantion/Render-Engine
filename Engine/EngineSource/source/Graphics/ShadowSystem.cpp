@@ -65,6 +65,7 @@ void Engine::ShadowSystem::BindShadowTextures(UINT pointLightTextureSlot , UINT 
 
 void Engine::ShadowSystem::BindShadowBuffers(UINT spotLightsBufferSlot, UINT directionalLightsBufferSlot)
 {
+	m_slConstBuff.bind(spotLightsBufferSlot, PS);
 	m_dlConstBuff.bind(directionalLightsBufferSlot, PS);
 }
 
@@ -77,7 +78,8 @@ Engine::ShadowSystem::ShadowSystem()
 	m_viewport.MinDepth = 0;
 	m_viewport.MaxDepth = 1;
 
-	m_dlConstBuff.create();
+	m_dlConstBuff.create(D3D11_USAGE_DYNAMIC,MAX_DIRECTIONAL_LIGHTS);
+	m_slConstBuff.create(D3D11_USAGE_DYNAMIC, MAX_POINT_LIGHTS);
 }
 
 void Engine::ShadowSystem::createPointLightShadowMaps(size_t amount)

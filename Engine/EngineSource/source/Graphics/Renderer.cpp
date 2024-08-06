@@ -118,6 +118,7 @@ void Engine::Renderer::updatePerFrameCB(float deltaTime, float wWidth, float wHe
 	}
 
 	perFrameData.shadowResolution = (float)ShadowSystem::Init()->GetShadowTextureResolution();
+	perFrameData.pointLightFarPlan = ShadowSystem::Init()->GetProjectionFarPlane();
 
 	perFrameBuffer.updateBuffer(&perFrameData);
 }
@@ -128,21 +129,8 @@ void Engine::Renderer::Render(Camera* camera)
 
 	context->OMSetDepthStencilState(pDSState.Get(), 1u);
 
-	context->RSSetState(pRasterizerState.Get());
-	std::vector<Engine::vec3> positions;
-	Engine::LightSystem::Init()->GetPointLightsPositions(positions);
-	Engine::MeshSystem::Init()->renderDepthCubemaps(positions);
-
-	std::vector<SpotLight> sl;
-	sl.push_back(Engine::LightSystem::Init()->getFlashLight());
-	Engine::MeshSystem::Init()->renderDepth2D(sl);
-
-	Engine::MeshSystem::Init()->renderDepth2DDirectional(LightSystem::Init()->GetDirectionalLights(), camera);
-
-	context->RSSetState(nullptr);
-
-	ShadowSystem::Init()->BindShadowTextures(11u, 12u, 13u);
-	ShadowSystem::Init()->BindShadowBuffers(11u, 12u);
+	Shadows(camera);
+	
 	context->OMSetRenderTargets(1u, pHDRRenderTarget.GetAddressOf(), pViewDepth.Get());
 	
 
@@ -235,9 +223,9 @@ Engine::Renderer::Renderer() :
 	rasterDesc.FillMode = D3D11_FILL_SOLID;
 	rasterDesc.CullMode = D3D11_CULL_NONE;
 	rasterDesc.FrontCounterClockwise = false;
-	rasterDesc.DepthBias = -512;
+	rasterDesc.DepthBias = -64;
 	rasterDesc.DepthBiasClamp = 0.0f;
-	rasterDesc.SlopeScaledDepthBias = -4.0f;
+	rasterDesc.SlopeScaledDepthBias = -1.0f;
 	rasterDesc.DepthClipEnable = true;
 	rasterDesc.ScissorEnable = false;
 	rasterDesc.MultisampleEnable = false;
@@ -245,4 +233,25 @@ Engine::Renderer::Renderer() :
 
 	HRESULT hr = D3D::GetInstance()->GetDevice()->CreateRasterizerState(&rasterDesc, &pRasterizerState);
 	assert(SUCCEEDED(hr));
+}
+
+void Engine::Renderer::Shadows(const Camera* camera)
+{
+	auto context = D3D::GetInstance()->GetContext();
+
+	context->RSSetState(pRasterizerState.Get());
+	std::vector<Engine::vec3> positions;
+	Engine::LightSystem::Init()->GetPointLightsPositions(positions);
+	Engine::MeshSystem::Init()->renderDepthCubemaps(positions);
+
+	std::vector<SpotLight> sl;
+	sl.push_back(Engine::LightSystem::Init()->getFlashLight());
+	Engine::MeshSystem::Init()->renderDepth2D(sl);
+
+	Engine::MeshSystem::Init()->renderDepth2DDirectional(LightSystem::Init()->GetDirectionalLights(), camera);
+
+	context->RSSetState(nullptr);
+
+	ShadowSystem::Init()->BindShadowTextures(11u, 12u, 13u);
+	ShadowSystem::Init()->BindShadowBuffers(5u, 6u);
 }

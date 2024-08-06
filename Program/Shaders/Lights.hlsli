@@ -430,3 +430,34 @@ float3 LTC(AreaLight areaLight,float3 worldPos, float3 normal, float3 view, floa
     float3 s = LTC_Evaluate(normal, view, worldPos, Minv, areaLight, true);
     return areaLight.radiance * (d * albedo * (1 - metalness) + s) * (t2.r * areaLight.intensity);
 }
+
+
+float PCF(Texture2DArray textureArray, SamplerComparisonState compSampler, int index, float3 projectedCoord, float texelSize)
+{
+    static const float2 offsets[9] =
+    {
+        float2(-1.0, -1.0), float2(0.0, -1.0), float2(1.0, -1.0),
+    float2(-1.0, 0.0), float2(0.0, 0.0), float2(1.0, 0.0),
+    float2(-1.0, 1.0), float2(0.0, 1.0), float2(1.0, 1.0)
+    };
+    
+    float shadowValue = 0.0f;
+    for (int i = 0; i < 9; i++)
+    {
+        shadowValue += textureArray.SampleCmpLevelZero(compSampler, float3(projectedCoord.xy + offsets[i] * texelSize * 0.5f, index), projectedCoord.z);
+    }
+    shadowValue = shadowValue / 9.0f;
+    return smoothstep(0.33, 1.0f, shadowValue);
+}
+
+float3 worldToUV(float3 lightPos, float3 worldPos, float3 normal, float4x4 viewProjectionMatrix)
+{
+    float3 directionToLight = lightPos - worldPos;
+    float4 projected = mul(float4(worldPos + offset(1.0f / g_shadowResolution, normal, directionToLight), 1.0f), viewProjectionMatrix);
+    float3 homogeneus = projected.xyz / projected.w;
+    homogeneus.xy = (homogeneus.xy + 1) * 0.5f;
+    homogeneus.y = 1 - homogeneus.y;
+    
+    return homogeneus;
+
+}
