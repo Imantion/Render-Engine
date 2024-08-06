@@ -226,9 +226,6 @@
     <ClInclude Include="EngineSource\include\Utils\solid_vector.h">
       <Filter>Include\Utils</Filter>
     </ClInclude>
-    <ClInclude Include="EngineSource\include\Math\Light.h">
-      <Filter>Include\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="EngineSource\include\Graphics\LightSystem.h">
       <Filter>Include\Graphics</Filter>
     </ClInclude>

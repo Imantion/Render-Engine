@@ -199,7 +199,6 @@
     <ClInclude Include="EngineSource\include\Graphics\TextureManager.h" />
     <ClInclude Include="EngineSource\include\Graphics\TransformSystem.h" />
     <ClInclude Include="EngineSource\include\Math\Box.hpp" />
-    <ClInclude Include="EngineSource\include\Math\Light.h" />
     <ClInclude Include="EngineSource\include\Math\matrix.h" />
     <ClInclude Include="EngineSource\include\Math\math.h" />
     <ClInclude Include="EngineSource\include\Math\quaternion.h" />

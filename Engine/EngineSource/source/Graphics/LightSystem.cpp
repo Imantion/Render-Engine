@@ -226,7 +226,7 @@ void Engine::LightSystem::UpdateLightsBuffer()
     for (size_t i = 0; i < m_areaLight.size(); i++)
     {
         auto& transform = TS->GetModelTransforms(m_areaLight[i].bindedTransform)[0].modelToWold;
-        bufferData.areaLights[i].color = m_areaLight[i].color;
+        bufferData.areaLights[i].radiance = m_areaLight[i].radiance;
         bufferData.areaLights[i].verticesAmount = m_areaLight[i].verticesAmount;
         bufferData.areaLights[i].indicesAmount = m_areaLight[i].indicesAmount;
 
@@ -240,7 +240,7 @@ void Engine::LightSystem::UpdateLightsBuffer()
             bufferData.areaLights[i].edges[j] = m_areaLight[i].edges[j];
         }
 
-        bufferData.areaLights[i].color = m_areaLight[i].color;
+        bufferData.areaLights[i].radiance = m_areaLight[i].radiance;
         bufferData.areaLights[i].intensity = m_areaLight[i].intensity;
         bufferData.areaLights[i].bindedTransform = m_areaLight[i].bindedTransform;
     }

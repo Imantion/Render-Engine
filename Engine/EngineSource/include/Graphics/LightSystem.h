@@ -80,9 +80,9 @@ namespace Engine
 	{
 	public:
 		AreaLight() = default;
-		AreaLight(const vec3& color, const vec3* vertices, uint32_t vAmount, float intensity)
+		AreaLight(const vec3& radiance, const vec3* vertices, uint32_t vAmount, float intensity)
 		{
-			this->color = color;
+			this->radiance = radiance;
 			this->verticesAmount = vAmount;
 			this->indicesAmount = vAmount;
 			this->intensity = intensity;
@@ -97,7 +97,7 @@ namespace Engine
 		}
 		AreaLight(const vec3* vertices, uint32_t vAmount, const std::pair<uint32_t, uint32_t>* edges, uint32_t iAmount, float intensity)
 		{
-			this->color = color;
+			this->radiance = radiance;
 			this->verticesAmount = vAmount;
 			this->indicesAmount = iAmount;
 			this->intensity = intensity;
@@ -116,7 +116,7 @@ namespace Engine
 
 		AreaLight(const AreaLight& other)
 		{
-			color = other.color;
+			radiance = other.radiance;
 			verticesAmount = other.verticesAmount;
 			indicesAmount = other.indicesAmount;
 			bindedTransform = other.bindedTransform;
@@ -137,7 +137,7 @@ namespace Engine
 		void bindTransform(uint32_t id) { bindedTransform = id; }
 
 	public:
-		vec3 color;
+		vec3 radiance;
 		uint32_t verticesAmount;
 		vec4 vertices[MAX_AREA_LIGHTS_VERTICES];
 		struct edge { uint32_t x, y; uint32_t padding[2];} edges[MAX_AREA_LIGHTS_EDGES];
@@ -184,7 +184,6 @@ namespace Engine
 
 		void SetFlashLightAttachedState(bool attach);
 		bool IsFlashLightAttached() const { return m_flashLight.isAttached; }
-
 
 	private:
 		LightSystem();

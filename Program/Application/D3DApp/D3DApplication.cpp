@@ -574,7 +574,7 @@ void D3DApplication::InitLights()
 	Engine::TransformSystem::transforms inst = {
 	   Engine::transformMatrix(Engine::vec3(-2.0f, 3.0f, 7.0f), Engine::vec3(0.0f, 0.0f, 1.0f), Engine::vec3(1.0f, 0.0f, 0.0f), Engine::vec3(0.0f, 1.0f, 0.0f))};
 
-	areaLight.bindedTransform = Engine::MeshSystem::Init()->emmisiveGroup.addModel(model, Materials::EmmisiveMaterial{}, inst, Engine::MeshSystem::EmmisiveInstance{ areaLight.color });
+	areaLight.bindedTransform = Engine::MeshSystem::Init()->emmisiveGroup.addModel(model, Materials::EmmisiveMaterial{}, inst, Engine::MeshSystem::EmmisiveInstance{ areaLight.radiance });
 	Engine::LightSystem::Init()->AddAreaLight(areaLight);
 
 	Engine::LightSystem::Init()->UpdateLightsBuffer();

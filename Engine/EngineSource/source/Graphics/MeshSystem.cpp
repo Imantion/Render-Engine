@@ -81,7 +81,7 @@ inline void Engine::OpaqueInstances<Engine::MeshSystem::PBRInstance, Materials::
 					if (perMaterial.instances.empty()) continue;
 					const auto& material = perMaterial.material;
 
-					MaterialData data = { vec4(material.usedTextures, material.roughness, material.metalness,0.0f)};
+					MaterialData data = { vec4((float)material.usedTextures, material.roughness, material.metalness,0.0f)};
 
 					materialData.updateBuffer(&data);
 					uint32_t numInstances = uint32_t(perMaterial.instances.size());
