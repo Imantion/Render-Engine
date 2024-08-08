@@ -55,11 +55,10 @@ float4 main(PSINPUT input) : SV_TARGET
     {
         float3 sampleColor = (float3) text.Load(input.pos.xy, i);
         sampleColor = adjustExposure(sampleColor, c_EV100);
-        sampleColor = acesHdr2Ldr(sampleColor);
         color += sampleColor;
     }
-    
     color *= 0.25f;
+    color = acesHdr2Ldr(color);
     color = correctGamma(color, c_gamma);
 
     return float4(color, 1.0f);

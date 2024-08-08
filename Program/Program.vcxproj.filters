@@ -137,7 +137,7 @@
     <None Include="Shaders\emissive\emissiveVS.hlsl">
       <Filter>Shaders\emmisive</Filter>
     </None>
-    <None Include="Shaders\Lights.hlsli">
+    <None Include="Shaders\opaqueShader\Lights.hlsli">
       <Filter>Shaders</Filter>
     </None>
     <None Include="Shaders\Shadow\PointLightShadowGS.hlsl">
@@ -146,14 +146,15 @@
     <None Include="Shaders\Shadow\PointLightShadowPS.hlsl">
       <Filter>Shaders\Shadow</Filter>
     </None>
-    <None Include="Shaders\opaqueShader\opaquePS.hlsl">
-      <Filter>Shaders\opaque</Filter>
-    </None>
     <None Include="Shaders\opaqueShader\opaqueVS.hlsl">
       <Filter>Shaders\opaque</Filter>
     </None>
     <None Include="Shaders\Shadow\ShadowPS.hlsl" />
     <None Include="Shaders\Shadow\ShadowVS.hlsl" />
+    <None Include="Shaders\opaqueShader\opaque.hlsli" />
+    <None Include="Shaders\opaqueShader\opaquePS.hlsl">
+      <Filter>Shaders\opaque</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\declarations.hlsli">

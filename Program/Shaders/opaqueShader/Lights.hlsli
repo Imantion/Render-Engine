@@ -1,3 +1,8 @@
+#ifndef __LIGHTS_HLSLI__
+#define __LIGHTS_HLSLI__
+    
+#include "..\declarations.hlsli"
+
 #if MAX_DIRECTIONAL_LIGHTS
 static const int MAX_DL = MAX_DIRECTIONAL_LIGHTS;
 #else
@@ -58,6 +63,16 @@ Texture2DArray spotLightsShadowMap : register(t12);
 Texture2DArray directionalLightsShadowMap : register(t13);
 
 SamplerComparisonState compr : register(s5);
+
+cbuffer SLProjections : register(b5)
+{
+    float4x4 spotLightViewProejction[MAX_DL];
+}
+
+cbuffer DLProjections : register(b6)
+{
+    float4x4 dirLightViewProejction[MAX_DL];
+}
 
 struct DirectionalLight
 {
@@ -398,13 +413,7 @@ uint selectCubeFace(float3 unitDir)
     // return maxIndex + (unitDir[maxIndex / 2] < 0.f ? 1u : 0u);
 }
 
-float3 offset(float shadowTexelSize, float3 normal, float3 lightDir)
-{
-    float denominator = sqrt(2) * 0.5f;
-    return shadowTexelSize * denominator * (normal - lightDir * (0.9f * dot(normal, lightDir)));
-}
-
-float3 LTC(AreaLight areaLight,float3 worldPos, float3 normal, float3 view, float3 albedo, float roughness, float metalness)
+float3 LTC(AreaLight areaLight, float3 worldPos, float3 normal, float3 view, float3 albedo, float roughness, float metalness)
 {
     float dotNV = clamp(dot(normal, view), 0.0f, 1.0f);
 
@@ -452,6 +461,12 @@ float PCF(Texture2DArray textureArray, SamplerComparisonState compSampler, int i
     return smoothstep(0.33, 1.0f, shadowValue);
 }
 
+float3 offset(float shadowTexelSize, float3 normal, float3 lightDir)
+{
+    float denominator = sqrt(2) * 0.5f;
+    return shadowTexelSize * denominator * (normal - lightDir * (0.9f * dot(normal, lightDir)));
+}
+
 float3 worldToUV(float3 lightPos, float3 worldPos, float3 normal, float4x4 viewProjectionMatrix)
 {
     float3 directionToLight = lightPos - worldPos;
@@ -463,3 +478,95 @@ float3 worldToUV(float3 lightPos, float3 worldPos, float3 normal, float4x4 viewP
     return homogeneus;
 
 }
+
+float3 CalculateSpotLightContribution(float3 worldPos, float3 albedo, float metalness, float roughness, float3 normal, float3 viewDir)
+{
+    float3 finalColor = float3(0, 0, 0);
+
+    for (int i = 0; i < slSize; ++i)
+    {
+        float I = SpotLightCuttOffFactor(spotLights[i], worldPos, g_cameraPosition);
+        float3 l = spotLights[i].position - worldPos;
+        float solidAngle = SolidAngle(spotLights[i].radiusOfCone, dot(l, l));
+        l = normalize(l);
+
+        finalColor += I * PBRLight(spotLights[i].radiance, solidAngle, l, albedo, metalness, roughness, normal, viewDir, specularState, diffuseState);
+    }
+
+    return finalColor;
+}
+
+float3 CalculatePointLightContribution(float3 worldPos, float3 albedo, float metalness, float roughness, float3 normal, float3 macroNormal, float3 viewDir)
+{
+    float3 finalColor = float3(0, 0, 0);
+
+    for (int i = 0; i < plSize; ++i)
+    {
+        float3 lightDirection = worldPos - pointLights[i].position;
+        float3 normalizedLightDirection = normalize(lightDirection);
+        
+        float depth = 1.0f - length(lightDirection - SHADOW_DEPTH_OFFSET * normalizedLightDirection) / g_PointLightFarPlane;
+ 
+        float shadowValue = pointLightsShadowMap.SampleCmpLevelZero(compr, float4(normalizedLightDirection + macroNormal * 2.0f * depth / g_shadowResolution, i), depth).r;
+
+        finalColor += shadowValue * PBRLight(pointLights[i], worldPos, albedo, metalness, roughness, macroNormal, normal, viewDir, specularState, diffuseState);
+    }
+
+    return finalColor;
+}
+
+float3 CalculateDirectionalLightContribution(float3 worldPos, float3 albedo, float metalness, float roughness, float3 normal, float3 macroNormal, float3 viewDir)
+{
+    float3 finalColor = float3(0, 0, 0);
+
+    for (int i = 0; i < dlSize; ++i)
+    {
+        float3 textureUV = worldToUV(-directionalLights[i].direction + worldPos, worldPos, macroNormal, dirLightViewProejction[i]);
+        float shadowValue = PCF(directionalLightsShadowMap, compr, i, textureUV, 1.0f / g_shadowResolution);
+
+        finalColor += shadowValue * PBRLight(directionalLights[i].radiance, directionalLights[i].solidAngle, -directionalLights[i].direction, albedo, metalness, roughness, normal, viewDir, specularState, diffuseState);
+    }
+
+    return finalColor;
+}
+
+float3 CalculateAreaLightContribution(float3 worldPos, float3 albedo, float metalness, float roughness, float3 normal, float3 viewDir)
+{
+    float3 finalColor = float3(0, 0, 0);
+
+    if (LTCState)
+    {
+        for (int i = 0; i < alSize; ++i)
+        {
+            finalColor += LTC(areaLights[i], worldPos, normal, viewDir, albedo, roughness, metalness);
+        }
+    }
+
+    return finalColor;
+}
+
+float3 CalculateFlashLightContribution(float3 worldPos, float3 albedo, float metalness, float roughness, float3 normal, float3 macroNormal, float3 viewDir)
+{
+    float3 textureUV = worldToUV(flashLight.position, worldPos, macroNormal, spotLightViewProejction[slSize]);
+    float shadowValue = spotLightsShadowMap.SampleCmpLevelZero(compr, float3(textureUV.xy, 0), textureUV.z + 0.000025f);
+
+    return shadowValue * FlashLight(flashLight, albedo, metalness, roughness, normal, worldPos, g_cameraPosition, specularState, diffuseState);
+}
+
+float3 CalculateIBLContribution(float3 normal, float3 albedo, float metalness, float roughness, float3 viewDir)
+{
+    float3 finalColor = float3(0, 0, 0);
+
+    if (IBLState)
+    {
+        float2 refl = reflectanceIBL.Sample(g_linearWrap, float2(saturate(dot(normal, viewDir)), roughness));
+        float3 F0 = lerp(0.04f, albedo, metalness);
+
+        finalColor += albedo * diffuseIBL.Sample(g_linearWrap, normal).rgb * (1 - metalness);
+        finalColor += specIrrIBL.SampleLevel(g_linearWrap, normal, MAX_MIP * roughness).rgb * (refl.r * F0 + refl.g);
+    }
+
+    return finalColor;
+}
+
+#endif

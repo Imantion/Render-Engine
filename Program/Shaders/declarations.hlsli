@@ -3,6 +3,8 @@
 
 #pragma pack_matrix( row_major )
 
+#define MAX_MIP 10
+
 cbuffer perView : register(b0)
 {
     matrix viewProjection;
@@ -28,4 +30,5 @@ SamplerState g_pointWrap : register(s0); // No interpolation, Point Wrap
 SamplerState g_linearWrap : register(s1); // Trilinear interpolation, Linear Wrap
 SamplerState g_anisotropicWrap : register(s2); // Anisotropic filtering, Wrap
 SamplerState g_sampler : register(s3); // Configurable filtering
+
 #endif
