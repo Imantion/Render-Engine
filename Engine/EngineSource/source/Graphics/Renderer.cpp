@@ -43,8 +43,9 @@ void Engine::Renderer::InitDepthWithRTV(ID3D11Resource* RenderBuffer, UINT wWidt
 		hdrDesc.MipLevels = 1u;
 		hdrDesc.ArraySize = 1u;
 		hdrDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+		hdrDesc.SampleDesc.Count = 4u;
+		hdrDesc.SampleDesc.Quality = 0u;
 		hdrDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-		hdrDesc.SampleDesc.Count = 1u;
 		hdrDesc.Usage = D3D11_USAGE_DEFAULT;
 
 		hr = device->CreateTexture2D(&hdrDesc, nullptr, &HDRtexture);
@@ -86,7 +87,7 @@ void Engine::Renderer::InitDepth(UINT wWidth, UINT wHeight)
 	descDepth.MipLevels = 1u;
 	descDepth.ArraySize = 1u;
 	descDepth.Format = DXGI_FORMAT_D32_FLOAT;
-	descDepth.SampleDesc.Count = 1u;
+	descDepth.SampleDesc.Count = 4u;
 	descDepth.SampleDesc.Quality = 0u;
 	descDepth.Usage = D3D11_USAGE_DEFAULT;
 	descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
@@ -97,7 +98,7 @@ void Engine::Renderer::InitDepth(UINT wWidth, UINT wHeight)
 	D3D11_DEPTH_STENCIL_VIEW_DESC descDVS;
 	ZeroMemory(&descDVS, sizeof(descDVS));
 	descDVS.Format = DXGI_FORMAT_D32_FLOAT;
-	descDVS.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+	descDVS.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMS;
 	descDVS.Texture2D.MipSlice = 0u;
 
 	hr = d3d->GetDevice()->CreateDepthStencilView(pDepthStencil.Get(), &descDVS, &pViewDepth);
@@ -173,7 +174,7 @@ void Engine::Renderer::Render(Camera* camera)
 
 void Engine::Renderer::PostProcess()
 {
-	
+	D3D::GetInstance()->GetContext()->RSSetState(nullptr);
 	PostProcess::Init()->Resolve(pHDRtextureResource.Get(), pRenderTarget.Get());
 }
 
@@ -233,6 +234,13 @@ Engine::Renderer::Renderer() :
 
 	HRESULT hr = D3D::GetInstance()->GetDevice()->CreateRasterizerState(&rasterDesc, &pRasterizerState);
 	assert(SUCCEEDED(hr));
+
+	rasterDesc.DepthBias = 0;
+	rasterDesc.SlopeScaledDepthBias = 0;
+	rasterDesc.CullMode = D3D11_CULL_BACK;
+	rasterDesc.MultisampleEnable = true;
+
+	hr = D3D::GetInstance()->GetDevice()->CreateRasterizerState(&rasterDesc, &MSAARasterizerState);
 }
 
 void Engine::Renderer::Shadows(const Camera* camera)
@@ -250,7 +258,7 @@ void Engine::Renderer::Shadows(const Camera* camera)
 
 	Engine::MeshSystem::Init()->renderDepth2DDirectional(LightSystem::Init()->GetDirectionalLights(), camera);
 
-	context->RSSetState(nullptr);
+	context->RSSetState(MSAARasterizerState.Get());
 
 	ShadowSystem::Init()->BindShadowTextures(11u, 12u, 13u);
 	ShadowSystem::Init()->BindShadowBuffers(5u, 6u);

@@ -76,6 +76,7 @@ namespace Engine
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> pDSState;
 
 		Microsoft::WRL::ComPtr<ID3D11RasterizerState> pRasterizerState;
+		Microsoft::WRL::ComPtr<ID3D11RasterizerState> MSAARasterizerState;
 
 		std::shared_ptr<Texture> diffuseIBL;
 		std::shared_ptr<Texture> specularIBL;

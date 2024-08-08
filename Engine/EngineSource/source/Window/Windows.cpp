@@ -25,7 +25,7 @@ Window::Window(int wWidth, int wHeight, WinProc WindowProc)
 	int w_width = rc.right - rc.left;
 	int w_height = rc.bottom - rc.top;
 
-	m_handle = CreateWindowEx(NULL, L"Window", L"RayTracing", WS_OVERLAPPEDWINDOW | WS_SIZEBOX, CW_USEDEFAULT, CW_USEDEFAULT,
+	m_handle = CreateWindowEx(NULL, L"Window", L"RasterRenderer", WS_OVERLAPPEDWINDOW | WS_SIZEBOX, CW_USEDEFAULT, CW_USEDEFAULT,
 		w_width, w_height, NULL, nullptr, nullptr, nullptr);
 
 	HWND w_handle = (HWND)m_handle;
