@@ -93,8 +93,8 @@ static void InitMeshSystem()
 	{"TOWORLD", 1, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
 	{"TOWORLD", 2, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
 	{"TOWORLD", 3, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
-	{"DURATION", 0, DXGI_FORMAT_R32G32B32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
-	{"TIMER", 0, DXGI_FORMAT_R32G32B32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+	{"DURATION", 0, DXGI_FORMAT_R32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+	{"TIMER", 0, DXGI_FORMAT_R32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
 	};
 
 	auto emissiveShader = Engine::ShaderManager::CompileAndCreateShader("EmmisiveShader", L"Shaders\\emissive\\emissiveVS.hlsl",
@@ -103,7 +103,7 @@ static void InitMeshSystem()
 	auto NormalVisColor = Engine::ShaderManager::CompileAndCreateShader("NormalVisColor", L"Shaders\\normalColor\\VertexShader.hlsl",
 		L"Shaders\\normalColor\\PixelShader.hlsl", nullptr, nullptr);
 
-	auto dissolutionShader = Engine::ShaderManager::CompileAndCreateShader("DissolutionShader", L"Shaders\\dissolution\\dissolutionVS.hlsl", L"Shaders\\dissolution\\dissolutionPS.hlsl",
+	auto dissolutionShader = Engine::ShaderManager::CompileAndCreateShader("DissolutionShader", L"Shaders\\opaqueShader\\dissolutionVS.hlsl", L"Shaders\\opaqueShader\\dissolutionPS.hlsl",
 		nullptr, nullptr);
 
 	auto textureMap = Engine::ShaderManager::CompileAndCreateShader("texture", L"Shaders\\crateTextMap\\CrateVS.hlsl",
@@ -142,6 +142,7 @@ static void InitMeshSystem()
 	auto inputLayout = Engine::ShaderManager::CreateInputLayout("Default", opaqueShader->vertexBlob.Get(), ied, sizeof(ied) / sizeof(D3D11_INPUT_ELEMENT_DESC));
 	auto secondInputLayout = Engine::ShaderManager::CreateInputLayout("Second", emissiveShader->vertexBlob.Get(), secondIed, sizeof(secondIed) / sizeof(D3D11_INPUT_ELEMENT_DESC));
 	auto thirdLayout = Engine::ShaderManager::CreateInputLayout("Third", NormalVisLines->vertexBlob.Get(), secondIed, sizeof(normalIED) / sizeof(D3D11_INPUT_ELEMENT_DESC));
+	auto fourthLayout = Engine::ShaderManager::CreateInputLayout("Fourth", dissolutionShader->vertexBlob.Get(), thirdIed, sizeof(thirdIed) / sizeof(D3D11_INPUT_ELEMENT_DESC));
 
 	NormalVisColor->BindInputLyout(thirdLayout);
 	NormalVisLines->BindInputLyout(thirdLayout);
@@ -151,6 +152,7 @@ static void InitMeshSystem()
 	emissiveShader->BindInputLyout(secondInputLayout);
 	shadowShader->BindInputLyout(thirdLayout);
 	shadowShader2->BindInputLyout(thirdLayout);
+	dissolutionShader->BindInputLyout(fourthLayout);
 
 	Engine::ShadowSystem::Init()->SetShadowShaders(shadowShader, shadowShader2, shadowShader2);
 
@@ -165,6 +167,8 @@ static void InitMeshSystem()
 	ms->opaqueGroup.addShader(NormalVisLines);
 
 	ms->emmisiveGroup.addShader(emissiveShader);
+
+	ms->dissolutionGroup.addShader(dissolutionShader);
 }
 
 D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc windowEvent) :
@@ -177,7 +181,8 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 	InitFloor();
 	InitSkybox();
 	InitPostProcess();
-	ImGui_ImplWin32_Init(pWindow->getHWND());	Engine::MeshSystem::Init()->updateInstanceBuffers();
+	ImGui_ImplWin32_Init(pWindow->getHWND());	
+	Engine::MeshSystem::Init()->updateInstanceBuffers();
 }
 
 
@@ -202,9 +207,6 @@ void D3DApplication::Update(float deltaTime)
 	Engine::Renderer* renderer = Engine::Renderer::GetInstance();
 	renderer->updatePerFrameCB(deltaTime, (FLOAT)pWindow->getWindowWidth(), (FLOAT)pWindow->getWindowHeight());
 	renderer->Render(camera.get());
-
-	skybox.BindSkyBox(2u);
-	skybox.Draw();
 		
 	renderer->PostProcess();
 
@@ -255,12 +257,13 @@ void D3DApplication::UpdateInput(float deltaTime)
 	else if (Input::keyPresseed(Input::KeyboardButtons::THREE))
 		Engine::TextureManager::Init()->BindSampleByFilter(D3D11_FILTER_ANISOTROPIC, 3u);
 
-	if (Input::keyPresseed(Input::KeyboardButtons::N))
+	if (Input::keyIsDown(Input::KeyboardButtons::N))
 	{
-		auto visShader = Engine::ShaderManager::GetShader("NormalVisLines");
+		/*auto visShader = Engine::ShaderManager::GetShader("NormalVisLines");
 
 		if (visShader)
-			visShader->isEnabled = !visShader->isEnabled;
+			visShader->isEnabled = !visShader->isEnabled;*/
+		Engine::MeshSystem::Init()->dissolutionGroup.update(deltaTime);
 	}
 
 
@@ -651,7 +654,7 @@ void D3DApplication::InitCrateModel()
 	Materials::OpaqueTextureMaterial crateMaterial = { crateFirst, crateRoughness, crateMetallic, crateNormal };
 
 	changepos(inst, Engine::vec3(1.0f, -1.0f, 4.0f));
-	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, crateMaterial, inst);
+	Engine::MeshSystem::Init()->dissolutionGroup.addModel(model, crateMaterial, inst, Engine::MeshSystem::DissolutionInstance{ 4.0f });
 
 	auto goldenCube = goldenSphereTextures;
 	goldenCube.usedTextures = Materials::METALNESS;
@@ -662,6 +665,9 @@ void D3DApplication::InitCrateModel()
 	changescale(inst, 0, 5);
 	changepos(inst, Engine::vec3(-10.0f, 4.0f, 1.2f));
 	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, crateMaterial, Engine::TransformSystem::transforms{ inst.modelToWold * rotZ });
+
+	auto textureasfa =  Engine::TextureManager::Init()->LoadFromFile("noise", L"Textures\\Noise_19.dds");
+	textureasfa->BindTexture(14u);
 }
 
 void D3DApplication::InitFloor()
@@ -696,6 +702,7 @@ void D3DApplication::InitSkybox()
 	skybox.SetShader(skyboxShader);
 	skybox.SetTexture(skyboxTexture);
 	skybox.BindCamera(camera.get());
+	Engine::Renderer::Init()->setSkyBox(std::make_shared<Engine::SkyBox>(skybox));
 }
 
 void D3DApplication::InitPostProcess()

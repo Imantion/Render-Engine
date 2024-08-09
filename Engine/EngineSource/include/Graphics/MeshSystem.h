@@ -309,6 +309,11 @@ namespace Engine
 			instanceBuffer.unmap();
 		}
 
+		void update(float time)
+		{
+
+		}
+
 	public:
 
 		void render()
@@ -321,51 +326,51 @@ namespace Engine
 			}
 		}
 
-			void renderUsingShader(std::shared_ptr<shader> shaderToRender)
+		void renderUsingShader(std::shared_ptr<shader> shaderToRender)
+		{
+			if (instanceBuffer.getSize() == 0)
+				return;
+
+			D3D* d3d = D3D::GetInstance();
+
+			shaderToRender->BindShader();
+			instanceBuffer.bind(1u);
+			meshData.bind(2u, shaderTypes::VS);
+
+			materialData.bind(2u, shaderTypes::PS);
+
+			uint32_t renderedInstances = 0;
+			for (const auto& perModel : perModel)
 			{
-				if (instanceBuffer.getSize() == 0)
-					return;
+				if (perModel.model.get() == nullptr) continue;
 
-				D3D* d3d = D3D::GetInstance();
+				perModel.model->m_vertices.bind();
+				perModel.model->m_indices.bind();
 
-				shaderToRender->BindShader();
-				instanceBuffer.bind(1u);
-				meshData.bind(2u, shaderTypes::VS);
-
-				materialData.bind(2u, shaderTypes::PS);
-
-				uint32_t renderedInstances = 0;
-				for (const auto& perModel : perModel)
+				for (uint32_t meshIndex = 0; meshIndex < perModel.perMesh.size(); ++meshIndex)
 				{
-					if (perModel.model.get() == nullptr) continue;
+					const Mesh& mesh = perModel.model->m_meshes[meshIndex];
+					const auto& meshRange = perModel.model->m_ranges[meshIndex];
 
-					perModel.model->m_vertices.bind();
-					perModel.model->m_indices.bind();
+					meshData.updateBuffer(reinterpret_cast<const MeshData*>(mesh.instances.data())); // ... update shader local per-mesh uniform buffer
 
-					for (uint32_t meshIndex = 0; meshIndex < perModel.perMesh.size(); ++meshIndex)
+					for (const auto& perMaterial : perModel.perMesh[meshIndex].perMaterial)
 					{
-						const Mesh& mesh = perModel.model->m_meshes[meshIndex];
-						const auto& meshRange = perModel.model->m_ranges[meshIndex];
+						if (perMaterial.instances.empty()) continue;
 
-						meshData.updateBuffer(reinterpret_cast<const MeshData*>(mesh.instances.data())); // ... update shader local per-mesh uniform buffer
-
-						for (const auto& perMaterial : perModel.perMesh[meshIndex].perMaterial)
-						{
-							if (perMaterial.instances.empty()) continue;
-
-							const auto& material = perMaterial.material;
-							MaterialData data = { material };
-							// ... update shader local per-draw uniform buffer
-							materialData.updateBuffer(&data);
+						const auto& material = perMaterial.material;
+						MaterialData data = { material };
+						// ... update shader local per-draw uniform buffer
+						materialData.updateBuffer(&data);
 
 
-							uint32_t numInstances = uint32_t(perMaterial.instances.size());
-							d3d->GetContext()->DrawIndexedInstanced(meshRange.indexNum, numInstances, meshRange.indexOffset, meshRange.vertexOffset, renderedInstances);
-							renderedInstances += numInstances;
-						}
+						uint32_t numInstances = uint32_t(perMaterial.instances.size());
+						d3d->GetContext()->DrawIndexedInstanced(meshRange.indexNum, numInstances, meshRange.indexOffset, meshRange.vertexOffset, renderedInstances);
+						renderedInstances += numInstances;
 					}
 				}
 			}
+		}
 			
 	};
 
@@ -393,17 +398,21 @@ namespace Engine
 
 		struct DissolutionInstance
 		{
+			DissolutionInstance(float duration) : animationDuration(duration)
+			{}
+
 			float animationDuration;
 
-			friend class OpaqueInstances<DissolutionInstance, Materials::EmmisiveMaterial>;
+			friend class OpaqueInstances<DissolutionInstance, Materials::OpaqueTextureMaterial>;
 		private:
-			float passedTime;
+			float passedTime = 0.0f;
 		};
 		
 		OpaqueInstances<Instance, Materials::HologramMaterial> hologramGroup;
 		OpaqueInstances<Instance, Materials::NormVisMaterial> normVisGroup;
 		OpaqueInstances<PBRInstance, Materials::OpaqueTextureMaterial> opaqueGroup;
 		OpaqueInstances<EmmisiveInstance, Materials::EmmisiveMaterial> emmisiveGroup;
+		OpaqueInstances<DissolutionInstance, Materials::OpaqueTextureMaterial> dissolutionGroup;
 		OpaqueInstances<Instance, Materials::ShadowMaterial> shadowGroup;
 
 		int intersect(const ray& r, hitInfo& hInfo);
@@ -415,6 +424,7 @@ namespace Engine
 		void renderDepth2DDirectional(const std::vector<DirectionalLight>& directionalLights, const Camera* camera);
 
 		void render();
+		void renderTranslucent();
 
 
 		static MeshSystem* Init();
@@ -427,13 +437,37 @@ namespace Engine
 	protected:
 		static std::mutex mutex_;
 		static MeshSystem* pInstance;
-
-		
-
 	};
 
 	template <>
-	inline void OpaqueInstances<MeshSystem::PBRInstance, Materials::OpaqueTextureMaterial>::renderUsingShader(std::shared_ptr<shader> shaderToRender);
+	void OpaqueInstances<MeshSystem::PBRInstance, Materials::OpaqueTextureMaterial>::renderUsingShader(std::shared_ptr<shader> shaderToRender);
+
+	template <>
+	void OpaqueInstances<MeshSystem::DissolutionInstance, Materials::OpaqueTextureMaterial>::renderUsingShader(std::shared_ptr<shader> shaderToRender);
+
+	template <>
+	inline void OpaqueInstances<MeshSystem::DissolutionInstance, Materials::OpaqueTextureMaterial>::update(float time) {
+		for (size_t i = 0; i < perModel.size(); i++)
+		{
+			for (uint32_t meshIndex = 0; meshIndex < perModel[i].perMesh.size(); ++meshIndex)
+			{
+				const Mesh& mesh = perModel[i].model->m_meshes[meshIndex];
+
+				for (size_t j = 0; j < perModel[i].perMesh[meshIndex].perMaterial.size(); j++)
+				{
+					auto& instances = perModel[i].perMesh[meshIndex].perMaterial[j].instances;
+
+					uint32_t numModelInstances = (uint32_t)instances.size();
+					for (uint32_t index = 0; index < numModelInstances; ++index)
+					{
+						instances[i].instanceData.passedTime += time;
+					}
+				}
+			}
+		}
+
+		updateInstanceBuffers();
+	}
 
 
 	

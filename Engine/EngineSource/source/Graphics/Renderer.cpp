@@ -4,6 +4,7 @@
 #include "Graphics/PostProcess.h"
 #include "Graphics/LightSystem.h"
 #include "Graphics/ShadowSystem.h"
+#include "Graphics/SkyBox.h"
 #include "Render/Camera.h"
 
 std::mutex Engine::Renderer::mutex_;
@@ -129,6 +130,7 @@ void Engine::Renderer::Render(Camera* camera)
 	auto context = Engine::D3D::GetInstance()->GetContext();
 
 	context->OMSetDepthStencilState(pDSState.Get(), 1u);
+	context->OMSetBlendState(pBlendState.Get(), nullptr, 0xFFFFFFFF);
 
 	Shadows(camera);
 	
@@ -167,6 +169,11 @@ void Engine::Renderer::Render(Camera* camera)
 	TextureManager::Init()->BindComparisonSampler(5u);
 
 	MeshSystem::Init()->render();
+	pSkyBox->BindSkyBox(2u);
+	pSkyBox->Draw();
+
+	context->OMSetDepthStencilState(pDSState.Get(), 1u);
+	MeshSystem::Init()->renderTranslucent();
 
 	ID3D11ShaderResourceView* const pSRV[3] = { NULL, NULL, NULL };
 	context->PSSetShaderResources(11, 3u, pSRV);
@@ -176,6 +183,11 @@ void Engine::Renderer::PostProcess()
 {
 	D3D::GetInstance()->GetContext()->RSSetState(nullptr);
 	PostProcess::Init()->Resolve(pHDRtextureResource.Get(), pRenderTarget.Get());
+}
+
+void Engine::Renderer::setSkyBox(std::shared_ptr<SkyBox> skybox)
+{
+	pSkyBox = skybox;
 }
 
 void Engine::Renderer::setIBLLight(std::shared_ptr<Texture> diffuse, std::shared_ptr<Texture> specular, std::shared_ptr<Texture> reflectance)
@@ -241,6 +253,19 @@ Engine::Renderer::Renderer() :
 	rasterDesc.MultisampleEnable = true;
 
 	hr = D3D::GetInstance()->GetDevice()->CreateRasterizerState(&rasterDesc, &MSAARasterizerState);
+
+	D3D11_BLEND_DESC blendDesc = {};
+	blendDesc.RenderTarget[0].BlendEnable = TRUE;
+	blendDesc.RenderTarget[0].SrcBlend =
+	blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
+	blendDesc.RenderTarget[0].DestBlend =
+	blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
+	blendDesc.RenderTarget[0].BlendOp =
+	blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+	hr = D3D::GetInstance()->GetDevice()->CreateBlendState(&blendDesc, &pBlendState);
+
 }
 
 void Engine::Renderer::Shadows(const Camera* camera)

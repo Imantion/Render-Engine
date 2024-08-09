@@ -27,6 +27,7 @@ void Engine::MeshSystem::updateInstanceBuffers()
 	opaqueGroup.updateInstanceBuffers();
 	emmisiveGroup.updateInstanceBuffers();
 	shadowGroup.updateInstanceBuffers();
+	dissolutionGroup.updateInstanceBuffers();
 }
 
 void Engine::MeshSystem::render()
@@ -52,6 +53,11 @@ void Engine::MeshSystem::Deinit()
 {
 	delete pInstance;
 	pInstance = nullptr;
+}
+
+void Engine::MeshSystem::renderTranslucent()
+{
+	dissolutionGroup.render();
 }
 
 void Engine::MeshSystem::renderDepthCubemaps(const std::vector<vec3>& lightPositions)
@@ -99,6 +105,51 @@ inline void Engine::OpaqueInstances<Engine::MeshSystem::PBRInstance, Materials::
 				const auto& material = perMaterial.material;
 
 				MaterialData data = { vec4((float)material.usedTextures, material.roughness, material.metalness,0.0f)};
+
+				materialData.updateBuffer(&data);
+				uint32_t numInstances = uint32_t(perMaterial.instances.size());
+				// Custom rendering logic for TextureMaterial
+
+				perMaterial.material.albedoTexture->BindTexture(2u);
+				perMaterial.material.roughnessTexture->BindTexture(3u);
+				perMaterial.material.metalnessTexture->BindTexture(4u);
+				perMaterial.material.normalTexture->BindTexture(5u);
+
+				d3d->GetContext()->DrawIndexedInstanced(meshRange.indexNum, numInstances, meshRange.indexOffset, meshRange.vertexOffset, renderedInstances);
+				renderedInstances += numInstances;
+			}
+		}
+	}
+}
+
+template <>
+inline void Engine::OpaqueInstances<Engine::MeshSystem::DissolutionInstance, Materials::OpaqueTextureMaterial>::renderUsingShader(std::shared_ptr<shader> shaderToRender)
+{
+	// Custom render implementation for TextureMaterial
+	if (instanceBuffer.getSize() == 0)
+		return;
+
+	D3D* d3d = D3D::GetInstance();
+
+	shaderToRender->BindShader();
+	instanceBuffer.bind(1u);
+	meshData.bind(2u, shaderTypes::VS);
+	materialData.bind(2u, shaderTypes::PS);
+
+	uint32_t renderedInstances = 0;
+	for (const auto& perModel : perModel) {
+		if (perModel.model.get() == nullptr) continue;
+		perModel.model->m_vertices.bind();
+		perModel.model->m_indices.bind();
+		for (uint32_t meshIndex = 0; meshIndex < perModel.perMesh.size(); ++meshIndex) {
+			const Mesh& mesh = perModel.model->m_meshes[meshIndex];
+			const auto& meshRange = perModel.model->m_ranges[meshIndex];
+			meshData.updateBuffer(reinterpret_cast<const MeshData*>(mesh.instances.data())); // ... update shader local per-mesh uniform buffer
+			for (const auto& perMaterial : perModel.perMesh[meshIndex].perMaterial) {
+				if (perMaterial.instances.empty()) continue;
+				const auto& material = perMaterial.material;
+
+				MaterialData data = { vec4((float)material.usedTextures, material.roughness, material.metalness,0.0f) };
 
 				materialData.updateBuffer(&data);
 				uint32_t numInstances = uint32_t(perMaterial.instances.size());

@@ -7,6 +7,7 @@ namespace Engine
 {
 	class Camera;
 	class Texture;
+	class SkyBox;
 
 	struct PerFrameCB
 	{
@@ -44,6 +45,7 @@ namespace Engine
 		void Render(Camera* camera);
 		void PostProcess();
 
+		void setSkyBox(std::shared_ptr<SkyBox> skybox);
 		void setIBLLight(std::shared_ptr<Texture> diffuse, std::shared_ptr<Texture> specular, std::shared_ptr<Texture> reflectance);
 		void setLTCLight(std::shared_ptr<Texture> invMatrix, std::shared_ptr<Texture> amplitude);
 
@@ -77,6 +79,7 @@ namespace Engine
 
 		Microsoft::WRL::ComPtr<ID3D11RasterizerState> pRasterizerState;
 		Microsoft::WRL::ComPtr<ID3D11RasterizerState> MSAARasterizerState;
+		Microsoft::WRL::ComPtr<ID3D11BlendState> pBlendState;
 
 		std::shared_ptr<Texture> diffuseIBL;
 		std::shared_ptr<Texture> specularIBL;
@@ -84,6 +87,8 @@ namespace Engine
 
 		std::shared_ptr<Texture> LTCmat;
 		std::shared_ptr<Texture> LTCamp;
+
+		std::shared_ptr<SkyBox> pSkyBox;
 
 	private:
 		static std::mutex mutex_;

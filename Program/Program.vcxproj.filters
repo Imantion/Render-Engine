@@ -152,8 +152,8 @@
     <None Include="Shaders\Shadow\ShadowPS.hlsl" />
     <None Include="Shaders\Shadow\ShadowVS.hlsl" />
     <None Include="Shaders\opaqueShader\opaque.hlsli" />
-    <None Include="Shaders\dissolution\dissolutionVS.hlsl" />
-    <None Include="Shaders\dissolution\dissolutionPS.hlsl" />
+    <None Include="Shaders\opaqueShader\dissolutionVS.hlsl" />
+    <None Include="Shaders\opaqueShader\dissolutionPS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\declarations.hlsli">
