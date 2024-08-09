@@ -188,6 +188,7 @@
     <ClInclude Include="EngineSource\include\Graphics\Buffers.h" />
     <ClInclude Include="EngineSource\include\Graphics\D3D.h" />
     <ClInclude Include="EngineSource\include\Graphics\DDSTextureLoader11.h" />
+    <ClInclude Include="EngineSource\include\Graphics\DissolutionGroup.h" />
     <ClInclude Include="EngineSource\include\Graphics\Engine.h" />
     <ClInclude Include="EngineSource\include\Graphics\Instances.h" />
     <ClInclude Include="EngineSource\include\Graphics\LightSystem.h" />

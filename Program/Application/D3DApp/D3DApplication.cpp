@@ -26,6 +26,16 @@ typedef std::ostringstream tstringstream;
 #endif
 
 Engine::vec2 previousMousePosition;
+static std::vector<Materials::DissolutionMaterial> samuraiDisolutionMaterial;
+static Materials::DissolutionMaterial cubeDisolutionMaterial;
+static float animationDuration = 4.0f;
+
+static enum objectToSpawn
+{
+	SAMURAI,
+	CRATE
+} modelToSpawn;
+
 static float cameraSpeed = 2.0f;
 
 static auto changepos = [](Engine::TransformSystem::transforms& inst, const Engine::vec3& pos) {
@@ -37,6 +47,7 @@ static auto changepos = [](Engine::TransformSystem::transforms& inst, const Engi
 static auto changescale = [](Engine::TransformSystem::transforms& inst, int axis, const float scale) {
 	for (size_t i = 0; i < 3; i++) {
 		inst.modelToWold[axis][i] *= scale;
+		
 	}
 	};
 
@@ -173,6 +184,7 @@ static void InitMeshSystem()
 
 D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc windowEvent) :
 	pWindow(new Engine::Window(windowWidth, windowHeight, windowEvent)) {
+
 	InitCamera(windowWidth, windowHeight);
 	InitMeshSystem();
 	InitSamuraiModel();
@@ -201,6 +213,8 @@ void D3DApplication::Update(float deltaTime)
 		camera->calculateProjectionMatrix(pWindow->getWindowWidth(), pWindow->getWindowHeight());
 	}
 	
+	Engine::MeshSystem::Init()->dissolutionGroup.update(deltaTime);
+	ShadingGroupSwap();
 
 	Engine::TextureManager::Init()->BindSamplers();
 
@@ -257,13 +271,33 @@ void D3DApplication::UpdateInput(float deltaTime)
 	else if (Input::keyPresseed(Input::KeyboardButtons::THREE))
 		Engine::TextureManager::Init()->BindSampleByFilter(D3D11_FILTER_ANISOTROPIC, 3u);
 
-	if (Input::keyIsDown(Input::KeyboardButtons::N))
+	if (Input::keyPresseed(Input::KeyboardButtons::N))
 	{
-		/*auto visShader = Engine::ShaderManager::GetShader("NormalVisLines");
+		auto MS = Engine::MeshSystem::Init();
+		
 
-		if (visShader)
-			visShader->isEnabled = !visShader->isEnabled;*/
-		Engine::MeshSystem::Init()->dissolutionGroup.update(deltaTime);
+		switch (modelToSpawn)
+		{
+		case SAMURAI:
+		{
+			Engine::TransformSystem::transforms transform = { Engine::transformMatrix(camera->getPosition() + camera->getForward() * 3 - Engine::vec3(0,1,0), Engine::vec3(0,0,1), Engine::vec3(1,0,0) , Engine::vec3(0,1,0))};
+			auto model = Engine::ModelManager::Init()->GetModel("Models\\Samurai.fbx");
+			MS->dissolutionGroup.addModel(model, samuraiDisolutionMaterial, transform, Instances::DissolutionInstance{ animationDuration });
+			
+		}
+			break;
+		case CRATE:
+		{
+			Engine::TransformSystem::transforms transform = { Engine::transformMatrix(camera->getPosition() + camera->getForward() * 3, Engine::vec3(0,0,1), Engine::vec3(1,0,0) , Engine::vec3(0,1,0)) };
+			auto model = Engine::ModelManager::Init()->GetModel("Models\\cube.obj");
+			MS->dissolutionGroup.addModel(model, cubeDisolutionMaterial, transform, Instances::DissolutionInstance{ animationDuration });
+		}
+			break;
+		default:
+			break;
+		}
+
+		MS->dissolutionGroup.updateInstanceBuffers();
 	}
 
 
@@ -376,6 +410,7 @@ void D3DApplication::UpdateInput(float deltaTime)
 
 		dragger->drag(r);
 	}
+
 }
 
 D3DApplication::~D3DApplication()
@@ -512,10 +547,49 @@ void D3DApplication::GUI()
 			ImGui::EndTabItem();
 		}
 
+		if (ImGui::BeginTabItem("Spawning"))
+		{
+			// New section for mode selection and conditional rendering
+			ImGui::Separator();
+			ImGui::Text("Model to spawn");
+
+			static const char* items[] = { "Samurai", "Crate" };
+			static int currentItem = 0; // 0 for Drag, 1 for Select
+
+			if (ImGui::Combo("Mode", &currentItem, items, IM_ARRAYSIZE(items)))
+			{
+				// Update the current mode based on selection
+				modelToSpawn = (objectToSpawn)currentItem;
+			}
+
+			ImGui::SliderFloat("Spawn duration", &animationDuration, 0.05f, 10.0f);
+
+			ImGui::EndTabItem();
+		}
 		ImGui::EndTabBar();
 	}
 
 	ImGui::End();
+}
+
+void D3DApplication::ShadingGroupSwap()
+{
+	auto endedAnimationInstancesId = Engine::MeshSystem::Init()->dissolutionGroup.checkTimer();
+
+	for (size_t i = 0; i < endedAnimationInstancesId.size(); i++)
+	{
+		auto modelInstanceData = Engine::MeshSystem::Init()->dissolutionGroup.removeByTransformId(endedAnimationInstancesId[i], false);
+		std::vector<Materials::OpaqueTextureMaterial> opaqueMaterial;
+		opaqueMaterial.reserve(modelInstanceData.material.size());
+
+		for (size_t j = 0; j < modelInstanceData.material.size(); j++)
+		{
+			opaqueMaterial.push_back(modelInstanceData.material[j].opaqueTextures);
+		}
+
+		Engine::MeshSystem::Init()->opaqueGroup.addModel(modelInstanceData.model, opaqueMaterial, endedAnimationInstancesId[i]);
+		Engine::MeshSystem::Init()->opaqueGroup.updateInstanceBuffers();
+	}
 }
 
 void D3DApplication::InitCamera(int windowWidth, int windowHeight)
@@ -528,6 +602,8 @@ void D3DApplication::InitCamera(int windowWidth, int windowHeight)
 void D3DApplication::InitSamuraiModel()
 {
 	auto TM = Engine::TextureManager::Init();
+
+	auto noiseTexture = Engine::TextureManager::Init()->LoadFromFile("noise", L"Textures\\Noise_19.dds");
 
 	std::shared_ptr<Engine::Texture> emptyTexture = std::make_shared<Engine::Texture>();
 	std::vector<Materials::OpaqueTextureMaterial> samuraiTextures = {
@@ -563,6 +639,12 @@ void D3DApplication::InitSamuraiModel()
 		  TM->LoadFromFile("samurai_torso_metallic", L"Textures\\Samurai\\Torso_Metallic.dds"),
 		  TM->LoadFromFile("samurai_torso_normal", L"Textures\\Samurai\\Torso_Normal.dds") }
 	};
+
+	samuraiDisolutionMaterial.reserve(samuraiTextures.size());
+	for (size_t i = 0; i < samuraiTextures.size(); i++)
+	{
+		samuraiDisolutionMaterial.push_back({ samuraiTextures[i], noiseTexture });
+	}
 
 	auto model = Engine::ModelManager::GetInstance()->loadModel("Models\\Samurai.fbx");
 	Engine::TransformSystem::transforms inst = {
@@ -651,11 +733,13 @@ void D3DApplication::InitCrateModel()
 	auto crateRoughness = TM->LoadFromFile("crateRoughness", L"Textures\\RedCore\\roughness.dds");
 	auto crateNormal = TM->LoadFromFile("crateNormal", L"Textures\\RedCore\\normal.dds");
 
-	auto noiseTexture = Engine::TextureManager::Init()->LoadFromFile("noise", L"Textures\\Noise_19.dds");
+	auto noiseTexture = TM->GetTexture("noise");
 	Materials::OpaqueTextureMaterial crateMaterial = { crateFirst, crateRoughness, crateMetallic, crateNormal };
 
+	cubeDisolutionMaterial = { crateMaterial, noiseTexture };
+
 	changepos(inst, Engine::vec3(1.0f, -1.0f, 4.0f));
-	auto issd = Engine::MeshSystem::Init()->dissolutionGroup.addModel(model, Materials::DissolutionMaterial{ crateMaterial, noiseTexture }, inst, Instances::DissolutionInstance{4.0f});
+	auto issd = Engine::MeshSystem::Init()->opaqueGroup.addModel(model, crateMaterial, inst);
 
 	auto goldenCube = goldenSphereTextures;
 	goldenCube.usedTextures = Materials::METALNESS;

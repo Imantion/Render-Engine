@@ -108,3 +108,10 @@ void Engine::Camera::setRight(vec3 r)
 {
 	rightDirection = r;
 }
+
+Engine::vec3 Engine::Camera::getPosition()
+{
+	auto& transform = Engine::TransformSystem::Init()->GetModelTransforms(ID);
+
+	return (vec3&)*transform[0].modelToWold[3];
+}

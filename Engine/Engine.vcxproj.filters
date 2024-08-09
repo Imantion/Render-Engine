@@ -256,5 +256,8 @@
     <ClInclude Include="EngineSource\include\Graphics\Instances.h">
       <Filter>Include</Filter>
     </ClInclude>
+    <ClInclude Include="EngineSource\include\Graphics\DissolutionGroup.h">
+      <Filter>Include</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

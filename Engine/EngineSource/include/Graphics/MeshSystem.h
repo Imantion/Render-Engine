@@ -157,12 +157,12 @@ namespace Engine
 							auto& meshInstanceTransform = TS->GetModelTransforms(currentId)[meshIndex].modelToWold;
 
 							transformedRay.origin = vec4(r.origin, 1.0f) * mat4::Inverse(meshInstanceTransform) * mesh.invInstances[0];
-							transformedRay.direction = vec4(r.direction, 0.0f) * mat4::Inverse(meshInstanceTransform)  * mesh.invInstances[0];
-							
+							transformedRay.direction = vec4(r.direction, 0.0f) * mat4::Inverse(meshInstanceTransform) * mesh.invInstances[0];
+
 							if (mesh.intersect(transformedRay, hInfo))
 							{
 								transformId = currentId;
-								hInfo.p = vec4(transformedRay.point_at_parameter(hInfo.t),1.0f) * mesh.instances[0] * meshInstanceTransform;
+								hInfo.p = vec4(transformedRay.point_at_parameter(hInfo.t), 1.0f) * mesh.instances[0] * meshInstanceTransform;
 								/*hInfo.p = r.point_at_parameter(hInfo.t);*/
 							}
 						}
@@ -347,7 +347,7 @@ namespace Engine
 			return addModel(model, material, modelTransformsId, instance);
 		}
 
-		
+
 
 		void updateInstanceBuffers()
 		{
@@ -381,18 +381,13 @@ namespace Engine
 						uint32_t numModelInstances = (uint32_t)instances.size();
 						for (uint32_t index = 0; index < numModelInstances; ++index)
 						{
-							dst[copiedNum++] = instanceBufferData{ TS->GetModelTransforms(instances[index].transformsId)[meshIndex],  instances[index].instanceData};
+							dst[copiedNum++] = instanceBufferData{ TS->GetModelTransforms(instances[index].transformsId)[meshIndex],  instances[index].instanceData };
 						}
 					}
 				}
 			}
 
 			instanceBuffer.unmap();
-		}
-
-		void update(float time)
-		{
-
 		}
 
 	public:
@@ -403,7 +398,7 @@ namespace Engine
 			{
 				if (m_shaders[i]->isEnabled)
 					renderUsingShader(m_shaders[i]);
-				
+
 			}
 		}
 
@@ -452,10 +447,14 @@ namespace Engine
 				}
 			}
 		}
-			
+
 	};
+}
 
+#include "Graphics/DissolutionGroup.h"
 
+namespace Engine
+{ 
 	class MeshSystem
 	{
 	public:
@@ -493,32 +492,5 @@ namespace Engine
 
 	template <>
 	void OpaqueInstances<Instances::PBRInstance, Materials::OpaqueTextureMaterial>::renderUsingShader(std::shared_ptr<shader> shaderToRender);
-
-	template <>
-	void OpaqueInstances<Instances::DissolutionInstance, Materials::DissolutionMaterial>::renderUsingShader(std::shared_ptr<shader> shaderToRender);
-
-	template <>
-	inline void OpaqueInstances<Instances::DissolutionInstance, Materials::DissolutionMaterial>::update(float time) {
-		for (size_t i = 0; i < perModel.size(); i++)
-		{
-			for (uint32_t meshIndex = 0; meshIndex < perModel[i].perMesh.size(); ++meshIndex)
-			{
-				const Mesh& mesh = perModel[i].model->m_meshes[meshIndex];
-
-				for (size_t j = 0; j < perModel[i].perMesh[meshIndex].perMaterial.size(); j++)
-				{
-					auto& instances = perModel[i].perMesh[meshIndex].perMaterial[j].instances;
-
-					uint32_t numModelInstances = (uint32_t)instances.size();
-					for (uint32_t index = 0; index < numModelInstances; ++index)
-					{
-						instances[i].instanceData.passedTime += time;
-					}
-				}
-			}
-		}
-
-		updateInstanceBuffers();
-	}
 }
 

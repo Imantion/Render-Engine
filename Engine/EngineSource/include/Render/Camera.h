@@ -21,7 +21,7 @@ namespace Engine
 
 		vec3 getRayDirection(const vec2&);
 		vec3 calculateRayDirection(const vec2&) const;
-		vec3 getPosition() { return position; }
+		vec3 getPosition();
 
 		void calculateProjectionMatrix(int viewportWidth, int viewportHeight);
 		void calculateViewMatrix();
