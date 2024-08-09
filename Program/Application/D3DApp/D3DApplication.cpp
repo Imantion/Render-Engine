@@ -340,12 +340,12 @@ void D3DApplication::UpdateInput(float deltaTime)
 		if (emmisiveHit != -1 && Engine::LightSystem::Init()->GetPointLightByTransformId(emmisiveHit))
 		{
 			selectedObject = Emmisive;
-			selected = std::make_unique<Engine::IInstanceSelected<Engine::MeshSystem::EmmisiveInstance>>(emmisiveHit, std::move(emmisiveGroup.getInstanceByTransformId(emmisiveHit)));
+			selected = std::make_unique<Engine::IInstanceSelected<Instances::EmmisiveInstance>>(emmisiveHit, std::move(emmisiveGroup.getInstanceByTransformId(emmisiveHit)));
 		}
 		else if (opaqueHit != -1)
 		{
 			selectedObject = Opaque;
-			selected = std::make_unique<Engine::IInstanceSelected<Engine::MeshSystem::PBRInstance>>(opaqueHit, std::move(opaqueGroup.getInstanceByTransformId(opaqueHit)));
+			selected = std::make_unique<Engine::IInstanceSelected<Instances::PBRInstance>>(opaqueHit, std::move(opaqueGroup.getInstanceByTransformId(opaqueHit)));
 		}
 	}
 	else if (selected && objectInteractions != Select)
@@ -474,7 +474,7 @@ void D3DApplication::GUI()
 							overwrite = false;
 						}
 
-						auto instance = Engine::MeshSystem::PBRInstance{ true, overwrite, roughness, metalness };
+						auto instance = Instances::PBRInstance{ true, overwrite, roughness, metalness };
 						selected->update((void*)&instance);
 						break;
 					}
@@ -613,7 +613,7 @@ void D3DApplication::InitLights()
 	Engine::TransformSystem::transforms inst = {
 	   Engine::transformMatrix(Engine::vec3(-2.0f, 3.0f, 7.0f), Engine::vec3(0.0f, 0.0f, 1.0f), Engine::vec3(1.0f, 0.0f, 0.0f), Engine::vec3(0.0f, 1.0f, 0.0f))};
 
-	areaLight.bindedTransform = Engine::MeshSystem::Init()->emmisiveGroup.addModel(model, Materials::EmmisiveMaterial{}, inst, Engine::MeshSystem::EmmisiveInstance{ areaLight.radiance * 10 });
+	areaLight.bindedTransform = Engine::MeshSystem::Init()->emmisiveGroup.addModel(model, Materials::EmmisiveMaterial{}, inst, Instances::EmmisiveInstance{ areaLight.radiance });
 	Engine::LightSystem::Init()->AddAreaLight(areaLight);
 
 	Engine::LightSystem::Init()->UpdateLightsBuffer();
@@ -651,10 +651,11 @@ void D3DApplication::InitCrateModel()
 	auto crateRoughness = TM->LoadFromFile("crateRoughness", L"Textures\\RedCore\\roughness.dds");
 	auto crateNormal = TM->LoadFromFile("crateNormal", L"Textures\\RedCore\\normal.dds");
 
+	auto noiseTexture = Engine::TextureManager::Init()->LoadFromFile("noise", L"Textures\\Noise_19.dds");
 	Materials::OpaqueTextureMaterial crateMaterial = { crateFirst, crateRoughness, crateMetallic, crateNormal };
 
 	changepos(inst, Engine::vec3(1.0f, -1.0f, 4.0f));
-	Engine::MeshSystem::Init()->dissolutionGroup.addModel(model, crateMaterial, inst, Engine::MeshSystem::DissolutionInstance{ 4.0f });
+	auto issd = Engine::MeshSystem::Init()->dissolutionGroup.addModel(model, Materials::DissolutionMaterial{ crateMaterial, noiseTexture }, inst, Instances::DissolutionInstance{4.0f});
 
 	auto goldenCube = goldenSphereTextures;
 	goldenCube.usedTextures = Materials::METALNESS;
@@ -665,9 +666,6 @@ void D3DApplication::InitCrateModel()
 	changescale(inst, 0, 5);
 	changepos(inst, Engine::vec3(-10.0f, 4.0f, 1.2f));
 	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, crateMaterial, Engine::TransformSystem::transforms{ inst.modelToWold * rotZ });
-
-	auto textureasfa =  Engine::TextureManager::Init()->LoadFromFile("noise", L"Textures\\Noise_19.dds");
-	textureasfa->BindTexture(14u);
 }
 
 void D3DApplication::InitFloor()

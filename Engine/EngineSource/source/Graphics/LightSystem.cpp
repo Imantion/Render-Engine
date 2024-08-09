@@ -2,6 +2,7 @@
 #include "Graphics/TransformSystem.h"
 #include "Graphics/TextureManager.h"
 #include "Graphics/MeshSystem.h"
+#include "Graphics/Instances.h"
 
 Engine::LightSystem* Engine::LightSystem::m_instance;
 std::mutex Engine::LightSystem::m_mutex; 
@@ -79,7 +80,7 @@ uint32_t Engine::LightSystem::AddPointLight(const vec3& irradiance, float radius
     Engine::TransformSystem::transforms inst = {
         Engine::transformMatrix(pos, Engine::vec3(0.0f, 0.0f, 1.0f) * radius, Engine::vec3(1.0f, 0.0f, 0.0f) * radius, Engine::vec3(0.0f, 1.0f, 0.0f) * radius)};
 
-    pointLight.bindedObjectId = Engine::MeshSystem::Init()->emmisiveGroup.addModel(model, Materials::EmmisiveMaterial{}, inst, Engine::MeshSystem::EmmisiveInstance{ pointLight.radiance });
+    pointLight.bindedObjectId = Engine::MeshSystem::Init()->emmisiveGroup.addModel(model, Materials::EmmisiveMaterial{}, inst, Instances::EmmisiveInstance{ pointLight.radiance });
 
     AddPointLight(pointLight);
 
@@ -99,7 +100,7 @@ uint32_t Engine::LightSystem::AddSpotLight(const vec3& irradiance, float radius,
     Engine::TransformSystem::transforms inst = {
     Engine::transformMatrix(pos, Engine::vec3(0.0f, 0.0f, 1.0f) * radius, Engine::vec3(1.0f, 0.0f, 0.0f) * radius, Engine::vec3(0.0f, 1.0f, 0.0f) * radius) };
 
-    spotLight.bindedObjectId = Engine::MeshSystem::Init()->emmisiveGroup.addModel(model, Materials::EmmisiveMaterial{}, inst, Engine::MeshSystem::EmmisiveInstance{ spotLight.radiance });
+    spotLight.bindedObjectId = Engine::MeshSystem::Init()->emmisiveGroup.addModel(model, Materials::EmmisiveMaterial{}, inst, Instances::EmmisiveInstance{ spotLight.radiance });
 
     AddSpotLight(spotLight);
 

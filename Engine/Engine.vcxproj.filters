@@ -253,5 +253,8 @@
     <ClInclude Include="EngineSource\include\Graphics\ShadowSystem.h">
       <Filter>Include</Filter>
     </ClInclude>
+    <ClInclude Include="EngineSource\include\Graphics\Instances.h">
+      <Filter>Include</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

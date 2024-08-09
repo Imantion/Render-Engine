@@ -77,7 +77,7 @@ void Engine::MeshSystem::renderDepth2DDirectional(const std::vector<DirectionalL
 
 
 template <>
-inline void Engine::OpaqueInstances<Engine::MeshSystem::PBRInstance, Materials::OpaqueTextureMaterial>::renderUsingShader(std::shared_ptr<shader> shaderToRender)
+inline void Engine::OpaqueInstances<Instances::PBRInstance, Materials::OpaqueTextureMaterial>::renderUsingShader(std::shared_ptr<shader> shaderToRender)
 {
 
 	// Custom render implementation for TextureMaterial
@@ -123,7 +123,7 @@ inline void Engine::OpaqueInstances<Engine::MeshSystem::PBRInstance, Materials::
 }
 
 template <>
-inline void Engine::OpaqueInstances<Engine::MeshSystem::DissolutionInstance, Materials::OpaqueTextureMaterial>::renderUsingShader(std::shared_ptr<shader> shaderToRender)
+inline void Engine::OpaqueInstances<Instances::DissolutionInstance, Materials::DissolutionMaterial>::renderUsingShader(std::shared_ptr<shader> shaderToRender)
 {
 	// Custom render implementation for TextureMaterial
 	if (instanceBuffer.getSize() == 0)
@@ -149,16 +149,17 @@ inline void Engine::OpaqueInstances<Engine::MeshSystem::DissolutionInstance, Mat
 				if (perMaterial.instances.empty()) continue;
 				const auto& material = perMaterial.material;
 
-				MaterialData data = { vec4((float)material.usedTextures, material.roughness, material.metalness,0.0f) };
+				MaterialData data = { vec4((float)material.opaqueTextures.usedTextures, material.opaqueTextures.roughness, material.opaqueTextures.metalness,0.0f) };
 
 				materialData.updateBuffer(&data);
 				uint32_t numInstances = uint32_t(perMaterial.instances.size());
 				// Custom rendering logic for TextureMaterial
 
-				perMaterial.material.albedoTexture->BindTexture(2u);
-				perMaterial.material.roughnessTexture->BindTexture(3u);
-				perMaterial.material.metalnessTexture->BindTexture(4u);
-				perMaterial.material.normalTexture->BindTexture(5u);
+				perMaterial.material.opaqueTextures.albedoTexture->BindTexture(2u);
+				perMaterial.material.opaqueTextures.roughnessTexture->BindTexture(3u);
+				perMaterial.material.opaqueTextures.metalnessTexture->BindTexture(4u);
+				perMaterial.material.opaqueTextures.normalTexture->BindTexture(5u);
+				perMaterial.material.noiseTexture->BindTexture(14u);
 
 				d3d->GetContext()->DrawIndexedInstanced(meshRange.indexNum, numInstances, meshRange.indexOffset, meshRange.vertexOffset, renderedInstances);
 				renderedInstances += numInstances;

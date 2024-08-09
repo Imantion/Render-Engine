@@ -1,0 +1,42 @@
+#pragma once
+#include "Math/math.h"
+#include "Materials.h"
+
+namespace Engine
+{
+	template<typename I, typename M>
+	class OpaqueInstances;
+}
+
+namespace Instances
+{
+
+	struct Instance
+	{
+	};
+
+	struct EmmisiveInstance
+	{
+		Engine::vec3 emmisiveColor;
+	};
+
+	struct PBRInstance
+	{
+		int isSelected = 0;
+		int shouldOverWriteMaterial = 0;
+		float roughness = 0.0f;
+		float metalness = 0.0f;
+	};
+
+	struct DissolutionInstance
+	{
+		DissolutionInstance(float duration) : animationDuration(duration)
+		{}
+
+		float animationDuration;
+
+		friend class Engine::OpaqueInstances<DissolutionInstance, Materials::DissolutionMaterial>;
+	private:
+		float passedTime = 0.0f;
+	};
+}

@@ -9,6 +9,7 @@
 #include "Graphics/ShaderManager.h"
 #include "Graphics/TextureManager.h"
 #include "Graphics/TransformSystem.h"
+#include "Graphics/Instances.h"
 
 namespace Engine
 {
@@ -24,6 +25,11 @@ namespace Engine
 
 	template<>
 	struct MaterialDataType<Materials::OpaqueTextureMaterial> {
+		using type = vec4;
+	};
+
+	template<>
+	struct MaterialDataType<Materials::DissolutionMaterial> {
 		using type = vec4;
 	};
 
@@ -85,6 +91,14 @@ namespace Engine
 		VertexBuffer<instanceBufferData> instanceBuffer;
 		ConstBuffer<MeshData> meshData;
 		ConstBuffer<MaterialData> materialData;
+	public:
+		struct ModelInstanceData
+		{
+			std::shared_ptr<Model> model;
+			std::vector<M> material;
+			std::vector<PerInstance> instance;
+		};
+
 	public:
 
 		void addShader(std::shared_ptr<shader> shdr)
@@ -157,6 +171,60 @@ namespace Engine
 			}
 
 			return transformId;
+		}
+
+		ModelInstanceData removeByTransformId(uint32_t transformId, bool deleteTransform = true)
+		{
+			ModelInstanceData mData;
+
+			for (int i = 0; i < perModel.size(); i++)
+			{
+				for (int meshIndex = 0; meshIndex < perModel[i].perMesh.size(); ++meshIndex)
+				{
+					const Mesh& mesh = perModel[i].model->m_meshes[meshIndex];
+
+					for (int j = 0; j < perModel[i].perMesh[meshIndex].perMaterial.size(); j++)
+					{
+						auto& instances = perModel[i].perMesh[meshIndex].perMaterial[j].instances;
+
+						for (int index = 0; index < (uint32_t)instances.size(); ++index)
+						{
+							if (transformId == instances[index].transformsId)
+							{
+								mData.model = perModel[i].model;
+								mData.material.push_back(perModel[i].perMesh[meshIndex].perMaterial[j].material);
+								mData.instance.push_back(instances[index]);
+
+								instances.erase(instances.begin() + index);
+								--index;
+							}
+						}
+
+						if (instances.size() == 0)
+						{
+							perModel[i].perMesh[meshIndex].perMaterial.erase(perModel[i].perMesh[meshIndex].perMaterial.begin() + j);
+							--j;
+						}
+					}
+
+					if (perModel[i].perMesh[meshIndex].perMaterial.size() == 0)
+					{
+						perModel[i].perMesh.erase(perModel[i].perMesh.begin() + meshIndex);
+						--meshIndex;
+					}
+				}
+
+				if (perModel.size() == 0)
+				{
+					perModel.erase(perModel.begin() + i);
+					--i;
+				}
+			}
+
+			if (deleteTransform)
+				Engine::TransformSystem::Init()->RemoveModelTransform(transformId);
+
+			return mData;
 		}
 
 		uint32_t addModel(std::shared_ptr<Model> model, const M& material, uint32_t modelTransformsId, const I& instance = {}) // returns model transform ID
@@ -262,9 +330,22 @@ namespace Engine
 			return modelTransformsId;
 		}
 
-		uint32_t addModel(std::shared_ptr<Model> model, const M& material, const TransformSystem::transforms& modelTransforms, const I& instance = {}); // returns model transform ID
-		
-		uint32_t addModel(std::shared_ptr<Model> model, const std::vector<M>& material, const TransformSystem::transforms& modelTransforms, const I& instance = {}); // returns model transform ID
+		uint32_t addModel(std::shared_ptr<Model> model, const M& material, const TransformSystem::transforms& modelTransforms, const I& instance = {})
+		{
+			auto TS = TransformSystem::Init();
+			uint32_t modelTransformsId = TS->AddModelTransform(modelTransforms, (uint32_t)model->m_meshes.size());
+
+			return addModel(model, material, modelTransformsId, instance);
+		}
+
+
+		uint32_t addModel(std::shared_ptr<Model> model, const std::vector<M>& material, const TransformSystem::transforms& modelTransforms, const I& instance = {})
+		{
+			auto TS = TransformSystem::Init();
+			uint32_t modelTransformsId = TS->AddModelTransform(modelTransforms, (uint32_t)model->m_meshes.size());
+
+			return addModel(model, material, modelTransformsId, instance);
+		}
 
 		
 
@@ -378,42 +459,13 @@ namespace Engine
 	class MeshSystem
 	{
 	public:
-
-		struct Instance 
-		{
-		};
-
-		struct EmmisiveInstance
-		{
-			vec3 emmisiveColor;
-		};
-
-		struct PBRInstance
-		{
-			int isSelected = 0;
-			int shouldOverWriteMaterial = 0;
-			float roughness = 0.0f;
-			float metalness = 0.0f;
-		};
-
-		struct DissolutionInstance
-		{
-			DissolutionInstance(float duration) : animationDuration(duration)
-			{}
-
-			float animationDuration;
-
-			friend class OpaqueInstances<DissolutionInstance, Materials::OpaqueTextureMaterial>;
-		private:
-			float passedTime = 0.0f;
-		};
 		
-		OpaqueInstances<Instance, Materials::HologramMaterial> hologramGroup;
-		OpaqueInstances<Instance, Materials::NormVisMaterial> normVisGroup;
-		OpaqueInstances<PBRInstance, Materials::OpaqueTextureMaterial> opaqueGroup;
-		OpaqueInstances<EmmisiveInstance, Materials::EmmisiveMaterial> emmisiveGroup;
-		OpaqueInstances<DissolutionInstance, Materials::OpaqueTextureMaterial> dissolutionGroup;
-		OpaqueInstances<Instance, Materials::ShadowMaterial> shadowGroup;
+		OpaqueInstances<Instances::Instance, Materials::HologramMaterial> hologramGroup;
+		OpaqueInstances<Instances::Instance, Materials::NormVisMaterial> normVisGroup;
+		OpaqueInstances<Instances::PBRInstance, Materials::OpaqueTextureMaterial> opaqueGroup;
+		OpaqueInstances<Instances::EmmisiveInstance, Materials::EmmisiveMaterial> emmisiveGroup;
+		OpaqueInstances<Instances::DissolutionInstance, Materials::DissolutionMaterial> dissolutionGroup;
+		OpaqueInstances<Instances::Instance, Materials::ShadowMaterial> shadowGroup;
 
 		int intersect(const ray& r, hitInfo& hInfo);
 
@@ -440,13 +492,13 @@ namespace Engine
 	};
 
 	template <>
-	void OpaqueInstances<MeshSystem::PBRInstance, Materials::OpaqueTextureMaterial>::renderUsingShader(std::shared_ptr<shader> shaderToRender);
+	void OpaqueInstances<Instances::PBRInstance, Materials::OpaqueTextureMaterial>::renderUsingShader(std::shared_ptr<shader> shaderToRender);
 
 	template <>
-	void OpaqueInstances<MeshSystem::DissolutionInstance, Materials::OpaqueTextureMaterial>::renderUsingShader(std::shared_ptr<shader> shaderToRender);
+	void OpaqueInstances<Instances::DissolutionInstance, Materials::DissolutionMaterial>::renderUsingShader(std::shared_ptr<shader> shaderToRender);
 
 	template <>
-	inline void OpaqueInstances<MeshSystem::DissolutionInstance, Materials::OpaqueTextureMaterial>::update(float time) {
+	inline void OpaqueInstances<Instances::DissolutionInstance, Materials::DissolutionMaterial>::update(float time) {
 		for (size_t i = 0; i < perModel.size(); i++)
 		{
 			for (uint32_t meshIndex = 0; meshIndex < perModel[i].perMesh.size(); ++meshIndex)
@@ -467,26 +519,6 @@ namespace Engine
 		}
 
 		updateInstanceBuffers();
-	}
-
-
-	
-	template<typename I, typename M>
-	inline uint32_t OpaqueInstances<I, M>::addModel(std::shared_ptr<Model> model, const M& material, const TransformSystem::transforms& modelTransforms, const I& instance)
-	{
-		auto TS = TransformSystem::Init();
-		uint32_t modelTransformsId = TS->AddModelTransform(modelTransforms, (uint32_t)model->m_meshes.size());
-
-		return addModel(model, material, modelTransformsId, instance);
-	}
-
-	template<typename I, typename M>
-	inline uint32_t OpaqueInstances<I, M>::addModel(std::shared_ptr<Model> model, const std::vector<M>& material, const TransformSystem::transforms& modelTransforms, const I& instance)
-	{
-		auto TS = TransformSystem::Init();
-		uint32_t modelTransformsId = TS->AddModelTransform(modelTransforms, (uint32_t)model->m_meshes.size());
-
-		return addModel(model, material, modelTransformsId, instance);
 	}
 }
 

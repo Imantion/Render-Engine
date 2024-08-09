@@ -52,6 +52,18 @@ namespace Materials
 		}
 	};
 
+	struct DissolutionMaterial
+	{
+		TextureMaterial opaqueTextures;
+
+		std::shared_ptr<Engine::Texture> noiseTexture;
+
+		bool operator==(const DissolutionMaterial& other) const
+		{
+			return opaqueTextures == other.opaqueTextures && noiseTexture.get() == other.noiseTexture.get();
+		}
+	};
+
 	struct EmmisiveMaterial
 	{
 		Engine::vec4 padding;
