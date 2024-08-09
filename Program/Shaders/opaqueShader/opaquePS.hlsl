@@ -47,6 +47,4 @@ float4 main(PSInput input) : SV_TARGET
     finalColor += CalculateIBLContribution(normal, albedo, metalness, roughness, viewDir);
 
     return float4(finalColor, 1.0f);
-    
-    return float4(1, 1, 1, 1);
 }

@@ -496,10 +496,12 @@ float3 CalculateSpotLightContribution(float3 worldPos, float3 albedo, float meta
     return finalColor;
 }
 
+
 float3 CalculatePointLightContribution(float3 worldPos, float3 albedo, float metalness, float roughness, float3 normal, float3 macroNormal, float3 viewDir)
 {
     float3 finalColor = float3(0, 0, 0);
 
+    [unroll(MAX_PL)]
     for (int i = 0; i < plSize; ++i)
     {
         float3 lightDirection = worldPos - pointLights[i].position;

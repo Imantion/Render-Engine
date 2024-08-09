@@ -391,14 +391,15 @@ namespace Engine
 			float metalness = 0.0f;
 		};
 
-		struct EmmisiveMaterial
+		struct DissolutionInstance
 		{
-			vec4 padding;
-			bool operator==(const EmmisiveMaterial& other) const
-			{
-				return true;
-			}
+			float animationDuration;
+
+			friend class OpaqueInstances<DissolutionInstance, Materials::EmmisiveMaterial>;
+		private:
+			float passedTime;
 		};
+		
 		OpaqueInstances<Instance, Materials::HologramMaterial> hologramGroup;
 		OpaqueInstances<Instance, Materials::NormVisMaterial> normVisGroup;
 		OpaqueInstances<PBRInstance, Materials::OpaqueTextureMaterial> opaqueGroup;
@@ -442,7 +443,6 @@ namespace Engine
 		auto TS = TransformSystem::Init();
 		uint32_t modelTransformsId = TS->AddModelTransform(modelTransforms, (uint32_t)model->m_meshes.size());
 
-		MeshSystem::Init()->shadowGroup.addModel(model, Materials::ShadowMaterial{}, modelTransformsId, MeshSystem::Instance{});
 		return addModel(model, material, modelTransformsId, instance);
 	}
 
@@ -452,7 +452,6 @@ namespace Engine
 		auto TS = TransformSystem::Init();
 		uint32_t modelTransformsId = TS->AddModelTransform(modelTransforms, (uint32_t)model->m_meshes.size());
 
-		MeshSystem::Init()->shadowGroup.addModel(model, Materials::ShadowMaterial{}, modelTransformsId, MeshSystem::Instance{});
 		return addModel(model, material, modelTransformsId, instance);
 	}
 }
