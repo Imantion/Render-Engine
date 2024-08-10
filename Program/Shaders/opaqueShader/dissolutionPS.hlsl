@@ -18,7 +18,7 @@ float4 main(PSInput input) : SV_TARGET
     float dissolveTreshold = saturate(lerp(1.0f, 0.0f, input.passedTime / input.duration));
    
     float alpha = noise - dissolveTreshold;
-    float glow = saturate((0.05 - alpha) / 0.05);
+    float glow = saturate((0.025 - alpha) / 0.025);
    
    
     

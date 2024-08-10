@@ -383,7 +383,7 @@ namespace Engine
 						uint32_t numModelInstances = (uint32_t)instances.size();
 						for (uint32_t index = 0; index < numModelInstances; ++index)
 						{
-							instances[i].instanceData.passedTime += time;
+							instances[index].instanceData.passedTime += time;
 						}
 					}
 				}

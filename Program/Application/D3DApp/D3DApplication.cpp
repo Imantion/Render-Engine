@@ -275,12 +275,13 @@ void D3DApplication::UpdateInput(float deltaTime)
 	{
 		auto MS = Engine::MeshSystem::Init();
 		
-
+		Engine::TransformSystem::transforms transform = { camera->getInverseViewMatrix() };
+		(Engine::vec3&)*transform.modelToWold[3] += camera->getForward() * 3;
 		switch (modelToSpawn)
 		{
 		case SAMURAI:
 		{
-			Engine::TransformSystem::transforms transform = { Engine::transformMatrix(camera->getPosition() + camera->getForward() * 3 - Engine::vec3(0,1,0), Engine::vec3(0,0,1), Engine::vec3(1,0,0) , Engine::vec3(0,1,0))};
+			(Engine::vec3&)*transform.modelToWold[3] += -camera->getUp();
 			auto model = Engine::ModelManager::Init()->GetModel("Models\\Samurai.fbx");
 			MS->dissolutionGroup.addModel(model, samuraiDisolutionMaterial, transform, Instances::DissolutionInstance{ animationDuration });
 			
@@ -288,7 +289,6 @@ void D3DApplication::UpdateInput(float deltaTime)
 			break;
 		case CRATE:
 		{
-			Engine::TransformSystem::transforms transform = { Engine::transformMatrix(camera->getPosition() + camera->getForward() * 3, Engine::vec3(0,0,1), Engine::vec3(1,0,0) , Engine::vec3(0,1,0)) };
 			auto model = Engine::ModelManager::Init()->GetModel("Models\\cube.obj");
 			MS->dissolutionGroup.addModel(model, cubeDisolutionMaterial, transform, Instances::DissolutionInstance{ animationDuration });
 		}

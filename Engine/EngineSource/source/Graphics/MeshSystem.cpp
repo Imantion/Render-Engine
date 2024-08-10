@@ -13,8 +13,10 @@ int Engine::MeshSystem::intersect(const ray& r, hitInfo& hInfo)
 	int second = normVisGroup.intersect(r, hInfo);
 	int third = opaqueGroup.intersect(r, hInfo);
 	int fourth = emmisiveGroup.intersect(r, hInfo);
+	int fifth = dissolutionGroup.intersect(r, hInfo);
 
-
+	if (fifth != -1)
+		return fifth;
 	if (fourth != -1)
 		return fourth;
 	return third != -1? third: (second != -1? second: first);
