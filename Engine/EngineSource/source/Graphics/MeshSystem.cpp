@@ -64,17 +64,31 @@ void Engine::MeshSystem::renderTranslucent()
 
 void Engine::MeshSystem::renderDepthCubemaps(const std::vector<vec3>& lightPositions)
 {
-	ShadowSystem::Init()->RenderPointLightShadowMaps(lightPositions, opaqueGroup);
+	auto opaqueShadowShader = ShaderManager::GetShader("PLshadow");
+	auto dissShadowShader = ShaderManager::GetShader("DissPLshadow");
+
+	ShadowSystem::Init()->RenderPointLightShadowMaps(lightPositions, { ShadowSystem::ShadowRenderGroupInfo{RenderGroups::OPAQUEGROUP,opaqueShadowShader},
+		ShadowSystem::ShadowRenderGroupInfo{RenderGroups::DISSOLUTION,dissShadowShader} });
 }
 
 void Engine::MeshSystem::renderDepth2D(const std::vector<Engine::SpotLight>& spotlights)
 {
-	ShadowSystem::Init()->RenderSpotLightShadowMaps(spotlights, opaqueGroup);
+	ShadowSystem::Init()->PrecomputeSpotProjections(spotlights);
+
+	auto opaqueShadowShader = ShaderManager::GetShader("shadow");
+	auto dissShadowShader = ShaderManager::GetShader("DissShadow");
+	ShadowSystem::Init()->RenderSpotLightShadowMaps({ ShadowSystem::ShadowRenderGroupInfo{RenderGroups::OPAQUEGROUP,opaqueShadowShader},
+		ShadowSystem::ShadowRenderGroupInfo{RenderGroups::DISSOLUTION,dissShadowShader} });
 }
 
 void Engine::MeshSystem::renderDepth2DDirectional(const std::vector<DirectionalLight>& directionalLights, const Camera* camera)
 {
-	ShadowSystem::Init()->RenderDirectLightShadowMaps(directionalLights, camera, opaqueGroup);
+	ShadowSystem::Init()->PrecomputeDirectionalProjections(directionalLights, camera);
+
+	auto opaqueShadowShader = ShaderManager::GetShader("shadow");
+	auto dissShadowShader = ShaderManager::GetShader("DissShadow");
+	ShadowSystem::Init()->RenderDirectLightShadowMaps({ ShadowSystem::ShadowRenderGroupInfo{RenderGroups::OPAQUEGROUP,opaqueShadowShader},
+		ShadowSystem::ShadowRenderGroupInfo{RenderGroups::DISSOLUTION,dissShadowShader} });
 }
 
 

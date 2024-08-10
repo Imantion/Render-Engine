@@ -134,10 +134,15 @@ static void InitMeshSystem()
 		L"Shaders\\normalLines\\GSnormal.hlsl", nullptr, nullptr, D3D_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
 
 
-	auto shadowShader = Engine::ShaderManager::CompileAndCreateShader("shadowShader", L"Shaders\\Shadow\\PointLightShadowVS.hlsl", L"Shaders\\Shadow\\PointLightShadowPS.hlsl",
+	auto shadowShader = Engine::ShaderManager::CompileAndCreateShader("PLshadow", L"Shaders\\Shadow\\PointLightShadowVS.hlsl", L"Shaders\\Shadow\\PointLightShadowPS.hlsl",
 		nullptr, nullptr, L"Shaders\\Shadow\\PointLightShadowGS.hlsl", nullptr, nullptr);
 
-	auto shadowShader2 = Engine::ShaderManager::CompileAndCreateShader("shadowShader2", L"Shaders\\Shadow\\ShadowVS.hlsl", L"Shaders\\Shadow\\ShadowPS.hlsl", nullptr, nullptr);
+	auto shadowShader2 = Engine::ShaderManager::CompileAndCreateShader("shadow", L"Shaders\\Shadow\\ShadowVS.hlsl", L"Shaders\\Shadow\\ShadowPS.hlsl", nullptr, nullptr);
+
+	auto shadowShader3 = Engine::ShaderManager::CompileAndCreateShader("DissPLshadow", L"Shaders\\Shadow\\Dissolution\\PointLightShadowVS.hlsl", L"Shaders\\Shadow\\Dissolution\\PointLightShadowPS.hlsl",
+		nullptr, nullptr, L"Shaders\\Shadow\\PointLightShadowGS.hlsl", nullptr, nullptr);
+
+	auto shadowShader4 = Engine::ShaderManager::CompileAndCreateShader("DissShadow", L"Shaders\\Shadow\\Dissolution\\ShadowVS.hlsl", L"Shaders\\Shadow\\Dissolution\\ShadowPS.hlsl", nullptr, nullptr);
 
 	NormalVisLines->DisableShader();
 	if (!NormalVisColor)
@@ -163,6 +168,8 @@ static void InitMeshSystem()
 	emissiveShader->BindInputLyout(secondInputLayout);
 	shadowShader->BindInputLyout(thirdLayout);
 	shadowShader2->BindInputLyout(thirdLayout);
+	shadowShader3->BindInputLyout(fourthLayout);
+	shadowShader4->BindInputLyout(fourthLayout);
 	dissolutionShader->BindInputLyout(fourthLayout);
 
 	Engine::ShadowSystem::Init()->SetShadowShaders(shadowShader, shadowShader2, shadowShader2);

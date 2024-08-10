@@ -54,6 +54,250 @@ void Engine::ShadowSystem::SetProjectionInfo(float nearPlane, float farPlane)
 	m_ProjectionInfo.farPlane = farPlane;
 }
 
+void Engine::ShadowSystem::PrecomputeDirectionalProjections(const std::vector<DirectionalLight>& lights, const Camera* camera)
+{
+	if (lights.size() != m_dlDSVS.size())
+	{
+		m_dlViewProjections.resize(lights.size());
+		Create2DShadowMaps(lights.size(), m_dlDSVS, m_srvDirLigts);
+	}
+
+
+	vec3 frustrumCorners[8] = {
+	  vec3(-1.0f, 1.0f, 0.0f),
+	  vec3(1.0f,  1.0f, 0.0f),
+	  vec3(-1.0f,-1.0f, 0.0f),
+	  vec3(1.0f, -1.0f, 0.0f),
+	  vec3(-1.0f, 1.0f, 1.0f),
+	  vec3(1.0f, 1.0f, 1.0f),
+	  vec3(-1.0f, -1.0f, 1.0f),
+	  vec3(1.0f, -1.0f, 1.0f)
+	};
+
+	vec3 frustrumCentr;
+
+	for (size_t i = 0; i < 8; i++)
+	{
+		vec4 viewSpace = vec4(frustrumCorners[i], 1.0f) * camera->getInverseProjectionMatrix();
+		frustrumCorners[i] = (viewSpace / viewSpace.w) * camera->getInverseViewMatrix();
+
+		frustrumCentr += frustrumCorners[i];
+	}
+
+	frustrumCentr = frustrumCentr / 8.0f;
+
+
+	float radius = (frustrumCorners[2] - frustrumCorners[5]).length() * 0.5f;
+
+	float texelSize = (float)m_shadowResolution / (2.0f * radius);
+
+	mat4 scalarMatrix(vec4(texelSize, 0.0f, 0.0f, 0.0f),
+		vec4(0.0f, texelSize, 0.0f, 0.0f),
+		vec4(0.0f, 0.0f, texelSize, 0.0f),
+		vec4(0.0f, 0.0f, 0.0f, 1.0f));
+
+
+	mat4 ortProjection = orthographicProjecton(radius, -radius, radius, -radius, -radius, radius);
+
+	vec3 zero(0.0f);
+	vec3 up(0.0f, 1.0f, 0.0f);
+	for (size_t i = 0; i < lights.size(); i++)
+	{
+		mat4 scalaredView = viewMatrix(zero, -lights[i].direction, up) * scalarMatrix;
+		mat4 inversedScalaerView = mat4::Inverse(scalaredView);
+
+		vec3 newFrustrumCentr = vec4(frustrumCentr, 1.0f) * scalaredView;
+		newFrustrumCentr.x = floor(newFrustrumCentr.x);
+		newFrustrumCentr.y = floor(newFrustrumCentr.y);
+
+		newFrustrumCentr = vec4(newFrustrumCentr, 1.0f) * inversedScalaerView;
+
+		vec3 eye = newFrustrumCentr - (lights[i].direction * radius);
+		mat4 view = LookAt(eye, newFrustrumCentr, up);
+
+		float maxZ = std::numeric_limits<float>::min();
+		float minZ = std::numeric_limits<float>::max();
+
+		for (size_t i = 0; i < 8; i++)
+		{
+			vec4 viewCorner = vec4(frustrumCorners[i], 1.0f) * view;
+			maxZ = Max(maxZ, viewCorner.z);
+			minZ = Min(minZ, viewCorner.z);
+		}
+
+		float z = maxZ - minZ + 10.0f;
+
+		ortProjection[2][2] = 1.0f / (-z - z);
+
+		m_dlViewProjections[i] = view * ortProjection;
+	}
+
+	m_dlConstBuff.updateBuffer(m_dlViewProjections.data(), (UINT)m_dlViewProjections.size());
+}
+
+void Engine::ShadowSystem::PrecomputeSpotProjections(const std::vector<SpotLight>& lights)
+{
+	if (lights.size() != m_slDSVS.size())
+	{
+		m_slViewProjections.resize(lights.size());
+		Create2DShadowMaps(lights.size(), m_slDSVS, m_srvSpotLigts);
+	}
+
+	auto TS = TransformSystem::Init();
+
+	for (size_t i = 0; i < lights.size(); i++)
+	{
+		vec3 position = lights[i].position;
+
+		if (lights[i].bindedObjectId != -1)
+		{
+			auto& transform = TS->GetModelTransforms(lights[i].bindedObjectId)[0].modelToWold;
+			position += (vec3&)*transform[3];
+			vec3 direction = vec4(lights[i].direction, 0.0f) * transform;
+
+			mat4 projection = projectionMatrix(lights[i].cutoffAngle * 2.0f, m_ProjectionInfo.nearPlane, m_ProjectionInfo.farPlane, 1.0f);
+			m_slViewProjections[i] = viewMatrix(position, direction, topFromDir(direction)) * projection;
+		}
+	}
+}
+
+void Engine::ShadowSystem::RenderPointLightShadowMaps(const std::vector<vec3>& lightPositions, const std::vector<ShadowRenderGroupInfo>& renderGroupsInfo)
+{
+	if (m_plDSVS.size() != lightPositions.size())
+		createPointLightShadowMaps(lightPositions.size());
+
+	auto context = D3D::GetInstance()->GetContext();
+
+	mat4 projection = projectionMatrix((float)M_PI_2, m_ProjectionInfo.nearPlane, m_ProjectionInfo.farPlane, 1.0f);
+
+	struct lightViewProjections
+	{
+		mat4 lightViewProjection[6];
+	};
+
+	ConstBuffer<lightViewProjections> cbProjections;
+	cbProjections.create();
+
+	ConstBuffer<vec4> psConstBuffer;
+	psConstBuffer.create();
+
+	D3D11_VIEWPORT boundedViewport;
+	UINT numViewports = 1u;
+	context->RSGetViewports(&numViewports, &boundedViewport);
+
+
+	context->RSSetViewports(1, &m_viewport);
+
+	static const vec3 directions[6] =
+	{
+		vec3(1.0f, 0.0f, 0.0f), // +X
+		vec3(-1.0f, 0.0f, 0.0f), // -X
+		vec3(0.0f, 1.0f, 0.0f), // +Y
+		vec3(0.0f, -1.0f, 0.0f), // -Y
+		vec3(0.0f, 0.0f, 1.0f), // +Z
+		vec3(0.0f, 0.0f, -1.0f) // -Z
+	};
+
+	for (size_t i = 0; i < lightPositions.size(); i++)
+	{
+		context->ClearDepthStencilView(m_plDSVS[i].Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 0.0f, 0u);
+
+		lightViewProjections constantBufferData{
+			viewMatrix(lightPositions[i], directions[0], vec3(0.0f, 1.0f, 0.0f)) * projection,
+			viewMatrix(lightPositions[i], directions[1], vec3(0.0f, 1.0f, 0.0f)) * projection,
+			viewMatrix(lightPositions[i], directions[2], vec3(0.0f, 0.0f, -1.0f)) * projection,
+			viewMatrix(lightPositions[i], directions[3], vec3(0.0f, 0.0f, 1.0f)) * projection,
+			viewMatrix(lightPositions[i], directions[4], vec3(0.0f, 1.0f, 0.0f)) * projection,
+			viewMatrix(lightPositions[i], directions[5], vec3(0.0f, 1.0f, 1.0f)) * projection,
+		};
+
+		vec4 psData(lightPositions[i], m_ProjectionInfo.farPlane);
+
+		cbProjections.updateBuffer(&constantBufferData);
+		cbProjections.bind(0u, GS);
+
+		psConstBuffer.updateBuffer(&psData);
+		psConstBuffer.bind(10u, PS);
+
+		context->OMSetRenderTargets(0u, nullptr, m_plDSVS[i].Get());
+
+		for (size_t i = 0; i < renderGroupsInfo.size(); i++)
+		{
+			groupToRenderIn(renderGroupsInfo[i].renderFlag, renderGroupsInfo[i].usedShader);
+		}
+	}
+
+	context->OMSetRenderTargets(0u, nullptr, nullptr);
+	context->RSSetViewports(1u, &boundedViewport);
+}
+
+void Engine::ShadowSystem::RenderSpotLightShadowMaps(const std::vector<ShadowRenderGroupInfo>& renderGroupsInfo)
+{
+	auto context = D3D::GetInstance()->GetContext();
+
+	ConstBuffer<mat4> cbProjections;
+	cbProjections.create();
+
+	D3D11_VIEWPORT boundedViewport;
+	UINT numViewports = 1u;
+	context->RSGetViewports(&numViewports, &boundedViewport);
+
+	context->RSSetViewports(1, &m_viewport);
+
+	auto TS = TransformSystem::Init();
+	for (size_t i = 0; i < m_slViewProjections.size(); i++)
+	{
+		cbProjections.updateBuffer(&m_slViewProjections[i]);
+		cbProjections.bind(4u, VS);
+
+		context->ClearDepthStencilView(m_slDSVS[i].Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 0.0f, 0u);
+		context->OMSetRenderTargets(0u, nullptr, m_slDSVS[i].Get());
+
+		for (size_t i = 0; i < renderGroupsInfo.size(); i++)
+		{
+			groupToRenderIn(renderGroupsInfo[i].renderFlag, renderGroupsInfo[i].usedShader);
+		}
+	}
+
+	m_slConstBuff.updateBuffer(m_slViewProjections.data(), (UINT)m_slViewProjections.size());
+
+	context->OMSetRenderTargets(0u, nullptr, nullptr);
+	context->RSSetViewports(1u, &boundedViewport);
+}
+
+void Engine::ShadowSystem::RenderDirectLightShadowMaps(const std::vector<ShadowRenderGroupInfo>& renderGroupsInfo)
+{
+	auto context = D3D::GetInstance()->GetContext();
+
+	ConstBuffer<mat4> cbProjections;
+	cbProjections.create();
+
+	D3D11_VIEWPORT boundedViewport;
+	UINT numViewports = 1u;
+	context->RSGetViewports(&numViewports, &boundedViewport);
+
+	context->RSSetViewports(1, &m_viewport);
+
+
+	for (size_t i = 0; i < m_dlViewProjections.size(); i++)
+	{
+
+		cbProjections.updateBuffer(&m_dlViewProjections[i]);
+		cbProjections.bind(4u, VS);
+
+		context->ClearDepthStencilView(m_dlDSVS[i].Get(), D3D11_CLEAR_STENCIL | D3D11_CLEAR_DEPTH, 0.0f, 0u);
+		context->OMSetRenderTargets(0, nullptr, m_dlDSVS[i].Get());
+
+		for (size_t i = 0; i < renderGroupsInfo.size(); i++)
+		{
+			groupToRenderIn(renderGroupsInfo[i].renderFlag, renderGroupsInfo[i].usedShader);
+		}
+	}
+
+	context->OMSetRenderTargets(0u, nullptr, nullptr);
+	context->RSSetViewports(1u, &boundedViewport);
+}
+
 void Engine::ShadowSystem::BindShadowTextures(UINT pointLightTextureSlot , UINT spotLightTextureSlot, UINT directionaLightTexture)
 {
 	auto context = D3D::GetInstance()->GetContext();
@@ -67,6 +311,31 @@ void Engine::ShadowSystem::BindShadowBuffers(UINT spotLightsBufferSlot, UINT dir
 {
 	m_slConstBuff.bind(spotLightsBufferSlot, PS);
 	m_dlConstBuff.bind(directionalLightsBufferSlot, PS);
+}
+
+void Engine::ShadowSystem::groupToRenderIn(MeshSystem::RenderGroups renderGroupFlags, std::shared_ptr<shader> usedShader)
+{
+	auto MS = MeshSystem::Init();
+	switch (renderGroupFlags)
+	{
+	case Engine::MeshSystem::HOLOGRAM:
+		MS->hologramGroup.renderUsingShader(usedShader);
+		break;
+	case Engine::MeshSystem::NORMALVIS:
+		MS->normVisGroup.renderUsingShader(usedShader);
+		break;
+	case Engine::MeshSystem::OPAQUEGROUP:
+		MS->opaqueGroup.renderUsingShader(usedShader);
+		break;
+	case Engine::MeshSystem::EMMISIVE:
+		MS->emmisiveGroup.renderUsingShader(usedShader);
+		break;
+	case Engine::MeshSystem::DISSOLUTION:
+		MS->dissolutionGroup.renderUsingShader(usedShader);
+		break;
+	default:
+		break;
+	}
 }
 
 Engine::ShadowSystem::ShadowSystem()

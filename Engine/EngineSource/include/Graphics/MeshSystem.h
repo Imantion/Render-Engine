@@ -480,6 +480,15 @@ namespace Engine
 
 		static MeshSystem* Init();
 
+		enum RenderGroups
+		{
+			HOLOGRAM = 1,
+			NORMALVIS = 2,
+			OPAQUEGROUP = 4,
+			EMMISIVE = 8,
+			DISSOLUTION = 16,
+		};
+
 
 		static void Deinit();
 	private:
