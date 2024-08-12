@@ -221,8 +221,7 @@ void Engine::ReflectionCapture::IBLreflectance(const wchar_t* generatedTextureNa
 	{
 		UINT resolution;
 		UINT numbersOfSample;
-		float roughness;
-		float padding[1];
+		float padding[2];
 	} psCBdata;
 	psCBdata = { resolution, numberOfSamples };
 	Engine::ConstBuffer<textureProcessInfo> psCB;
