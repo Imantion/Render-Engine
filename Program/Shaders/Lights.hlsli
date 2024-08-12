@@ -215,8 +215,9 @@ float D_GGX(float roughness4, float NoH)
 
 float G_Smith(float roughness4, float NoV, float NoL)
 {
-    float denominator = max((sqrt(1.0f + roughness4 * (1 - NoV) / max(NoV, 0.0001f)) * sqrt(1.0f + roughness4 * (1 - NoL) / max(NoL, 0.0001f))), 0.0001f);
-    return 2.0f / denominator;
+    NoV *= NoV;
+    NoL *= NoL;
+    return 2.0 / (sqrt(1 + roughness4 * (1 - NoV) / NoV) + sqrt(1 + roughness4 * (1 - NoL) / NoL));
 }
 
 float SolidAngle(float radius, float distanceSquared)
@@ -269,7 +270,7 @@ float3 PBRLight(PointLight lightSource, float3 worldPosition, float3 albedo, flo
     float NoV = max(dot(microNormal, v), 0.001f);
     float HoL = max(dot(h, l), 0.001f);
     float VoL = max(dot(v, l), 0.001f);
-    float3 F0 = lerp(0.4f, albedo, metalness);
+    float3 F0 = lerp(g_MIN_F0, albedo, metalness);
 
     SphereMaxNoH(NoV, NoL, VoL, sinAngular, cosAnglular, true, NoH, NoV);
     

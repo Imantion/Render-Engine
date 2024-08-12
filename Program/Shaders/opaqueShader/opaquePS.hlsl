@@ -46,7 +46,7 @@ static const float3 areaLightPoints[4] =
 float4 main(PSInput input) : SV_TARGET
 {
     float3 albedo = albed.Sample(g_sampler, input.tc);
-    float3 normal = mul(((normalTexture.Sample(g_sampler, input.tc).rgb - 0.5f) * 2.0f), input.tbn);
+    float3 normal = normalize(mul(((normalTexture.Sample(g_sampler, input.tc).rgb - 0.5f) * 2.0f), input.tbn));
     float3 v = normalize(g_cameraPosition - input.worldPos);
     
     float metalness = material_metalness;
@@ -126,11 +126,11 @@ float4 main(PSInput input) : SV_TARGET
     
     finalColor += FlashLight(flashLight, albedo, metalness, roughness, normal, input.worldPos, g_cameraPosition, specularState, diffuseState);
    
-    float2 refl = reflectanceIBL.Sample(g_linearWrap, float2(saturate(dot(normal, v)), roughness));
+    float2 refl = reflectanceIBL.Sample(g_sampler, float2(saturate(dot(normal, v)), roughness));
     float3 F0 = lerp(g_MIN_F0, albedo, metalness);
     
     if (IBLState)
-        finalColor += albedo * diffuseIBL.Sample(g_linearWrap, normal).rgb * (1 - metalness) + specIrrIBL.SampleLevel(g_linearWrap, normal, MAX_MIP * roughness).rgb * (refl.r * F0 + refl.g);
+        finalColor += albedo * diffuseIBL.Sample(g_sampler, normal).rgb * (1 - metalness) + specIrrIBL.SampleLevel(g_sampler, normal, MAX_MIP * roughness).rgb * (refl.r * F0 + refl.g);
     
     
     return float4(finalColor, 1.0f);

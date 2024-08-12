@@ -160,7 +160,6 @@ int main(int argc, char* argv[])
 
 		if (timer.timeElapsed(FRAME_RATE))
 		{
-
 			app.Update(timer.getDeltatime());
 			Input::resetScroll();
 			Input::resetMousePressed();
