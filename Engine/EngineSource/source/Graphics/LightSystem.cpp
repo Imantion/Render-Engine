@@ -73,9 +73,9 @@ void Engine::LightSystem::AddPointLight(const PointLight& pointLight)
     m_pointLights.push_back(pointLight);
 }
 
-uint32_t Engine::LightSystem::AddPointLight(const vec3& irradiance, float radius, float distanceSquared, const vec3& pos, std::shared_ptr<Model> model)
+uint32_t Engine::LightSystem::AddPointLight(const vec3& irradiance, float radius, float distance, const vec3& pos, std::shared_ptr<Model> model)
 {
-    PointLight pointLight(irradiance, radius, distanceSquared, vec3(0.0f));
+    PointLight pointLight(irradiance, radius, distance, vec3(0.0f));
     Engine::TransformSystem::transforms inst = {
         Engine::transformMatrix(pos, Engine::vec3(0.0f, 0.0f, 1.0f) * radius, Engine::vec3(1.0f, 0.0f, 0.0f) * radius, Engine::vec3(0.0f, 1.0f, 0.0f) * radius)};
 
@@ -86,16 +86,16 @@ uint32_t Engine::LightSystem::AddPointLight(const vec3& irradiance, float radius
     return pointLight.bindedObjectId;
 }
 
-void Engine::LightSystem::AddPointLight(const vec3& irradiance, float radius, float distanceSquared, const vec3& pos, int objectToBindId)
+void Engine::LightSystem::AddPointLight(const vec3& irradiance, float radius, float distance, const vec3& pos, int objectToBindId)
 {
-    PointLight pointLight(irradiance, radius, distanceSquared, pos);
+    PointLight pointLight(irradiance, radius, distance, pos);
     pointLight.bindedObjectId = objectToBindId;
     AddPointLight(pointLight);
 }
 
-uint32_t Engine::LightSystem::AddSpotLight(const vec3& irradiance, float radius, float distanceSquared, const vec3& pos, const vec3& direction, float cutoffAngle, std::shared_ptr<Model> model)
+uint32_t Engine::LightSystem::AddSpotLight(const vec3& irradiance, float radius, float distance, const vec3& pos, const vec3& direction, float cutoffAngle, std::shared_ptr<Model> model)
 {
-    SpotLight spotLight(irradiance, radius, distanceSquared, pos, direction, cutoffAngle);
+    SpotLight spotLight(irradiance, radius, distance, pos, direction, cutoffAngle);
     Engine::TransformSystem::transforms inst = {
     Engine::transformMatrix(pos, Engine::vec3(0.0f, 0.0f, 1.0f) * radius, Engine::vec3(1.0f, 0.0f, 0.0f) * radius, Engine::vec3(0.0f, 1.0f, 0.0f) * radius) };
 
@@ -106,9 +106,9 @@ uint32_t Engine::LightSystem::AddSpotLight(const vec3& irradiance, float radius,
     return spotLight.bindedObjectId;
 }
 
-void Engine::LightSystem::AddSpotLight(const vec3& irradiance, float radius, float distanceSquared, const vec3& pos, const vec3& direction, float cutoffAngle, int objectToBindID)
+void Engine::LightSystem::AddSpotLight(const vec3& irradiance, float radius, float distance, const vec3& pos, const vec3& direction, float cutoffAngle, int objectToBindID)
 {
-    SpotLight spotLight(irradiance, radius, distanceSquared, pos, direction, cutoffAngle);
+    SpotLight spotLight(irradiance, radius, distance, pos, direction, cutoffAngle);
     spotLight.bindedObjectId = objectToBindID;
     AddSpotLight(spotLight);
 }

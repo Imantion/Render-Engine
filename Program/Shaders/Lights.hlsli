@@ -17,6 +17,7 @@ static const int MAX_SL = 5;
 #endif
 
 #define PI 3.141
+static const float g_MIN_F0 = 0.01;
 
 static const float3 ambient = float3(0.005f, 0.005f, 0.005f);
 Texture2D flashlighTexture : register(t1);
@@ -107,7 +108,7 @@ float3 PBRLight(float3 irradiance, float solidAngle, float3 l ,float3 albedo, fl
     float NoV = max(dot(n, v), 0.001f);
     float NoL = max(dot(n, l), 0.001f);
     float HoL = max(dot(h, l), 0.001f);
-    float3 F0 = lerp(0.04f, albedo, metalness);
+    float3 F0 = lerp(g_MIN_F0, albedo, metalness);
 
     
     float3 f_spec = min(D_GGX(rSquared, NoH) * solidAngle / (4 * NoV), 1.0f) * G_Smith(rSquared, NoV, NoL) * fresnel(F0, HoL);

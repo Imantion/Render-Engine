@@ -304,7 +304,7 @@ void D3DApplication::InitSamuraiModel()
 		  TM->LoadFromFile("samurai_head_normal", L"Textures\\Samurai\\Head_Normal.dds") },
 		{ TM->LoadFromFile("samurai_eyes", L"Textures\\Samurai\\Eyes_BaseColor.dds"),
 		  emptyTexture, emptyTexture,
-		  TM->LoadFromFile("samurai_eyes_normal", L"Textures\\Samurai\\Eyes_Normal.dds"), 0, 0.05f, 0.5f },
+		  TM->LoadFromFile("samurai_eyes_normal", L"Textures\\Samurai\\Eyes_Normal.dds"), 0, 0.05f, 0.08f },
 		{ TM->LoadFromFile("samurai_helmet", L"Textures\\Samurai\\Helmet_BaseColor.dds"),
 		  TM->LoadFromFile("samurai_helmet_rougness", L"Textures\\Samurai\\Helmet_Roughness.dds"),
 		  TM->LoadFromFile("samurai_helmet_metallic", L"Textures\\Samurai\\Helmet_Metallic.dds"),
@@ -356,12 +356,12 @@ void D3DApplication::InitLights()
 	Engine::ModelManager::GetInstance()->initUnitSphere();
 	auto model = Engine::ModelManager::GetInstance()->GetModel("UNIT_SPHERE");
 
-	Engine::LightSystem::Init()->AddPointLight(Engine::vec3(1.5f, 0.0f, 0.9f), 1.0f, 5.0f, Engine::vec3(-5.0f, 0.0f, 2.0f), model);
+	Engine::LightSystem::Init()->AddPointLight(Engine::vec3(1.5f, 0.0f, 0.9f), 1.0f, 2.236f, Engine::vec3(-5.0f, 0.0f, 2.0f), model);
 	Engine::LightSystem::Init()->AddPointLight(Engine::vec3(2.35f), 0.5f, 1.0f, Engine::vec3(2.0f, -1.0f, 0.0f), model);
 	Engine::LightSystem::Init()->AddPointLight(Engine::vec3(0.0f, 4.0f, 0.0f), 0.5f, 1.0f, Engine::vec3(2.0f, 2.0f, 0.0f), model);
 	Engine::LightSystem::Init()->AddPointLight(Engine::vec3(0.1f), 0.05f, 1.0f, Engine::vec3(0.0f, 0.0f, -0.5f), model);
 
-	Engine::SpotLight spotLight(Engine::vec3(1.0f), 1.0f, 25.0f, Engine::vec3(0.0f, 0.0f, 0.0f), Engine::vec3(.0f, .0f, 1.0f), 0.5 / 2.0f);
+	Engine::SpotLight spotLight(Engine::vec3(1.0f), 1.0f, 5.0f, Engine::vec3(0.0f, 0.0f, 0.0f), Engine::vec3(.0f, .0f, 1.0f), 0.5 / 2.0f);
 	spotLight.bindedObjectId = camera->getCameraTransformId();
 	Engine::LightSystem::Init()->AddFlashLight(spotLight, TM->LoadFromFile("flashlight", L"Textures\\flashlightMask.dds"));
 
