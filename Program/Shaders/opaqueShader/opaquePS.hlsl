@@ -127,7 +127,7 @@ float4 main(PSInput input) : SV_TARGET
     finalColor += FlashLight(flashLight, albedo, metalness, roughness, normal, input.worldPos, g_cameraPosition, specularState, diffuseState);
    
     float2 refl = reflectanceIBL.Sample(g_linearWrap, float2(saturate(dot(normal, v)), roughness));
-    float3 F0 = lerp(0.04f, albedo, metalness);
+    float3 F0 = lerp(g_MIN_F0, albedo, metalness);
     
     if (IBLState)
         finalColor += albedo * diffuseIBL.Sample(g_linearWrap, normal).rgb * (1 - metalness) + specIrrIBL.SampleLevel(g_linearWrap, normal, MAX_MIP * roughness).rgb * (refl.r * F0 + refl.g);
