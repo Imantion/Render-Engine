@@ -77,11 +77,16 @@ std::shared_ptr<Engine::Model> Engine::ModelManager::AddModel(std::string name, 
 	return models[name];
 }
 
-std::shared_ptr<Engine::Model> Engine::ModelManager::loadModel(std::string path)
+std::shared_ptr<Engine::Model> Engine::ModelManager::loadModel(std::string path, bool flipBT)
 {
 	if (models.find(path) != models.end())
 		return models.find(path)->second;
 	// Load aiScene
+
+	float sign = 1.0f;
+	if (flipBT)
+		sign = -1.0f;
+
 
 	uint32_t flags = uint32_t(aiProcess_Triangulate | aiProcess_GenBoundingBoxes | aiProcess_ConvertToLeftHanded | aiProcess_CalcTangentSpace);
 	// aiProcess_Triangulate - ensure that all faces are triangles and not polygonals, otherwise triangulare them
@@ -142,8 +147,8 @@ std::shared_ptr<Engine::Model> Engine::ModelManager::loadModel(std::string path)
 			vert.pos = reinterpret_cast<Engine::vec3&>(srcMesh->mVertices[v]);
 			vert.tc = reinterpret_cast<Engine::vec2&>(srcMesh->mTextureCoords[0][v]);
 			vert.normal = reinterpret_cast<Engine::vec3&>(srcMesh->mNormals[v]);
-			vert.tangent = reinterpret_cast<Engine::vec3&>(srcMesh->mTangents[v]);
-			vert.bitangent = reinterpret_cast<Engine::vec3&>(srcMesh->mBitangents[v]) * -1.f; // Flip V
+			vert.tangent = reinterpret_cast<Engine::vec3&>(srcMesh->mTangents[v]) * sign;
+			vert.bitangent = reinterpret_cast<Engine::vec3&>(srcMesh->mBitangents[v]) * -1.f * sign; // Flip V
 
 			verticies.push_back(vert);
 		}

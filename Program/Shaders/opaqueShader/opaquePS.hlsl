@@ -1,38 +1,72 @@
 #include "..\declarations.hlsli"
 #include "..\Lights.hlsli"
 
-Texture2D text : register(t0);
+Texture2D albed : register(t2);
+Texture2D rough : register(t3);
+Texture2D metal : register(t4);
+Texture2D normalTexture : register(t5);
+
+cbuffer MaterialData : register(b2)
+{
+    float material_flags;
+    float material_roughness;
+    float material_metalness;
+}
 
 struct PSInput
 {
     float4 pos : SV_Position;
     float3 worldPos : WorldPos;
-    float3 normal : NORMAL;
+    float3x3 tbn : TBN;
     float2 tc : TC;
 };
 
 
+
 float4 main(PSInput input) : SV_TARGET
 {
+    float3 albedo = albed.Sample(g_sampler, input.tc);
+    float3 normal = mul(((normalTexture.Sample(g_sampler, input.tc).rgb - 0.5f) * 2.0f), input.tbn);
+    
+    float metalness = material_metalness;
+    if(material_flags && 2)
+        metalness = metal.Sample(g_sampler, input.tc).r;
+    
+    float roughness = material_roughness;
+    if(material_flags && 1)
+        roughness = rough.Sample(g_sampler, input.tc).r;
+    
+    
     float3 finalColor = float3(0, 0, 0);
     for (int i = 0; i < slSize; ++i)
     {
-        finalColor += SpotLightContribution(spotLights[i], input.normal, input.worldPos, g_cameraPosition);
+        float I = SpotLightCuttOffFactor(spotLights[i], input.worldPos, g_cameraPosition);
+        float3 v = normalize(g_cameraPosition - input.worldPos);
+        float3 l = spotLights[i].position - input.worldPos;
+        float solidAngle = SolidAngle(spotLights[i].radiusOfCone, dot(l, l));
+        l = normalize(l);
+        finalColor += I * PBRLight(spotLights[i].color, solidAngle, l, albedo, metalness, roughness, normal, v);
     }
     for (i = 0; i < plSize; ++i)
     {
-        finalColor += PointLightContribution(pointLights[i],input.normal, input.worldPos, g_cameraPosition);
+        float3 v = normalize(g_cameraPosition - input.worldPos);
+        float3 l = pointLights[i].position - input.worldPos;
+        float solidAngle = SolidAngle(pointLights[i].radius, dot(l, l));
+        l = normalize(l);
+        finalColor += PBRLight(pointLights[i].color, solidAngle, l, albedo, metalness, roughness, normal, v);
     }
     
     for (i = 0; i < dlSize; ++i)
     {
-        finalColor += DirectionalLightsContibution(directionalLights[i], input.normal, input.worldPos, g_cameraPosition);
+        float3 v = normalize(g_cameraPosition - input.worldPos);
+
+        finalColor += PBRLight(directionalLights[i].color, directionalLights[i].solidAngle, -directionalLights[i].direction, albedo, metalness, roughness, normal, v);
     }
-    finalColor += FlashLight(flashLight, input.normal, input.worldPos, g_cameraPosition);
+    finalColor += FlashLight(flashLight, albedo, metalness, roughness, normal, input.worldPos, g_cameraPosition);
    
     
     finalColor += ambient;
-    float3 textureColor = text.Sample(g_anisotropicWrap, input.tc);
     
-    return float4(textureColor * finalColor, 1.0f);
+    
+    return float4(finalColor, 1.0f);
 }

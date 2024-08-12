@@ -1,6 +1,7 @@
 #include "Graphics/LightSystem.h"
 #include "Graphics/TransformSystem.h"
 #include "Graphics/TextureManager.h"
+#include "Graphics/MeshSystem.h"
 
 Engine::LightSystem* Engine::LightSystem::m_instance;
 std::mutex Engine::LightSystem::m_mutex; 
@@ -57,26 +58,59 @@ void Engine::LightSystem::SetFlashLightAttachedState(bool attach)
     m_flashLight.isAttached = attach;
 }
 
-void Engine::LightSystem::AddDirectionalLight(const vec3& direction, const vec3& color, float intensity)
+void Engine::LightSystem::AddDirectionalLight(const vec3& direction, const vec3& radiance, float solidAngle)
 {
-    DirectionalLight directLight(direction, color, intensity);
+    DirectionalLight directLight(direction, radiance, solidAngle);
     AddDirectionalLight(directLight);
 }
 
 
-void Engine::LightSystem::AddPointLight(const PointLight& other)
+void Engine::LightSystem::AddPointLight(const PointLight& pointLight)
 {
     if (m_pointLights.size() > MAX_POINT_LIGHTS)
         throw "Too many point lights";
 
-    m_pointLights.push_back(other);
+    m_pointLights.push_back(pointLight);
 }
 
-void Engine::LightSystem::AddPointLight(const vec3& col, const vec3& pos, float intens, int objectToBindId)
+uint32_t Engine::LightSystem::AddPointLight(const vec3& irradiance, float radius, float distance, const vec3& pos, std::shared_ptr<Model> model)
 {
-    PointLight pointLight(col, pos, intens);
+    PointLight pointLight(irradiance, radius, distance, vec3(0.0f));
+    Engine::TransformSystem::transforms inst = {
+        Engine::transformMatrix(pos, Engine::vec3(0.0f, 0.0f, 1.0f) * radius, Engine::vec3(1.0f, 0.0f, 0.0f) * radius, Engine::vec3(0.0f, 1.0f, 0.0f) * radius)};
+
+    pointLight.bindedObjectId = Engine::MeshSystem::Init()->emmisiveGroup.addModel(model, Materials::EmmisiveMaterial{}, inst, Engine::MeshSystem::EmmisiveInstance{ pointLight.radiance });
+
+    AddPointLight(pointLight);
+
+    return pointLight.bindedObjectId;
+}
+
+void Engine::LightSystem::AddPointLight(const vec3& irradiance, float radius, float distance, const vec3& pos, int objectToBindId)
+{
+    PointLight pointLight(irradiance, radius, distance, pos);
     pointLight.bindedObjectId = objectToBindId;
     AddPointLight(pointLight);
+}
+
+uint32_t Engine::LightSystem::AddSpotLight(const vec3& irradiance, float radius, float distance, const vec3& pos, const vec3& direction, float cutoffAngle, std::shared_ptr<Model> model)
+{
+    SpotLight spotLight(irradiance, radius, distance, pos, direction, cutoffAngle);
+    Engine::TransformSystem::transforms inst = {
+    Engine::transformMatrix(pos, Engine::vec3(0.0f, 0.0f, 1.0f) * radius, Engine::vec3(1.0f, 0.0f, 0.0f) * radius, Engine::vec3(0.0f, 1.0f, 0.0f) * radius) };
+
+    spotLight.bindedObjectId = Engine::MeshSystem::Init()->emmisiveGroup.addModel(model, Materials::EmmisiveMaterial{}, inst, Engine::MeshSystem::EmmisiveInstance{ spotLight.radiance });
+
+    AddSpotLight(spotLight);
+
+    return spotLight.bindedObjectId;
+}
+
+void Engine::LightSystem::AddSpotLight(const vec3& irradiance, float radius, float distance, const vec3& pos, const vec3& direction, float cutoffAngle, int objectToBindID)
+{
+    SpotLight spotLight(irradiance, radius, distance, pos, direction, cutoffAngle);
+    spotLight.bindedObjectId = objectToBindID;
+    AddSpotLight(spotLight);
 }
 
 void Engine::LightSystem::AddSpotLight(const SpotLight& spotLight)
@@ -118,8 +152,8 @@ void Engine::LightSystem::UpdateLightsBuffer()
         {
             bufferData.pointLights[i].position = m_pointLights[i].position;
         }
-        bufferData.pointLights[i].color = m_pointLights[i].color;
-        bufferData.pointLights[i].intensity = m_pointLights[i].intensity;
+        bufferData.pointLights[i].radiance = m_pointLights[i].radiance;
+        bufferData.pointLights[i].radius = m_pointLights[i].radius;
     }
     
     for (size_t i = 0; i < m_spotLights.size(); i++)
@@ -130,6 +164,7 @@ void Engine::LightSystem::UpdateLightsBuffer()
             bufferData.spotLights[i].position = m_spotLights[i].position + (vec3&)(*bindedTransform[3]);
             bufferData.spotLights[i].direction = vec4(m_spotLights[i].direction, 0.0f) * bindedTransform;
             bufferData.spotLights[i].direction = bufferData.spotLights[i].direction.normalized();
+            bufferData.flashLightsViewProjection = mat4::Inverse(bindedTransform) * projectionMatrix(0.5f, 0.1f, 10.0f, 100, 100);;
         }
         else
         {
@@ -137,9 +172,9 @@ void Engine::LightSystem::UpdateLightsBuffer()
             bufferData.spotLights[i].direction = m_spotLights[i].direction;
         }
         
-        bufferData.spotLights[i].color = m_spotLights[i].color;
+        bufferData.spotLights[i].radiance = m_spotLights[i].radiance;
         bufferData.spotLights[i].cutoffAngle = cosf(m_spotLights[i].cutoffAngle);
-        bufferData.spotLights[i].intensity = m_spotLights[i].intensity;
+        bufferData.spotLights[i].radius = m_spotLights[i].radius;
     }
 
     if (m_flashLight.light.bindedObjectId != -1)
@@ -155,9 +190,9 @@ void Engine::LightSystem::UpdateLightsBuffer()
            
         bufferData.flashLight.direction = m_flashLight.worldDirection;
         bufferData.flashLight.position = m_flashLight.worldPosition;
-        bufferData.flashLight.color = m_flashLight.light.color;
+        bufferData.flashLight.radiance = m_flashLight.light.radiance;
         bufferData.flashLight.cutoffAngle = cosf(m_flashLight.light.cutoffAngle);
-        bufferData.flashLight.intensity = m_flashLight.light.intensity;
+        bufferData.flashLight.radius = m_flashLight.light.radius;
         bufferData.flashLightsViewProjection = m_flashLight.flashLightsViewProjection;
 
     }
@@ -174,14 +209,5 @@ Engine::LightSystem::LightSystem()
 {
     m_lighsBuffer.create();
 }
-
-
-void Engine::LightSystem::AddSpotLight(const vec3& col, const vec3& pos, const vec3& direction, float cutoffAngle, float intens, int objectToBindID)
-{
-    SpotLight spotLight(col, pos, direction, cutoffAngle, intens);
-    spotLight.bindedObjectId = objectToBindID;
-    AddSpotLight(spotLight);
-}
-
 
 

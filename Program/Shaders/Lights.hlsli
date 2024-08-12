@@ -16,14 +16,17 @@ static const int MAX_SL = MAX_SPOT_LIGHTS;
 static const int MAX_SL = 5;
 #endif
 
-static const float3 ambient = float3(0.05f, 0.05f, 0.05f);
+#define PI 3.141
+static const float g_MIN_F0 = 0.01;
+
+static const float3 ambient = float3(0.005f, 0.005f, 0.005f);
 Texture2D flashlighTexture : register(t1);
 SamplerState samplerstateFlash : register(s0);
 
 struct DirectionalLight
 {
     float3 color;
-    float intensity;
+    float solidAngle;
     float3 direction;
     float padding; // Padding to align structure size
 };
@@ -32,7 +35,7 @@ struct DirectionalLight
 struct PointLight
 {
     float3 color;
-    float intensity;
+    float radius;
     float3 position;
     int bindedObjectId; // -1 means no object is bound
 };
@@ -41,7 +44,7 @@ struct PointLight
 struct SpotLight
 {
     float3 color;
-    float intensity;
+    float radiusOfCone;
     float3 direction;
     float cutoffAngle; // in radians
     float3 position;
@@ -60,41 +63,66 @@ cbuffer LightData : register(b3)
     uint slSize;
 }
 
-float3 SpotLightContribution(SpotLight spotLight, float3 normal, float3 position, float3 cameraPosition)
+float SpotLightCuttOffFactor(SpotLight spotLight, float3 position, float3 cameraPosition)
 {
-    float3 finalColor = float3(0.0f, 0.0f, 0.0f);
-    
-    float3 directionToLight = position - spotLight.position;
-    float distancSquaredToLight = dot(directionToLight, directionToLight);
+    float3 directionToLight = spotLight.position - position;
     directionToLight = normalize(directionToLight);
         
-    float cosAngle = dot(directionToLight, spotLight.direction);
+    float cosAngle = dot(directionToLight, -spotLight.direction);
     if (cosAngle < spotLight.cutoffAngle)
-    {
-        return spotLight.color * 0.00001f;
-    }
-    float3 viewDir = normalize(cameraPosition - position);
-    float3 halfwayDir = normalize(viewDir - directionToLight);
-        
-    float diff = max(dot(normal, -directionToLight), 0.00001f);
-    float spec = pow(max(dot(halfwayDir, normal), 0.00001f), 32);
-       
-    float I = 1 - (1 - cosAngle) / (1 - spotLight.cutoffAngle);
-        
-    //float3 maskPos = normalize(directionToLight - spotLights[i].direction);
-    //float2 uv = float2(0.0f, 0.0f);
-    //uv.x = (dot(maskPos, float3(1.0f, 0.0f, 0.0f)) + 1.0f) * 0.5f;
-    //uv.y = (dot(maskPos, float3(0.0f, 1.0f, 0.0f)) + 1.0f) * 0.5f;
-        
-        
-    finalColor += spotLight.color * ((diff + spec) * (spotLight.intensity / distancSquaredToLight) * I);
-    
-    return finalColor;
+        return 0.001f;
+    else
+        return 1 - (1 - cosAngle) / (1 - spotLight.cutoffAngle);
+}
+float3 fresnel(float3 F0, float angle)
+{
+    return F0 + (1.0f - F0) * pow(1 - angle, 5);
 }
 
-float3 FlashLight(SpotLight flashLight, float3 normal, float3 position, float3 cameraPosition)
+float D_GGX(float roughness4, float NoH)
 {
-    float3 finalColor = SpotLightContribution(flashLight, normal, position, cameraPosition);
+    float denominator = NoH * NoH * (roughness4 - 1) + 1;
+    denominator = PI * denominator * denominator;
+    denominator = max(denominator, 0.0001f);
+    
+    return roughness4 / denominator;
+}
+
+float G_Smith(float roughness4, float NoV, float NoL)
+{
+    float denominator = max((sqrt(1.0f + roughness4 * (1 - NoV) / NoV) * sqrt(1.0f + roughness4 * (1 - NoL) / NoL)), 0.0001f);
+    return 2.0f / denominator;
+}
+
+float SolidAngle(float radius, float distanceSquared)
+{
+    return 2 * PI * (1 - sqrt(1 - min(radius * radius / distanceSquared, 1.0f)));
+}
+
+
+float3 PBRLight(float3 irradiance, float solidAngle, float3 l ,float3 albedo, float metalness, float roughness, float3 n, float3 v)
+{
+    float3 h = normalize(v + l);
+    float rSquared = roughness * roughness;
+    float NoH = max(dot(n, h), 0.001f);
+    float NoV = max(dot(n, v), 0.001f);
+    float NoL = max(dot(n, l), 0.001f);
+    float HoL = max(dot(h, l), 0.001f);
+    float3 F0 = lerp(g_MIN_F0, albedo, metalness);
+
+    
+    float3 f_spec = min(D_GGX(rSquared, NoH) * solidAngle / (4 * NoV), 1.0f) * G_Smith(rSquared, NoV, NoL) * fresnel(F0, HoL);
+    float3 f_diff = (1 - metalness) / PI * solidAngle * NoL * albedo * (1 - fresnel(F0, NoL));
+    
+    return irradiance * (f_diff + f_spec);
+}
+
+float3 FlashLight(SpotLight flashLight,float3 albedo, float metalness, float roughness, float3 normal, float3 position, float3 cameraPosition)
+{
+    float3 directionToLight = flashLight.position - position;
+    float3 view = normalize(cameraPosition - position);
+    float solidAngle = SolidAngle(flashLight.radiusOfCone, dot(directionToLight, directionToLight));
+    float3 finalColor = SpotLightCuttOffFactor(flashLight, position, cameraPosition) * PBRLight(flashLight.color, solidAngle, normalize(directionToLight), albedo, metalness, roughness, normal, view);
     float4 proj = mul(float4(position, 1.0f), lightViewProjection);
     float2 uv = (proj.xy) / proj.w;
     float3 mask = flashlighTexture.Sample(samplerstateFlash, uv * 0.5 + 0.5).rgb;
@@ -102,45 +130,7 @@ float3 FlashLight(SpotLight flashLight, float3 normal, float3 position, float3 c
     return finalColor * mask;
 }
 
-float3 PointLightContribution(PointLight pointLight, float3 normal, float3 position, float3 cameraPosition)
-{
-    float3 finalColor = float3(0.0f, 0.0f, 0.0f);
-    
 
-    float3 directionToLight = position - pointLight.position;
-    float distancSquaredToLight = dot(directionToLight, directionToLight);
-    directionToLight = normalize(directionToLight);
-        
-    float3 viewDir = normalize(cameraPosition - position);
-    float3 halfwayDir = normalize(viewDir - directionToLight);
-        
-    float diff = dot(normal, -directionToLight);
-    float spec = pow(max(dot(halfwayDir, normal), 0.00001f), 32);
-    if(diff < 0)
-    {
-        diff = 0.0001f;
-        spec = 0.0001f;
-    }
-        
-    finalColor += pointLight.color * ((diff + spec) * (pointLight.intensity / distancSquaredToLight));
-    
-    return finalColor;
-}
 
-float3 DirectionalLightsContibution(DirectionalLight directionalLight, float3 normal, float3 position, float3 cameraPosition)
-{
-    float3 finalColor = float3(0.0f, 0.0f, 0.0f);
-    
-    
-        
-    float3 viewDir = normalize(cameraPosition - position);
-    float3 halfwayDir = normalize(viewDir - directionalLight.direction);
-        
-    float diff = max(dot(normal, -directionalLight.direction), 0.00001f);
-    float spec = pow(max(dot(halfwayDir, normal), 0.00001f), 32);
-        
-    finalColor += directionalLight.color * ((diff + spec) * directionalLight.intensity);
-    
-    
-    return finalColor;
-}
+
+ 

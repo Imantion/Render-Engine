@@ -64,7 +64,7 @@ namespace Engine
 		void initUnitSphere();
 
 		std::shared_ptr<Model> AddModel(std::string name, Model&& model);
-		std::shared_ptr<Model> loadModel(std::string path);
+		std::shared_ptr<Model> loadModel(std::string path, bool flipBT = false);
 		std::shared_ptr<Model> GetModel(std::string name);
 
 	protected:

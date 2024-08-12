@@ -29,6 +29,15 @@ public:
 	~D3DApplication();
 
 private:
+	void InitCamera(int windowWidth, int windowHeight);
+	void InitSamuraiModel();
+	void InitLights();
+	void InitCrateModel();
+	void InitFloor();
+	void InitSkybox();
+	void InitPostProcess();
+
+private:
 	std::shared_ptr<Engine::Camera> camera;
 	std::unique_ptr<Engine::Window> pWindow;
 	

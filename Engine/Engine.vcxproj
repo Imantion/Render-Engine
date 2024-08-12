@@ -197,6 +197,7 @@
     <ClInclude Include="EngineSource\include\Math\hitable.h" />
     <ClInclude Include="EngineSource\include\Utils\IRayDraggable.h" />
     <ClInclude Include="EngineSource\include\Graphics\ShaderManager.h" />
+    <ClInclude Include="EngineSource\include\Graphics\Materials.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

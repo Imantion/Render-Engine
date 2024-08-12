@@ -190,5 +190,8 @@
     <ClInclude Include="EngineSource\include\Graphics\LightSystem.h">
       <Filter>Include</Filter>
     </ClInclude>
+    <ClInclude Include="EngineSource\include\Graphics\Materials.h">
+      <Filter>Include\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

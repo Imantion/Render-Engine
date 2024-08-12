@@ -2,7 +2,7 @@
 #include <vector>
 #include <memory>
 #include "Math/matrix.h"
-#include "Math/math.h"
+#include "Graphics/Materials.h"
 #include "Math/hitable.h"
 #include "Graphics/Buffers.h"
 #include "Graphics/Model.h"
@@ -12,6 +12,17 @@
 
 namespace Engine
 {
+
+	template<typename M>
+	struct MaterialDataType {
+		using type = M;
+	};
+
+	template<>
+	struct MaterialDataType<Materials::OpaqueTextureMaterial> {
+		using type = vec4;
+	};
+
 	template <typename I, typename M>
 	class OpaqueInstances
 	{
@@ -41,9 +52,11 @@ namespace Engine
 			mat4 meshToModel;
 		};
 
+		using MaterialType = typename MaterialDataType<M>::type;
+
 		struct MaterialData
 		{
-			M material;
+			MaterialType material;
 		};
 
 		struct PerMaterial
@@ -265,6 +278,7 @@ namespace Engine
 		}
 
 	public:
+
 		void render()
 		{
 			if (instanceBuffer.getSize() == 0)
@@ -307,8 +321,6 @@ namespace Engine
 							// ... update shader local per-draw uniform buffer
 							materialData.updateBuffer(&data);
 
-							if(material.texture)
-								material.texture->BindTexture(0u);
 
 							uint32_t numInstances = uint32_t(perMaterial.instances.size());
 							d3d->GetContext()->DrawIndexedInstanced(meshRange.indexNum, numInstances, meshRange.indexOffset, meshRange.vertexOffset, renderedInstances);
@@ -321,34 +333,12 @@ namespace Engine
 			
 	};
 
+
 	class MeshSystem
 	{
 	public:
-		struct Material
-		{
-			vec3 shortWaveColor;
-			float padding0;
-			vec3 longWaveColor;
-			float padding1;
-			std::shared_ptr<Texture> texture;
-			bool operator==(const Material& other) const
-			{
-				return shortWaveColor == other.shortWaveColor && longWaveColor == other.longWaveColor;
-			}
-		};
 
-		struct TextureMaterial
-		{
-			std::shared_ptr<Texture> texture;
-
-			bool operator==(const TextureMaterial& other) const
-			{
-				return texture.get() == other.texture.get();
-			}
-		};
-
-
-		struct Instance // all other template instances must inherit this one
+		struct Instance 
 		{
 		};
 
@@ -357,16 +347,11 @@ namespace Engine
 			vec3 emmisiveColor;
 		};
 
-		struct EmmisiveMaterial
-		{
-
-		};
-
-		OpaqueInstances<Instance, Material> hologramGroup;
-		OpaqueInstances<Instance, Material> normVisGroup;
-		OpaqueInstances<Instance, TextureMaterial> textureGroup;
-		OpaqueInstances<Instance, TextureMaterial> opaqueGroup;
-		OpaqueInstances<EmmisiveInstance, TextureMaterial> emmisiveGroup;
+		OpaqueInstances<Instance, Materials::HologramMaterial> hologramGroup;
+		OpaqueInstances<Instance, Materials::NormVisMaterial> normVisGroup;
+		OpaqueInstances<Instance, Materials::TextureMaterial> textureGroup;
+		OpaqueInstances<Instance, Materials::OpaqueTextureMaterial> opaqueGroup;
+		OpaqueInstances<EmmisiveInstance, Materials::EmmisiveMaterial> emmisiveGroup;
 
 		int intersect(const ray& r, hitInfo& hInfo);
 
@@ -386,4 +371,10 @@ namespace Engine
 		static MeshSystem* pInstance;
 	};
 
+	template <>
+	inline void OpaqueInstances<MeshSystem::Instance, Materials::OpaqueTextureMaterial>::render();
+
+
+	
 }
+
