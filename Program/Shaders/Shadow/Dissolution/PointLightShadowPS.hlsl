@@ -17,7 +17,6 @@ struct PSInput
     uint renderTargetArrayIndex : SV_RenderTargetArrayIndex;
 };
 
-
 float main(PSInput input) : SV_DEPTH
 {
     float noise = noiseTexture.Sample(samp, input.tc);

@@ -140,7 +140,7 @@ static void InitMeshSystem()
 	auto shadowShader2 = Engine::ShaderManager::CompileAndCreateShader("shadow", L"Shaders\\Shadow\\ShadowVS.hlsl", L"Shaders\\Shadow\\ShadowPS.hlsl", nullptr, nullptr);
 
 	auto shadowShader3 = Engine::ShaderManager::CompileAndCreateShader("DissPLshadow", L"Shaders\\Shadow\\Dissolution\\PointLightShadowVS.hlsl", L"Shaders\\Shadow\\Dissolution\\PointLightShadowPS.hlsl",
-		nullptr, nullptr, L"Shaders\\Shadow\\PointLightShadowGS.hlsl", nullptr, nullptr);
+		nullptr, nullptr, L"Shaders\\Shadow\\Dissolution\\PointLightShadowGS.hlsl", nullptr, nullptr);
 
 	auto shadowShader4 = Engine::ShaderManager::CompileAndCreateShader("DissShadow", L"Shaders\\Shadow\\Dissolution\\ShadowVS.hlsl", L"Shaders\\Shadow\\Dissolution\\ShadowPS.hlsl", nullptr, nullptr);
 

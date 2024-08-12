@@ -561,11 +561,11 @@ float3 CalculateIBLContribution(float3 normal, float3 albedo, float metalness, f
 
     if (IBLState)
     {
-        float2 refl = reflectanceIBL.Sample(g_linearWrap, float2(saturate(dot(normal, viewDir)), roughness));
-        float3 F0 = lerp(0.04f, albedo, metalness);
+        float2 refl = reflectanceIBL.Sample(g_sampler, float2(saturate(dot(normal, viewDir)), roughness));
+        float3 F0 = lerp(g_MIN_F0, albedo, metalness);
 
-        finalColor += albedo * diffuseIBL.Sample(g_linearWrap, normal).rgb * (1 - metalness);
-        finalColor += specIrrIBL.SampleLevel(g_linearWrap, normal, MAX_MIP * roughness).rgb * (refl.r * F0 + refl.g);
+        finalColor += albedo * diffuseIBL.Sample(g_sampler, normal).rgb * (1 - metalness);
+        finalColor += specIrrIBL.SampleLevel(g_sampler, normal, MAX_MIP * roughness).rgb * (refl.r * F0 + refl.g);
     }
 
     return finalColor;
