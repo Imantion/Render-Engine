@@ -93,6 +93,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)assimpbins\;$(SolutionDir)assimp\include\;$(SolutionDir)DirectXTex\;$(SolutionDir)imgui\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -108,6 +109,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)assimpbins\;$(SolutionDir)assimp\include\;$(SolutionDir)DirectXTex\;$(SolutionDir)imgui\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -123,6 +125,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)assimpbins\;$(SolutionDir)assimp\include\;$(SolutionDir)DirectXTex\;$(SolutionDir)imgui\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -138,6 +141,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir)assimpbins\;$(SolutionDir)assimp\include\;$(SolutionDir)DirectXTex\;$(SolutionDir)imgui\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -154,6 +158,7 @@
     <ClCompile Include="..\imgui\imgui_draw.cpp" />
     <ClCompile Include="..\imgui\imgui_tables.cpp" />
     <ClCompile Include="..\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="EngineSource\include\Graphics\ParticleSystem.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\ShadowSystem.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\ReflectionCapture.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\LightSystem.cpp" />
@@ -195,6 +200,7 @@
     <ClInclude Include="EngineSource\include\Graphics\Mesh.h" />
     <ClInclude Include="EngineSource\include\Graphics\MeshSystem.h" />
     <ClInclude Include="EngineSource\include\Graphics\Model.h" />
+    <ClInclude Include="EngineSource\include\Graphics\ParticleSystem.h" />
     <ClInclude Include="EngineSource\include\Graphics\PostProcess.h" />
     <ClInclude Include="EngineSource\include\Graphics\ReflectionCapture.h" />
     <ClInclude Include="EngineSource\include\Graphics\Renderer.h" />

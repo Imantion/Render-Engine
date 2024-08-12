@@ -128,6 +128,9 @@
     <ClCompile Include="EngineSource\source\Graphics\ShadowSystem.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="EngineSource\include\Graphics\ParticleSystem.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EngineSource\include\Math\math.h">
@@ -257,6 +260,9 @@
       <Filter>Include</Filter>
     </ClInclude>
     <ClInclude Include="EngineSource\include\Graphics\DissolutionGroup.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineSource\include\Graphics\ParticleSystem.h">
       <Filter>Include</Filter>
     </ClInclude>
   </ItemGroup>
