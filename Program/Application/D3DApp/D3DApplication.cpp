@@ -12,6 +12,7 @@
 #include "Graphics/PostProcess.h"
 #include "Graphics/SkyBox.h"
 #include "Graphics/LightSystem.h"
+#include "Graphics/ParticleSystem.h"
 #include "imgui.h"
 #include "backends/imgui_impl_dx11.h"
 #include "backends/imgui_impl_win32.h"
@@ -694,6 +695,16 @@ void D3DApplication::InitLights()
 	Engine::DirectionalLight directionalLight(Engine::vec3(-0.3205475307f, -0.595605361f, -0.10348193f).normalized(), Engine::vec3(0.84f * 7.5f, 0.86264f * 7.5f, 0.89019f * 7.5f), 0.15f);
 	Engine::LightSystem::Init()->AddDirectionalLight(directionalLight);
 
+	Engine::TransformSystem::transforms bombo = {
+		Engine::transformMatrix(Engine::vec3(0.0f, 8.0f, 0.0f), Engine::vec3(0.0f, 0.0f, 0.1f), Engine::vec3(0.1f, 0.0f, 0.0f), Engine::vec3(0.0f, 0.1f, 0.0f)) };
+
+	auto id = Engine::MeshSystem::Init()->emmisiveGroup.addModel(model, Materials::EmmisiveMaterial{}, bombo);
+	Engine::Emitter emitter(Engine::vec3(0), id, 10, 0.1, Engine::vec3(1));
+	Engine::ParticleSystem::Init()->addSmokeEmitter(emitter);
+	auto EMVA = TM->LoadFromFile("EMVA", L"Textures\\Smoke\\smoke_MVEA.dds");
+	auto RLU = TM->LoadFromFile("RLU", L"Textures\\Smoke\\smoke_RLU.dds");
+	auto DBF = TM->LoadFromFile("DBF", L"Textures\\Smoke\\smoke_DBF.dds");
+	Engine::ParticleSystem::Init()->SetSmokeTextures(RLU, DBF, EMVA);
 
 	Engine::vec3 vert[4] = { Engine::vec3(-1.0f, 1.0f, 0.0f),  Engine::vec3(1.0f, 1.0f, 0.0f), Engine::vec3(1.0f, -1.0f, 0.0f), Engine::vec3(-1.0f, -1.0f, 0.0f) };
 	Engine::AreaLight areaLight(Engine::vec3(0.0f, .3f, 0.7f), vert, 4, 10.0f);

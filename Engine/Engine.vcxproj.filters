@@ -265,5 +265,8 @@
     <ClInclude Include="EngineSource\include\Graphics\ParticleSystem.h">
       <Filter>Include</Filter>
     </ClInclude>
+    <ClInclude Include="EngineSource\include\Utils\Random.h">
+      <Filter>Include</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

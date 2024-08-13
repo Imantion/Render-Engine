@@ -162,6 +162,8 @@
     <None Include="Shaders\Shadow\Dissolution\PointLightShadowVS.hlsl" />
     <None Include="Shaders\Shadow\Dissolution\ShadowPS.hlsl" />
     <None Include="Shaders\Shadow\Dissolution\ShadowVS.hlsl" />
+    <None Include="Shaders\Particles\PixelShader.hlsl" />
+    <None Include="Shaders\Particles\VertexShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\declarations.hlsli">
@@ -178,7 +180,5 @@
     <FxCompile Include="Shaders\opaqueShader\opaquePS.hlsl">
       <Filter>Shaders\opaque</Filter>
     </FxCompile>
-    <FxCompile Include="Shaders\Particles\PixelShader.hlsl" />
-    <FxCompile Include="Shaders\Particles\VertexShader.hlsl" />
   </ItemGroup>
 </Project>

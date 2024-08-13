@@ -4,6 +4,7 @@
 #include "Graphics/PostProcess.h"
 #include "Graphics/LightSystem.h"
 #include "Graphics/ShadowSystem.h"
+#include "Graphics/ParticleSystem.h"
 #include "Graphics/SkyBox.h"
 #include "Render/Camera.h"
 
@@ -148,7 +149,9 @@ void Engine::Renderer::Render(Camera* camera)
 		vec4(camera->getCameraFrustrum(Camera::RightDown) - camera->getCameraFrustrum(Camera::LeftDown),.0f),
 		camera->getPosition()};
 
+	
 	perViewBuffer.updateBuffer(&perView);
+
 	LightSystem::Init()->BindLigtsBuffer(3u, shaderTypes::PS);
 
 	if (perFrameData.IBL)
@@ -174,6 +177,10 @@ void Engine::Renderer::Render(Camera* camera)
 
 	context->OMSetDepthStencilState(pDSState.Get(), 1u);
 	MeshSystem::Init()->renderTranslucent();
+
+	ParticleSystem::Init()->Update(0.016667f);
+	ParticleSystem::Init()->UpdateBuffers(camera->getPosition());
+	ParticleSystem::Init()->Render();
 
 	ID3D11ShaderResourceView* const pSRV[3] = { NULL, NULL, NULL };
 	context->PSSetShaderResources(11, 3u, pSRV);

@@ -8,6 +8,7 @@
 #include "Graphics/PostProcess.h"
 #include "Graphics/LightSystem.h"
 #include "Graphics/ShadowSystem.h"
+#include "Graphics/ParticleSystem.h"
 #include "Window/Window.h"
 #include "imgui.h"
 #include "backends/imgui_impl_win32.h"
@@ -28,6 +29,7 @@ void Engine::Engine::Init()
 	PostProcess::Init();
 	LightSystem::Init();
 	ShadowSystem::Init();
+	ParticleSystem::Init();
 
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -55,4 +57,5 @@ void Engine::Engine::Deinit()
 	PostProcess::Deinit();
 	LightSystem::Deinit();
 	ShadowSystem::Deinit();
+	ParticleSystem::Deinit();
 }
