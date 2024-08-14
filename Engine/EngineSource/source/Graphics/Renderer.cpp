@@ -5,6 +5,7 @@
 #include "Graphics/LightSystem.h"
 #include "Graphics/ShadowSystem.h"
 #include "Graphics/ParticleSystem.h"
+#include "Graphics/ShaderManager.h"
 #include "Graphics/SkyBox.h"
 #include "Render/Camera.h"
 
@@ -89,22 +90,35 @@ void Engine::Renderer::InitDepth(UINT wWidth, UINT wHeight)
 	descDepth.Height = (UINT)wHeight;
 	descDepth.MipLevels = 1u;
 	descDepth.ArraySize = 1u;
-	descDepth.Format = DXGI_FORMAT_D32_FLOAT;
+	descDepth.Format = DXGI_FORMAT_R24G8_TYPELESS;
 	descDepth.SampleDesc.Count = samplesAmount;
 	descDepth.SampleDesc.Quality = 0u;
 	descDepth.Usage = D3D11_USAGE_DEFAULT;
-	descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+	descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
 
 	hr = d3d->GetDevice()->CreateTexture2D(&descDepth, nullptr, &pDepthStencil);
 	assert(SUCCEEDED(hr));
 
 	D3D11_DEPTH_STENCIL_VIEW_DESC descDVS;
 	ZeroMemory(&descDVS, sizeof(descDVS));
-	descDVS.Format = DXGI_FORMAT_D32_FLOAT;
+	descDVS.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	descDVS.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMS;
 	descDVS.Texture2D.MipSlice = 0u;
 
 	hr = d3d->GetDevice()->CreateDepthStencilView(pDepthStencil.Get(), &descDVS, &pViewDepth);
+	assert(SUCCEEDED(hr));
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+	ZeroMemory(&srvDesc, sizeof(srvDesc));
+
+	srvDesc.ViewDimension = D3D_SRV_DIMENSION_TEXTURE2DMS;
+	srvDesc.Texture2DArray.ArraySize = 1;
+	srvDesc.Texture2DArray.FirstArraySlice = 0u;
+	srvDesc.Texture2DArray.MipLevels = 1u;
+	srvDesc.Texture2DArray.MostDetailedMip = 0u;
+	srvDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+
+	hr = d3d->GetDevice()->CreateShaderResourceView(pDepthStencil.Get(), &srvDesc, &pDepthSRV);
 	assert(SUCCEEDED(hr));
 
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> texture;
@@ -132,7 +146,7 @@ void Engine::Renderer::InitDepth(UINT wWidth, UINT wHeight)
 	hr = d3d->GetDevice()->CreateDepthStencilView(texture.Get(), &depthStencilViewDesc, &pNoMSDepthStencil);
 	assert(SUCCEEDED(hr));
 
-	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+	srvDesc;
 	ZeroMemory(&srvDesc, sizeof(srvDesc));
 
 	srvDesc.ViewDimension = D3D_SRV_DIMENSION_TEXTURE2D;
@@ -142,12 +156,12 @@ void Engine::Renderer::InitDepth(UINT wWidth, UINT wHeight)
 	srvDesc.Texture2DArray.MostDetailedMip = 0u;
 	srvDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
 
-	hr = d3d->GetDevice()->CreateShaderResourceView(texture.Get(), &srvDesc, &pDepthSRV);
+	hr = d3d->GetDevice()->CreateShaderResourceView(texture.Get(), &srvDesc, &pNoMSDepthSRV);
 	assert(SUCCEEDED(hr));
 
 }
 
-void Engine::Renderer::updatePerFrameCB(float deltaTime, float wWidth, float wHeight)
+void Engine::Renderer::updatePerFrameCB(float deltaTime, float wWidth, float wHeight, float farCLip, float nearClip)
 {
 	perFrameData.g_time += deltaTime;
 
@@ -161,8 +175,37 @@ void Engine::Renderer::updatePerFrameCB(float deltaTime, float wWidth, float wHe
 	perFrameData.shadowResolution = (float)ShadowSystem::Init()->GetShadowTextureResolution();
 	perFrameData.pointLightFarPlan = ShadowSystem::Init()->GetProjectionFarPlane();
 	perFrameData.samplesAmount = samplesAmount;
+	perFrameData.farClip = farCLip;
+	perFrameData.nearClip = nearClip;
 
 	perFrameBuffer.updateBuffer(&perFrameData);
+}
+
+void Engine::Renderer::CreateNoMSDepth()
+{
+	auto context = D3D::GetInstance()->GetContext();
+	context->ClearDepthStencilView(pNoMSDepthStencil.Get(), D3D11_CLEAR_DEPTH, 0.0f, 0u);
+	context->OMSetRenderTargets(0, nullptr, pNoMSDepthStencil.Get());
+	depthShader->BindShader();
+	context->PSSetShaderResources(19u, 1u, pDepthSRV.GetAddressOf());
+	context->Draw(3u, 0);
+	ID3D11ShaderResourceView* const pSRVDepth = { NULL };
+	context->PSSetShaderResources(19u, 1u, &pSRVDepth);
+	context->OMSetRenderTargets(1u, pHDRRenderTarget.GetAddressOf(), pViewDepth.Get());
+}
+
+void Engine::Renderer::RenderParticles(Camera* camera, float deltaTime)
+{
+	auto context = D3D::GetInstance()->GetContext();
+	CreateNoMSDepth();
+	context->PSSetShaderResources(23u, 1u, pNoMSDepthSRV.GetAddressOf());
+
+	ParticleSystem::Init()->Update(deltaTime);
+	ParticleSystem::Init()->UpdateBuffers(camera->getPosition());
+	ParticleSystem::Init()->Render();
+
+	ID3D11ShaderResourceView* const pSRV = { NULL};
+	context->PSSetShaderResources(23u, 1u, &pSRV);
 }
 
 void Engine::Renderer::Render(Camera* camera)
@@ -217,9 +260,7 @@ void Engine::Renderer::Render(Camera* camera)
 	context->OMSetDepthStencilState(pDSState.Get(), 1u);
 	MeshSystem::Init()->renderTranslucent();
 
-	ParticleSystem::Init()->Update(0.016667f);
-	ParticleSystem::Init()->UpdateBuffers(camera->getPosition());
-	ParticleSystem::Init()->Render();
+	RenderParticles(camera, 0.0166667f);
 
 	ID3D11ShaderResourceView* const pSRV[3] = { NULL, NULL, NULL };
 	context->PSSetShaderResources(11, 3u, pSRV);
@@ -312,6 +353,8 @@ Engine::Renderer::Renderer() :
 
 	hr = D3D::GetInstance()->GetDevice()->CreateBlendState(&blendDesc, &pBlendState);
 
+
+	depthShader = ShaderManager::CompileAndCreateShader("Depth", L"Shaders\\Depth\\DepthVS.hlsl", L"Shaders\\Depth\\DepthPS.hlsl", nullptr, nullptr);
 }
 
 void Engine::Renderer::Shadows(const Camera* camera)

@@ -8,6 +8,7 @@ namespace Engine
 	class Camera;
 	class Texture;
 	class SkyBox;
+	struct shader;
 
 	struct PerFrameCB
 	{
@@ -20,6 +21,9 @@ namespace Engine
 		float shadowResolution;
 		float pointLightFarPlan;
 		uint32_t samplesAmount;
+		float farClip;
+		float nearClip;
+		float padding[2];
 	};
 
 	struct PerViewCB
@@ -40,8 +44,10 @@ namespace Engine
 		void InitDepthWithRTV(ID3D11Resource* RenderBuffer, UINT wWidth, UINT wHeight);
 		void InitDepth(UINT wWidth, UINT wHeight);
 		void ReleaseRenderTarget() { pRenderTarget.ReleaseAndGetAddressOf(); }
-		void updatePerFrameCB(float deltaTime,float wWidth,float wHeight);
+		void updatePerFrameCB(float deltaTime,float wWidth,float wHeight, float farCLip, float nearClip);
+		void CreateNoMSDepth();
 
+		void RenderParticles(Camera* camera, float deltaTime);
 		void Render(Camera* camera);
 		void PostProcess();
 
@@ -74,11 +80,12 @@ namespace Engine
 
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pRenderTarget;
 		Microsoft::WRL::ComPtr <ID3D11DepthStencilView> pViewDepth;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pDepthSRV;
 
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> pDepthStencil;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> pDSState;
 
-		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pDepthSRV;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pNoMSDepthSRV;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> pNoMSDepthStencil;
 
 		Microsoft::WRL::ComPtr<ID3D11RasterizerState> pRasterizerState;
@@ -96,6 +103,7 @@ namespace Engine
 
 		uint32_t samplesAmount = 4;
 
+		std::shared_ptr<shader> depthShader;
 	private:
 		static std::mutex mutex_;
 		static Renderer* pInstance;

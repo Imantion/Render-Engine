@@ -25,6 +25,13 @@ cbuffer perFrame : register(b1)
     float g_shadowResolution;
     float g_PointLightFarPlane;
     uint g_samplesAmount;
+    float g_farClip;
+    float g_nearClip;
+}
+
+inline float linearize_depth(float d, float zNear, float zFar)
+{
+    return zNear * zFar / (zFar + d * (zNear - zFar));
 }
 
 SamplerState g_pointWrap : register(s0); // No interpolation, Point Wrap

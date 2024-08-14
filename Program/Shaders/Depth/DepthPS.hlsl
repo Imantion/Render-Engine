@@ -1,6 +1,6 @@
 #include "..\declarations.hlsli"
 
-Texture2DMS<float> depthTexture : register(t0);
+Texture2DMS<float> depthTexture : register(t19);
 
 struct PSIn
 {

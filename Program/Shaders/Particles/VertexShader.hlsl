@@ -22,6 +22,7 @@ struct ParticleInstance
 struct VSOut
 {
     float4 position : SV_Position;
+    float3 clipPos : CLIPPOSITION;
     float3 worldPos : WORLD;
     float4 rgba : RGBA;
     float time : TIME;
@@ -65,6 +66,8 @@ VSOut main(ParticleInstance input)
     output.uvThis = (float2(input.frameIndex % framesPerRow, uint(input.frameIndex / framesPerRow)) + uvCoordOffset) * frameSize;
     output.uvNext = (float2((input.frameIndex + 1) % framesPerRow, uint((input.frameIndex + 1) / framesPerRow)) + uvCoordOffset) * frameSize;
    
+    output.clipPos = output.position.xyz / output.position.w;
+    output.clipPos.xy = (output.clipPos.xy + 1.0f) * 0.5f;
     
     output.time = input.frameFraction;
 

@@ -227,7 +227,7 @@ void D3DApplication::Update(float deltaTime)
 	Engine::TextureManager::Init()->BindSamplers();
 
 	Engine::Renderer* renderer = Engine::Renderer::GetInstance();
-	renderer->updatePerFrameCB(deltaTime, (FLOAT)pWindow->getWindowWidth(), (FLOAT)pWindow->getWindowHeight());
+	renderer->updatePerFrameCB(deltaTime, (FLOAT)pWindow->getWindowWidth(), (FLOAT)pWindow->getWindowHeight(), camera->getNearClip(), camera->getFarClip());
 	renderer->Render(camera.get());
 		
 	renderer->PostProcess();

@@ -4,6 +4,9 @@
 Texture2D g_smokeEMVA : register(t20);
 Texture2D g_lightmapRLU : register(t21);
 Texture2D g_lightmapDBF : register(t22);
+Texture2D g_DepthTexture : register(t23);
+
+#define THICKNESS 1.0f
 
 float3 SixWayLightMap(float3 lightIrradiance, float3 lightDirection, float lightmapRLUDBF[6])
 {
@@ -25,12 +28,23 @@ float3 SixWayLightMap(float3 lightIrradiance, float3 lightDirection, float light
 struct PSIn
 {
     float4 position : SV_Position;
+    float3 clipPos : CLIPPOSITION;
     float3 worldPos : WORLD;
     float4 rgba : RGBA;
     float time : TIME;
     float2 uvThis : UV_THIS;
     float2 uvNext : UV_NEXT;
 };
+
+void DepthClipping(inout float alpha, float3 UVnDepth)
+{
+
+    float sampledDepth = g_DepthTexture.SampleLevel(g_sampler, UVnDepth.xy, 0);
+    sampledDepth = linearize_depth(sampledDepth, g_nearClip, g_farClip);
+    UVnDepth.z = linearize_depth(UVnDepth.z, g_nearClip, g_farClip);
+
+
+}
 
 
 float4 main(PSIn input) : SV_TARGET
@@ -103,5 +117,8 @@ float4 main(PSIn input) : SV_TARGET
     finalRadiance += emissionAlpha.r;
     finalRadiance *= input.rgba.rgb;
 
-    return float4(finalRadiance, input.rgba.a * emissionAlpha.g);
+    float4 output = float4(finalRadiance, input.rgba.a * emissionAlpha.g);
+
+    return output;
+
 }
