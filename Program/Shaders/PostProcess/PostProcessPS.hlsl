@@ -51,7 +51,7 @@ struct PSINPUT
 float4 main(PSINPUT input) : SV_TARGET
 {
     float3 color = float3(0, 0, 0);
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < g_samplesAmount; i++)
     {
         float3 sampleColor = (float3) text.Load(input.pos.xy, i);
         sampleColor = adjustExposure(sampleColor, c_EV100);

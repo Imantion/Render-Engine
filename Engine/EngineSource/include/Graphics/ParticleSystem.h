@@ -35,6 +35,8 @@ namespace Engine
 		uint32_t getSize() const { return m_particleCount; }
 		const std::vector<Particle>& getParticles() const { return m_particles; }
 
+		void adjustParameters(vec3 max_speed, vec2 size, float spawnRate, float lifetime);
+
 	private:
 		void DestroyParticles();
 		void Emmit(float deltaTime);
@@ -45,9 +47,12 @@ namespace Engine
 		vec3 m_particleColor;
 		float m_spawnRate;
 		float m_radius;
+		std::vector<Particle> m_particles;
+
 		float m_particleMaxLifeTime = 10.0f;
 		float m_accumulatedTime = 0.0f;
-		std::vector<Particle> m_particles;
+		vec2 m_size = vec2(0.5f);
+		vec3 m_maxSpeed = vec3(0.5f, 0.1f, 0.5f);
 		uint32_t m_particleCount = 0;
 	};
 
@@ -82,11 +87,18 @@ namespace Engine
 			uint32_t frameIndex;
 		};
 
+		struct PartilcleAtlasInfo
+		{
+			uint32_t rows;
+			uint32_t columns;
+			uint32_t padding[2];
+		};
+
 	private:
 		VertexBuffer<ParticleInstance> m_vertexBuffer;
 		std::vector<ParticleInstance> m_vertexBufferData;
 		IndexBuffer m_indexBuffer;
-		ConstBuffer<vec4> m_cbTextureData;
+		ConstBuffer<PartilcleAtlasInfo> m_cbTextureData;
 
 		std::vector<Emitter> m_emmiters;
 
@@ -94,7 +106,9 @@ namespace Engine
 		std::shared_ptr<Texture> m_DBF;
 		std::shared_ptr<Texture> m_EMVA;
 
-		uint32_t textureFrameCount = 64;
+		uint32_t textureColumnCount = 8;
+		uint32_t textureRowCount = 8;
+		uint32_t textureFrameCount;
 
 		std::shared_ptr<shader> m_shader;
 	private:

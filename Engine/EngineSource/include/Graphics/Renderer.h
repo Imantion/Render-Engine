@@ -19,7 +19,7 @@ namespace Engine
 		int LTC = 1;
 		float shadowResolution;
 		float pointLightFarPlan;
-		float padding;
+		uint32_t samplesAmount;
 	};
 
 	struct PerViewCB
@@ -74,8 +74,12 @@ namespace Engine
 
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pRenderTarget;
 		Microsoft::WRL::ComPtr <ID3D11DepthStencilView> pViewDepth;
+
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> pDepthStencil;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> pDSState;
+
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pDepthSRV;
+		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> pNoMSDepthStencil;
 
 		Microsoft::WRL::ComPtr<ID3D11RasterizerState> pRasterizerState;
 		Microsoft::WRL::ComPtr<ID3D11RasterizerState> MSAARasterizerState;
@@ -89,6 +93,8 @@ namespace Engine
 		std::shared_ptr<Texture> LTCamp;
 
 		std::shared_ptr<SkyBox> pSkyBox;
+
+		uint32_t samplesAmount = 4;
 
 	private:
 		static std::mutex mutex_;

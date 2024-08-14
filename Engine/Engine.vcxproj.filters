@@ -268,5 +268,8 @@
     <ClInclude Include="EngineSource\include\Utils\Random.h">
       <Filter>Include</Filter>
     </ClInclude>
+    <ClInclude Include="EngineSource\include\Utils\RadixSort.h">
+      <Filter>Include</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

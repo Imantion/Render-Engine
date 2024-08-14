@@ -555,7 +555,7 @@ void D3DApplication::GUI()
 			ImGui::EndTabItem();
 		}
 
-		if (ImGui::BeginTabItem("Spawning"))
+		if (ImGui::BeginTabItem("Model Spawning"))
 		{
 			// New section for mode selection and conditional rendering
 			ImGui::Separator();
@@ -575,6 +575,33 @@ void D3DApplication::GUI()
 			ImGui::EndTabItem();
 		}
 		ImGui::EndTabBar();
+
+
+		//static float m_particleMaxLifeTime = 10.0f;
+		//static float m_accumulatedTime = 0.0f;
+		//static Engine::vec2 m_size = Engine::vec2(0.5f);
+		//static Engine::vec3 m_maxSpeed = Engine::vec3(0.5f, 0.05f, 0.5f);
+
+		//if (ImGui::BeginTabItem("Particles"))
+		//{
+		//	// New section for mode selection and conditional rendering
+		//	ImGui::Separator();
+		//	ImGui::Text("Model to spawn");
+
+		//	static const char* items[] = { "Samurai", "Crate" };
+		//	static int currentItem = 0; // 0 for Drag, 1 for Select
+
+		//	if (ImGui::Combo("Mode", &currentItem, items, IM_ARRAYSIZE(items)))
+		//	{
+		//		// Update the current mode based on selection
+		//		modelToSpawn = (objectToSpawn)currentItem;
+		//	}
+
+		//	ImGui::SliderFloat("Spawn duration", &animationDuration, 0.05f, 10.0f);
+
+		//	ImGui::EndTabItem();
+		//}
+		//ImGui::EndTabBar();
 	}
 
 	ImGui::End();
@@ -699,7 +726,7 @@ void D3DApplication::InitLights()
 		Engine::transformMatrix(Engine::vec3(0.0f, 8.0f, 0.0f), Engine::vec3(0.0f, 0.0f, 0.1f), Engine::vec3(0.1f, 0.0f, 0.0f), Engine::vec3(0.0f, 0.1f, 0.0f)) };
 
 	auto id = Engine::MeshSystem::Init()->emmisiveGroup.addModel(model, Materials::EmmisiveMaterial{}, bombo);
-	Engine::Emitter emitter(Engine::vec3(0), id, 10, 0.1, Engine::vec3(1));
+	Engine::Emitter emitter(Engine::vec3(0.0f), id, 50, 0.1f, Engine::vec3(1.0f));
 	Engine::ParticleSystem::Init()->addSmokeEmitter(emitter);
 	auto EMVA = TM->LoadFromFile("EMVA", L"Textures\\Smoke\\smoke_MVEA.dds");
 	auto RLU = TM->LoadFromFile("RLU", L"Textures\\Smoke\\smoke_RLU.dds");

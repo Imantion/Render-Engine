@@ -45,7 +45,7 @@ void Engine::Renderer::InitDepthWithRTV(ID3D11Resource* RenderBuffer, UINT wWidt
 		hdrDesc.MipLevels = 1u;
 		hdrDesc.ArraySize = 1u;
 		hdrDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
-		hdrDesc.SampleDesc.Count = 4u;
+		hdrDesc.SampleDesc.Count = samplesAmount;
 		hdrDesc.SampleDesc.Quality = 0u;
 		hdrDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 		hdrDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -58,6 +58,7 @@ void Engine::Renderer::InitDepthWithRTV(ID3D11Resource* RenderBuffer, UINT wWidt
 
 		hr = device->CreateShaderResourceView(HDRtexture.Get(), nullptr, &pHDRtextureResource);
 		assert(SUCCEEDED(hr));
+
 
 
 		InitDepth(wWidth, wHeight);
@@ -89,7 +90,7 @@ void Engine::Renderer::InitDepth(UINT wWidth, UINT wHeight)
 	descDepth.MipLevels = 1u;
 	descDepth.ArraySize = 1u;
 	descDepth.Format = DXGI_FORMAT_D32_FLOAT;
-	descDepth.SampleDesc.Count = 4u;
+	descDepth.SampleDesc.Count = samplesAmount;
 	descDepth.SampleDesc.Quality = 0u;
 	descDepth.Usage = D3D11_USAGE_DEFAULT;
 	descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
@@ -106,6 +107,43 @@ void Engine::Renderer::InitDepth(UINT wWidth, UINT wHeight)
 	hr = d3d->GetDevice()->CreateDepthStencilView(pDepthStencil.Get(), &descDVS, &pViewDepth);
 	assert(SUCCEEDED(hr));
 
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> texture;
+	D3D11_TEXTURE2D_DESC textureDesc = {};
+	textureDesc.Width = (UINT)wWidth;
+	textureDesc.Height = (UINT)wHeight;
+	textureDesc.MipLevels = 1u;
+	textureDesc.ArraySize = 1u;
+	textureDesc.Format = DXGI_FORMAT_R24G8_TYPELESS;
+	textureDesc.SampleDesc.Count = 1;
+	textureDesc.Usage = D3D11_USAGE_DEFAULT;
+	textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_DEPTH_STENCIL;
+	textureDesc.CPUAccessFlags = 0;
+
+	hr = d3d->GetDevice()->CreateTexture2D(&textureDesc, nullptr, &texture);
+	assert(SUCCEEDED(hr));
+
+	D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
+	ZeroMemory(&depthStencilViewDesc, sizeof(D3D11_DEPTH_STENCIL_VIEW_DESC));
+	depthStencilViewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+	depthStencilViewDesc.Texture2DArray.ArraySize = 1u;
+	depthStencilViewDesc.Texture2DArray.MipSlice = (UINT)0;
+
+	hr = d3d->GetDevice()->CreateDepthStencilView(texture.Get(), &depthStencilViewDesc, &pNoMSDepthStencil);
+	assert(SUCCEEDED(hr));
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+	ZeroMemory(&srvDesc, sizeof(srvDesc));
+
+	srvDesc.ViewDimension = D3D_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2DArray.ArraySize = 1;
+	srvDesc.Texture2DArray.FirstArraySlice = 0u;
+	srvDesc.Texture2DArray.MipLevels = 1u;
+	srvDesc.Texture2DArray.MostDetailedMip = 0u;
+	srvDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+
+	hr = d3d->GetDevice()->CreateShaderResourceView(texture.Get(), &srvDesc, &pDepthSRV);
+	assert(SUCCEEDED(hr));
 
 }
 
@@ -122,6 +160,7 @@ void Engine::Renderer::updatePerFrameCB(float deltaTime, float wWidth, float wHe
 
 	perFrameData.shadowResolution = (float)ShadowSystem::Init()->GetShadowTextureResolution();
 	perFrameData.pointLightFarPlan = ShadowSystem::Init()->GetProjectionFarPlane();
+	perFrameData.samplesAmount = samplesAmount;
 
 	perFrameBuffer.updateBuffer(&perFrameData);
 }
