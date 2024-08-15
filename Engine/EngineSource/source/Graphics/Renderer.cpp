@@ -64,6 +64,8 @@ void Engine::Renderer::InitDepthWithRTV(ID3D11Resource* RenderBuffer, UINT wWidt
 
 		InitDepth(wWidth, wHeight);
 
+		perFrameData.viewportWidth = wWidth;
+		perFrameData.viewportWidth = wHeight;
 
 		perViewBuffer.bind(0u, shaderTypes::VS | shaderTypes::PS | shaderTypes::DS | shaderTypes::GS);
 		perFrameBuffer.bind(1u, shaderTypes::VS | shaderTypes::PS | shaderTypes::GS);

@@ -725,9 +725,14 @@ void D3DApplication::InitLights()
 	Engine::TransformSystem::transforms bombo = {
 		Engine::transformMatrix(Engine::vec3(0.0f, 8.0f, 0.0f), Engine::vec3(0.0f, 0.0f, 0.1f), Engine::vec3(0.1f, 0.0f, 0.0f), Engine::vec3(0.0f, 0.1f, 0.0f)) };
 
-	auto id = Engine::MeshSystem::Init()->emmisiveGroup.addModel(model, Materials::EmmisiveMaterial{}, bombo);
+	auto id = Engine::MeshSystem::Init()->emmisiveGroup.addModel(model, Materials::EmmisiveMaterial{}, bombo, Instances::EmmisiveInstance{ Engine::vec3(1.0f) });
 	Engine::Emitter emitter(Engine::vec3(0.0f), id, 50, 0.1f, Engine::vec3(1.0f));
 	Engine::ParticleSystem::Init()->addSmokeEmitter(emitter);
+	changepos(bombo, Engine::vec3(8.0f, -2.0f, 0.0f));
+	id = Engine::MeshSystem::Init()->emmisiveGroup.addModel(model, Materials::EmmisiveMaterial{}, bombo, Instances::EmmisiveInstance{ Engine::vec3(1.0f,0.0f,1.0f) });
+	Engine::Emitter emitter2(Engine::vec3(0.0f), id, 50, 0.1f, Engine::vec3(1.0f,0.0f,1.0f));
+	emitter2.adjustParameters(Engine::vec3(0.05f, 0.4f, 0.05f), Engine::vec2(0.5f), 50, 10.0f);
+	Engine::ParticleSystem::Init()->addSmokeEmitter(emitter2);
 	auto EMVA = TM->LoadFromFile("EMVA", L"Textures\\Smoke\\smoke_MVEA.dds");
 	auto RLU = TM->LoadFromFile("RLU", L"Textures\\Smoke\\smoke_RLU.dds");
 	auto DBF = TM->LoadFromFile("DBF", L"Textures\\Smoke\\smoke_DBF.dds");

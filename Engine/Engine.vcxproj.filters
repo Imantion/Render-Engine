@@ -128,7 +128,7 @@
     <ClCompile Include="EngineSource\source\Graphics\ShadowSystem.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="EngineSource\include\Graphics\ParticleSystem.cpp">
+    <ClCompile Include="EngineSource\source\Graphics\ParticleSystem.cpp">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>

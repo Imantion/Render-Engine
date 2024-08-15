@@ -23,7 +23,8 @@ namespace Engine
 		uint32_t samplesAmount;
 		float farClip;
 		float nearClip;
-		float padding[2];
+		uint32_t viewportWidth;
+		uint32_t viewportHeight;
 	};
 
 	struct PerViewCB

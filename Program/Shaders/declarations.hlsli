@@ -27,6 +27,8 @@ cbuffer perFrame : register(b1)
     uint g_samplesAmount;
     float g_farClip;
     float g_nearClip;
+    uint g_viewportWidth;
+    uint g_viewportHeight;
 }
 
 inline float linearize_depth(float d, float zNear, float zFar)

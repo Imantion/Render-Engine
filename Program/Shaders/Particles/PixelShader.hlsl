@@ -6,7 +6,7 @@ Texture2D g_lightmapRLU : register(t21);
 Texture2D g_lightmapDBF : register(t22);
 Texture2D g_DepthTexture : register(t23);
 
-#define THICKNESS 1.0f
+#define THICKNESS 2.0f
 
 float3 SixWayLightMap(float3 lightIrradiance, float3 lightDirection, float lightmapRLUDBF[6])
 {
@@ -28,7 +28,6 @@ float3 SixWayLightMap(float3 lightIrradiance, float3 lightDirection, float light
 struct PSIn
 {
     float4 position : SV_Position;
-    float3 clipPos : CLIPPOSITION;
     float3 worldPos : WORLD;
     float4 rgba : RGBA;
     float time : TIME;
@@ -42,8 +41,14 @@ void DepthClipping(inout float alpha, float3 UVnDepth)
     float sampledDepth = g_DepthTexture.SampleLevel(g_sampler, UVnDepth.xy, 0);
     sampledDepth = linearize_depth(sampledDepth, g_nearClip, g_farClip);
     UVnDepth.z = linearize_depth(UVnDepth.z, g_nearClip, g_farClip);
-
-
+    
+    float nearDiff = abs(sampledDepth - UVnDepth.z);
+    float lerpValue = min(1.0, nearDiff / THICKNESS);
+    float near = lerp(0.0, alpha, lerpValue);
+    float clipLerp = min(1.0, UVnDepth.z / THICKNESS);
+    float clip = lerp(0.0, alpha, clipLerp);
+    
+    alpha = min(near, clip);
 }
 
 
@@ -118,7 +123,9 @@ float4 main(PSIn input) : SV_TARGET
     finalRadiance *= input.rgba.rgb;
 
     float4 output = float4(finalRadiance, input.rgba.a * emissionAlpha.g);
-
+    float3 UVnDepth = float3((input.position.x - 0.5f) / g_viewportWidth, (input.position.y - 0.5f) / g_viewportHeight, input.position.z);
+    DepthClipping(output.a, UVnDepth);
+    
     return output;
 
 }

@@ -3,6 +3,7 @@
 #include "Graphics/TextureManager.h"
 #include "Graphics/ShaderManager.h"
 #include "Utils/Random.h"
+#include "Utils/RadixSort.h"
 #include <cmath>
 
 
@@ -20,7 +21,9 @@ Engine::Emitter::Emitter(const Emitter& emitter) : m_relPosition(emitter.m_relPo
 	m_radius(emitter.m_radius),
 	m_particleMaxLifeTime(emitter.m_particleMaxLifeTime),
 	m_accumulatedTime(emitter.m_accumulatedTime),
-	m_particleCount(emitter.m_particleCount)
+	m_particleCount(emitter.m_particleCount),
+	m_maxSpeed(emitter.m_maxSpeed),
+	m_size(emitter.m_size)
 {
 	m_particles.resize(emitter.m_particles.size());
 
@@ -181,7 +184,15 @@ void Engine::ParticleSystem::UpdateBuffers(const vec3& cameraPosition)
 	m_vertexBufferData.resize(size);
 	dst = m_vertexBufferData.data();
 
+	std::vector<float> first;
+	std::vector<float> second;
 
+	if (size > 100)
+	{
+		first.resize(size);
+		second.resize(size);
+	}
+	
 
 	int index = 0;
 
@@ -199,6 +210,9 @@ void Engine::ParticleSystem::UpdateBuffers(const vec3& cameraPosition)
 			dst[index].frameIndex = (uint32_t)(particles[j].accumulatedTime / frameTime);
 			dst[index].frameFraction = particles[j].accumulatedTime - frameTime * dst[index].frameIndex;
 
+			if (size > 100)
+			first[index] = (dst[index].position - cameraPosition).length_squared();
+
 			++index;
 		}
 	}
@@ -206,7 +220,10 @@ void Engine::ParticleSystem::UpdateBuffers(const vec3& cameraPosition)
 	std::sort(m_vertexBufferData.begin(), m_vertexBufferData.end(), [cameraPosition](const ParticleInstance& a, const ParticleInstance& b) {
 		return (a.position - cameraPosition).length_squared() > (b.position - cameraPosition).length_squared(); });
 
-
+	/*if (size > 100)
+	{
+		RadixSort11(first.data(), second.data(), size);
+	}*/
 	m_vertexBuffer.create(m_vertexBufferData.data(), (UINT)m_vertexBufferData.size());
 	
 	PartilcleAtlasInfo data = {textureRowCount, textureColumnCount};
@@ -228,7 +245,7 @@ void Engine::ParticleSystem::Render()
 	m_vertexBuffer.bind();
 	m_indexBuffer.bind();
 
-	m_cbTextureData.bind(5u, VS);
+	m_cbTextureData.bind(7u, VS);
 
 	m_EMVA->BindTexture(20);
 	m_RLU->BindTexture(21);
