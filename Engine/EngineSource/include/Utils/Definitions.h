@@ -2,6 +2,12 @@
 
 namespace Engine
 {
+	struct IndexedDistance
+	{
+		float distance;
+		uint32_t index;
+	};
+
 	enum shaderTypes
 	{
 		VS = 1,

@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <windows.h>	// QueryPerformanceCounter
-
+#include "Utils/Definitions.h"
 // ------------------------------------------------------------------------------------------------
 // ---- Basic types
 
@@ -25,7 +25,7 @@ typedef const char* cpointer;
 //		need http://msdn.microsoft.com/vstudio/downloads/ppack/default.asp
 //		or recent VC to use this
 
-#define PREFETCH 1
+#define PREFETCH 0
 
 #if PREFETCH
 #include <xmmintrin.h>	// for prefetch
@@ -82,14 +82,12 @@ finline uint32 IFloatFlip(uint32 f)
 #define _1(x)	(x >> 11 & 0x7FF)
 #define _2(x)	(x >> 22 )
 
-// ================================================================================================
-// Main radix sort
-// ================================================================================================
-static void RadixSort11(real32* farray, real32* sorted, uint32 elements)
+
+static void RadixSort11(Engine::IndexedDistance* farray, Engine::IndexedDistance* sorted, uint32 elements)
 {
 	uint32 i;
-	uint32* sort = (uint32*)sorted;
-	uint32* array = (uint32*)farray;
+	Engine::IndexedDistance* sort = sorted;
+	Engine::IndexedDistance* array = farray;
 
 	// 3 histograms on the stack:
 	const uint32 kHist = 2048;
@@ -109,7 +107,8 @@ static void RadixSort11(real32* farray, real32* sorted, uint32 elements)
 
 		pf(array);
 
-		uint32 fi = FloatFlip((uint32&)array[i]);
+		uint32 fi = FloatFlip((uint32&)array[i].distance);
+
 
 		b0[_0(fi)]++;
 		b1[_1(fi)]++;
@@ -139,31 +138,36 @@ static void RadixSort11(real32* farray, real32* sorted, uint32 elements)
 	// byte 0: floatflip entire value, read/write histogram, write out flipped
 	for (i = 0; i < elements; i++) {
 
-		uint32 fi = array[i];
+		uint32 fi = *(uint32*)&array[i].distance;
 		FloatFlipX(fi);
 		uint32 pos = _0(fi);
 
 		pf2(array);
-		sort[++b0[pos]] = fi;
+		sort[++b0[pos]].index = array[i].index;
+		sort[b0[pos]].distance = *(float*)&fi;
 	}
 
 	// byte 1: read/write histogram, copy
 	//   sorted -> array
 	for (i = 0; i < elements; i++) {
-		uint32 si = sort[i];
+		uint32 si = *(uint32*)&sort[i].distance;
 		uint32 pos = _1(si);
+
 		pf2(sort);
-		array[++b1[pos]] = si;
+		array[++b1[pos]].index = sort[i].index;
+		array[b1[pos]].distance = (float&)si;
 	}
 
 	// byte 2: read/write histogram, copy & flip out
 	//   array -> sorted
 	for (i = 0; i < elements; i++) {
-		uint32 ai = array[i];
+		uint32 ai = (uint32&)array[i].distance;
 		uint32 pos = _2(ai);
 
 		pf2(array);
-		sort[++b2[pos]] = IFloatFlip(ai);
+		uint32 value = IFloatFlip(ai);
+		sort[++b2[pos]].distance = (float&)value;
+		sort[b2[pos]].index = array[i].index;
 	}
 
 	// to write original:

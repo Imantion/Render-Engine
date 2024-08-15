@@ -202,7 +202,7 @@
     <ClInclude Include="EngineSource\include\Graphics\TextureManager.h">
       <Filter>Include\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="EngineSource\include\Utils\EnumDefinitions.h">
+    <ClInclude Include="EngineSource\include\Utils\Definitions.h">
       <Filter>Include\Utils</Filter>
     </ClInclude>
     <ClInclude Include="..\imgui\imconfig.h">

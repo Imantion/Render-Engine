@@ -4,7 +4,7 @@
 #include <string>
 #include <unordered_map>
 #include <memory>
-#include "Utils\EnumDefinitions.h"
+#include "Utils\Definitions.h"
 
 namespace Engine
 {

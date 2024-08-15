@@ -158,6 +158,11 @@ void Engine::ParticleSystem::Deinit()
 void Engine::ParticleSystem::addSmokeEmitter(const Emitter& emitter)
 {
 	m_emmiters.push_back(emitter);
+
+	m_vertexBufferData.resize(m_vertexBufferData.size() + emitter.getMaxSize());
+	m_vertexBufferSortedData.resize(m_vertexBufferSortedData.size() + emitter.getMaxSize());
+	m_indexedDistance.resize(m_indexedDistance.size() + emitter.getMaxSize());
+	m_sortedIndexedDistance.resize(m_sortedIndexedDistance.size() + emitter.getMaxSize());
 }
 
 void Engine::ParticleSystem::Update(float deltaTime)
@@ -171,28 +176,17 @@ void Engine::ParticleSystem::Update(float deltaTime)
 void Engine::ParticleSystem::UpdateBuffers(const vec3& cameraPosition)
 {
 
-	int size = 0;
+	particlesAmount = 0;
 	for (size_t i = 0; i < m_emmiters.size(); i++)
 	{
-		size += m_emmiters[i].getSize();
+		particlesAmount += m_emmiters[i].getSize();
 	}
 	
-	if (size == 0)
+	if (particlesAmount == 0)
 		return;
 
 	ParticleInstance* dst;
-	m_vertexBufferData.resize(size);
 	dst = m_vertexBufferData.data();
-
-	std::vector<float> first;
-	std::vector<float> second;
-
-	if (size > 100)
-	{
-		first.resize(size);
-		second.resize(size);
-	}
-	
 
 	int index = 0;
 
@@ -210,24 +204,21 @@ void Engine::ParticleSystem::UpdateBuffers(const vec3& cameraPosition)
 			dst[index].frameIndex = (uint32_t)(particles[j].accumulatedTime / frameTime);
 			dst[index].frameFraction = particles[j].accumulatedTime - frameTime * dst[index].frameIndex;
 
-			if (size > 100)
-			first[index] = (dst[index].position - cameraPosition).length_squared();
+			m_indexedDistance[index].distance = (dst[index].position - cameraPosition).length_squared();
+			m_indexedDistance[index].index = index;
 
 			++index;
 		}
 	}
 
-	std::sort(m_vertexBufferData.begin(), m_vertexBufferData.end(), [cameraPosition](const ParticleInstance& a, const ParticleInstance& b) {
-		return (a.position - cameraPosition).length_squared() > (b.position - cameraPosition).length_squared(); });
+	RadixSort11(m_indexedDistance.data(), m_sortedIndexedDistance.data(), particlesAmount);
 
-	/*if (size > 100)
+	for (int i = particlesAmount - 1; i > -1; i--)
 	{
-		RadixSort11(first.data(), second.data(), size);
-	}*/
-	m_vertexBuffer.create(m_vertexBufferData.data(), (UINT)m_vertexBufferData.size());
-	
-	PartilcleAtlasInfo data = {textureRowCount, textureColumnCount};
-	m_cbTextureData.updateBuffer(&data);
+		m_vertexBufferSortedData[particlesAmount - i - 1] = m_vertexBufferData[m_sortedIndexedDistance[i].index];
+	}
+
+	m_vertexBuffer.create(m_vertexBufferSortedData.data(), (UINT)particlesAmount);
 }
 
 void Engine::ParticleSystem::SetSmokeTextures(std::shared_ptr<Texture> RLU, std::shared_ptr<Texture> DBF, std::shared_ptr<Texture> EMVA)
@@ -235,6 +226,9 @@ void Engine::ParticleSystem::SetSmokeTextures(std::shared_ptr<Texture> RLU, std:
 	m_RLU = RLU;
 	m_DBF = DBF;
 	m_EMVA = EMVA;
+
+	PartilcleAtlasInfo data = { textureRowCount, textureColumnCount };
+	m_cbTextureData.updateBuffer(&data);
 }
 
 void Engine::ParticleSystem::Render()
@@ -251,7 +245,7 @@ void Engine::ParticleSystem::Render()
 	m_RLU->BindTexture(21);
 	m_DBF->BindTexture(22);
 
-	context->DrawIndexedInstanced(6u, (UINT)m_vertexBufferData.size(), 0, 0, 0);
+	context->DrawIndexedInstanced(6u, particlesAmount, 0, 0, 0);
 }
 
 Engine::ParticleSystem::ParticleSystem()

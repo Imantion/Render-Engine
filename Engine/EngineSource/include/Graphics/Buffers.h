@@ -1,6 +1,6 @@
 #pragma once
 #include "Graphics/D3D.h"
-#include "Utils\EnumDefinitions.h"
+#include "Utils\Definitions.h"
 
 namespace Engine
 {

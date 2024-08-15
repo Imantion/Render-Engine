@@ -6,7 +6,7 @@ Texture2D g_lightmapRLU : register(t21);
 Texture2D g_lightmapDBF : register(t22);
 Texture2D g_DepthTexture : register(t23);
 
-#define THICKNESS 2.0f
+#define THICKNESS 1.0f
 
 float3 SixWayLightMap(float3 lightIrradiance, float3 lightDirection, float lightmapRLUDBF[6])
 {

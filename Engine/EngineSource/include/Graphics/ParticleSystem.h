@@ -3,13 +3,16 @@
 #include "Graphics/D3D.h"
 #include "Graphics/Buffers.h"
 #include "Math\math.h"
+#include "Utils/Definitions.h"
 #include <mutex>
 #include <memory>
+
 
 namespace Engine
 {
 	class Texture;
 	struct shader;
+	struct IndexedDistance;
 
 	struct Particle
 	{
@@ -97,6 +100,13 @@ namespace Engine
 	private:
 		VertexBuffer<ParticleInstance> m_vertexBuffer;
 		std::vector<ParticleInstance> m_vertexBufferData;
+		std::vector<ParticleInstance> m_vertexBufferSortedData;
+		
+		std::vector<IndexedDistance> m_indexedDistance;
+		std::vector<IndexedDistance> m_sortedIndexedDistance;
+
+		uint32_t particlesAmount = 0;
+
 		IndexBuffer m_indexBuffer;
 		ConstBuffer<PartilcleAtlasInfo> m_cbTextureData;
 
