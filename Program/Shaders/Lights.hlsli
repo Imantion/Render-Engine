@@ -249,28 +249,35 @@ float3 PBRLight(PointLight lightSource, float3 worldPosition, float3 albedo, flo
                float3 v, bool specular = true, bool diffuse = true)
 {
     float3 relPosition = lightSource.position - worldPosition;
+    if(dot(relPosition,macroNormal) < -lightSource.radius)
+        return 0.0f;
+    
     float3 lightDir = normalize(relPosition);
     float distance = length(relPosition);
-    float solidAngle = SolidAngle(lightSource.radius, distance * distance);
-    float cosAnglular = sqrt(1.0f / (1.0f + pow((lightSource.radius / distance), 2)));
-    float sinAngular = sqrt(1 - cosAnglular * cosAnglular);
-    bool intersects;
-    float3 l = approximateClosestSphereDir(intersects, reflect(lightDir, microNormal), cosAnglular, relPosition, lightDir, distance, lightSource.radius);
-    float NoL = dot(microNormal, lightDir);
+    distance = max(distance, lightSource.radius);
     
+    float solidAngle = SolidAngle(lightSource.radius, distance * distance);
+    float sinAngular = lightSource.radius / distance;
+    float cosAnglular = sqrt(1.0f - sinAngular * sinAngular);
+    
+    bool intersects;
+    float3 l = approximateClosestSphereDir(intersects, reflect(-lightDir, microNormal), cosAnglular, relPosition, lightDir, distance, lightSource.radius);
+    float NoL = max(dot(microNormal, lightDir), 0.001f);
+
     float closestSphereNoL = dot(microNormal, l);
     clampDirToHorizon(l, closestSphereNoL, microNormal, 0.001f);
    
 
     float3 h = normalize(v + l);
+    float VoH, NoH;
     float rSquared = roughness * roughness;
-    float NoH = max(dot(microNormal, h), 0.001f);
-    float NoV = max(dot(microNormal, v), 0.001f);
+    float NoV = dot(microNormal, v);
     float HoL = max(dot(h, l), 0.001f);
-    float VoL = max(dot(v, l), 0.001f);
+    float VoL = dot(v, l);
     float3 F0 = lerp(g_MIN_F0, albedo, metalness);
 
-    SphereMaxNoH(NoV, closestSphereNoL, VoL, sinAngular, cosAnglular, true, NoH, NoV);
+    SphereMaxNoH(NoV, closestSphereNoL, VoL, sinAngular, cosAnglular, true, NoH, VoH);
+    
     
     float3 f_spec = 0.0f;
     if (specular)

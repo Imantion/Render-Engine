@@ -297,12 +297,12 @@ void D3DApplication::UpdateInput(float deltaTime)
 
 		Engine::hitInfo hInfo; hInfo.reset_parameter_t();
 		auto& opaqueGroup = Engine::MeshSystem::Init()->opaqueGroup;
-		uint32_t opaqueHit = opaqueGroup.intersect(r, hInfo);
+		int opaqueHit = opaqueGroup.intersect(r, hInfo);
 
 		auto& emmisiveGroup = Engine::MeshSystem::Init()->emmisiveGroup;
-		uint32_t emmisiveHit = emmisiveGroup.intersect(r, hInfo);
+		int emmisiveHit = emmisiveGroup.intersect(r, hInfo);
 
-		if (selected && (emmisiveHit != selected->getTransformId() || opaqueHit != selected->getTransformId()))
+		if (selected && opaqueHit != selected->getTransformId() && selectedObject == Opaque)
 		{
 			Engine::MeshSystem::PBRInstance data = { false };
 			selected->update(&data);
@@ -321,8 +321,11 @@ void D3DApplication::UpdateInput(float deltaTime)
 	}
 	else if (selected && objectInteractions != Select)
 	{
-		Engine::MeshSystem::PBRInstance data = { false };
-		selected->update(&data);
+		if (selectedObject == Opaque)
+		{
+			Engine::MeshSystem::PBRInstance data = { false };
+			selected->update(&data);
+		}
 		selected.release();
 	}
 
@@ -397,8 +400,6 @@ void D3DApplication::GUI()
 				// Update the current mode based on selection
 				objectInteractions = (Mode)currentItem;
 			}
-
-
 			
 			static float roughness = 1.0f;
 			static float metalness = 1.0f;
@@ -609,6 +610,7 @@ void D3DApplication::InitCrateModel()
 		TM->LoadFromFile("golden_roughness", L"Textures\\Gold\\roughness.dds"), TM->LoadFromFile("golden_metallic", L"Textures\\Gold\\metallic.dds"),
 		TM->LoadFromFile("golden_normal",L"Textures\\Gold\\normal.dds") };
 
+
 	auto model = Engine::ModelManager::GetInstance()->loadModel("Models\\sphere.obj");
 	Engine::TransformSystem::transforms inst = { Engine::transformMatrix(Engine::vec3(0.0f, 4.0f, -1.0f), Engine::vec3(0.0f, 0.0f, 1.0f), Engine::vec3(1.0f, 0.0f, 0.0f), Engine::vec3(0.0f, 1.0f, 0.0f)) };
 	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, goldenSphereTextures, inst);
@@ -624,6 +626,11 @@ void D3DApplication::InitCrateModel()
 
 	changepos(inst, Engine::vec3(1.0f, -1.0f, 4.0f));
 	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, crateMaterial, inst);
+
+	auto goldenCube = goldenSphereTextures;
+	goldenCube.usedTextures = Materials::METALNESS;
+	changepos(inst, Engine::vec3(-3.0f, -1.0f, 2.0f));
+	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, goldenCube, inst);
 
 	auto rotZ = Engine::mat4::rotateZ(3.14f * (-45.0f) / 360.0f);
 	changescale(inst, 0, 5);
