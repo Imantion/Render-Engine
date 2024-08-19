@@ -261,24 +261,22 @@ float3 PBRLight(PointLight lightSource, float3 worldPosition, float3 albedo, flo
     float cosAnglular = sqrt(1.0f - sinAngular * sinAngular);
     
     bool intersects;
-    float3 l = approximateClosestSphereDir(intersects, reflect(-lightDir, microNormal), cosAnglular, relPosition, lightDir, distance, lightSource.radius);
-    float NoL = max(dot(microNormal, lightDir), 0.001f);
-
-    float closestSphereNoL = dot(microNormal, l);
+    float3 l = approximateClosestSphereDir(intersects, reflect(-v, microNormal), cosAnglular, relPosition, lightDir, distance, lightSource.radius);
    
-    clampDirToHorizon(l, closestSphereNoL, microNormal, 0.15f);
+
+    float map_fading = 0.05f;
+    float NoL = max(dot(microNormal, lightDir), map_fading * sinAngular);
+    float closestSphereNoL = dot(microNormal, l);
+    clampDirToHorizon(l, closestSphereNoL, microNormal, 0.001f);
    
 
     float3 h = normalize(v + l);
-    float VoH, NoH;
+    float NoH = max(dot(microNormal, h), 0.001);
     float rSquared = roughness * roughness;
-    float NoV = dot(microNormal, v);
+    float NoV = max(dot(microNormal, v), 0.001f);
     float HoL = max(dot(h, l), 0.001f);
     float VoL = dot(v, l);
     float3 F0 = lerp(g_MIN_F0, albedo, metalness);
-
-    SphereMaxNoH(NoV, closestSphereNoL, VoL, sinAngular, cosAnglular, true, NoH, VoH);
-    
     
     float3 f_spec = 0.0f;
     if (specular)
