@@ -265,7 +265,8 @@ float3 PBRLight(PointLight lightSource, float3 worldPosition, float3 albedo, flo
     float NoL = max(dot(microNormal, lightDir), 0.001f);
 
     float closestSphereNoL = dot(microNormal, l);
-    clampDirToHorizon(l, closestSphereNoL, microNormal, 0.001f);
+   
+    clampDirToHorizon(l, closestSphereNoL, microNormal, 0.15f);
    
 
     float3 h = normalize(v + l);
