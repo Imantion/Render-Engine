@@ -287,6 +287,7 @@ void D3DApplication::UpdateInput(float deltaTime)
 
 	if (Input::mouseWasPressed(Input::MouseButtons::RIGHT) && objectInteractions == Select)
 	{
+	
 		Engine::vec2 screenCoord(mousePosition.x, pWindow->getWindowHeight() - mousePosition.y);
 		Engine::ray r;
 		screenCoord.x = (screenCoord.x / pWindow->getWindowWidth() - 0.5f) * 2.0f;
@@ -301,6 +302,12 @@ void D3DApplication::UpdateInput(float deltaTime)
 		auto& emmisiveGroup = Engine::MeshSystem::Init()->emmisiveGroup;
 		uint32_t emmisiveHit = emmisiveGroup.intersect(r, hInfo);
 
+		if (selected && (emmisiveHit != selected->getTransformId() || opaqueHit != selected->getTransformId()))
+		{
+			Engine::MeshSystem::PBRInstance data = { false };
+			selected->update(&data);
+		}
+
 		if (emmisiveHit != -1 && Engine::LightSystem::Init()->GetPointLightByTransformId(emmisiveHit))
 		{
 			selectedObject = Emmisive;
@@ -314,6 +321,8 @@ void D3DApplication::UpdateInput(float deltaTime)
 	}
 	else if (selected && objectInteractions != Select)
 	{
+		Engine::MeshSystem::PBRInstance data = { false };
+		selected->update(&data);
 		selected.release();
 	}
 
@@ -574,7 +583,7 @@ void D3DApplication::InitLights()
 	Engine::TransformSystem::transforms inst = {
 	   Engine::transformMatrix(Engine::vec3(-2.0f, 3.0f, 7.0f), Engine::vec3(0.0f, 0.0f, 1.0f), Engine::vec3(1.0f, 0.0f, 0.0f), Engine::vec3(0.0f, 1.0f, 0.0f))};
 
-	areaLight.bindedTransform = Engine::MeshSystem::Init()->emmisiveGroup.addModel(model, Materials::EmmisiveMaterial{}, inst, Engine::MeshSystem::EmmisiveInstance{ areaLight.radiance });
+	areaLight.bindedTransform = Engine::MeshSystem::Init()->emmisiveGroup.addModel(model, Materials::EmmisiveMaterial{}, inst, Engine::MeshSystem::EmmisiveInstance{ areaLight.radiance * 10 });
 	Engine::LightSystem::Init()->AddAreaLight(areaLight);
 
 	Engine::LightSystem::Init()->UpdateLightsBuffer();

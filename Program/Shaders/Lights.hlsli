@@ -37,9 +37,6 @@ static const int MAX_AREA_IND = 4;
 #define PI 3.141
 static const float g_MIN_F0 = 0.01;
 
-
-
-static const float3 ambient = float3(0.005f, 0.005f, 0.005f);
 Texture2D flashlighTexture : register(t1);
 SamplerState samplerstateFlash : register(s0);
 
@@ -259,9 +256,10 @@ float3 PBRLight(PointLight lightSource, float3 worldPosition, float3 albedo, flo
     float sinAngular = sqrt(1 - cosAnglular * cosAnglular);
     bool intersects;
     float3 l = approximateClosestSphereDir(intersects, reflect(lightDir, microNormal), cosAnglular, relPosition, lightDir, distance, lightSource.radius);
-    float NoL = dot(microNormal, l);
-    clampDirToHorizon(l, NoL, microNormal, 0.001f);
+    float NoL = dot(microNormal, lightDir);
     
+    float closestSphereNoL = dot(microNormal, l);
+    clampDirToHorizon(l, closestSphereNoL, microNormal, 0.001f);
    
 
     float3 h = normalize(v + l);
@@ -272,11 +270,11 @@ float3 PBRLight(PointLight lightSource, float3 worldPosition, float3 albedo, flo
     float VoL = max(dot(v, l), 0.001f);
     float3 F0 = lerp(g_MIN_F0, albedo, metalness);
 
-    SphereMaxNoH(NoV, NoL, VoL, sinAngular, cosAnglular, true, NoH, NoV);
+    SphereMaxNoH(NoV, closestSphereNoL, VoL, sinAngular, cosAnglular, true, NoH, NoV);
     
     float3 f_spec = 0.0f;
     if (specular)
-        f_spec = min(D_GGX(rSquared, NoH) * solidAngle / (4 * NoV), 1.0f) * G_Smith(rSquared, NoV, NoL) * fresnel(F0, HoL);
+        f_spec = min(D_GGX(rSquared, NoH) * solidAngle / (4 * NoV), 1.0f) * G_Smith(rSquared, NoV, closestSphereNoL) * fresnel(F0, HoL);
     
     float3 f_diff = 0.0f;
     if (diffuse)
