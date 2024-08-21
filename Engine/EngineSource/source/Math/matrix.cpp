@@ -121,7 +121,7 @@ Engine::mat4 Engine::mat4::rotateY(float angle)
 	return result;
 }
 
-Engine::mat4 Engine::mat4::rotateZ(float angle)
+Engine::mat4 Engine::mat4::rotateZ(float angle) // degrees
 {
 	mat4 result;
 	float sinTheta = std::sinf(angle);

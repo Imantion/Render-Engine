@@ -1,3 +1,6 @@
+#ifndef DECLARATIONS_M
+#define DECLARATIONS_M
+
 #pragma pack_matrix( row_major )
 
 cbuffer perView : register(b0)
@@ -13,9 +16,14 @@ cbuffer perFrame : register(b1)
 {
     float4 iResolution;
     float g_time;
+    int diffuseState;
+    int specularState;
+    int IBLState;
+    int LTCState;
 }
 
 SamplerState g_pointWrap : register(s0); // No interpolation, Point Wrap
 SamplerState g_linearWrap : register(s1); // Trilinear interpolation, Linear Wrap
 SamplerState g_anisotropicWrap : register(s2); // Anisotropic filtering, Wrap
 SamplerState g_sampler : register(s3); // Configurable filtering
+#endif

@@ -32,11 +32,11 @@ void Engine::LightSystem::AddDirectionalLight(const DirectionalLight& other)
     m_directionalLights.push_back(other);
 }
 
-void Engine::LightSystem::AddFlashLight(const SpotLight& spotLight, std::shared_ptr<Texture> texture, float aspectRatio, float nearClip, float farClip)
+void Engine::LightSystem::AddFlashLight(const SpotLight& spotLight, std::shared_ptr<Texture> texture, float nearClip, float farClip)
 {
     m_flashLight.light = spotLight;
     m_flashLight.flashLightMask = texture;
-    flProjectionData.aspectRatio = aspectRatio;
+    flProjectionData.aspectRatio = (float)texture->getTextureWidth() / (float)texture->getTextureHeight();
     flProjectionData.nearClip = nearClip;
     flProjectionData.farClip = farClip;
 
@@ -121,9 +121,34 @@ void Engine::LightSystem::AddSpotLight(const SpotLight& spotLight)
     m_spotLights.push_back(spotLight);
 }
 
+void Engine::LightSystem::AddAreaLight(const AreaLight& areaLight)
+{
+    m_areaLight.push_back(areaLight);
+}
+
 Engine::SpotLight& Engine::LightSystem::GetSpotLight(uint32_t index)
 {
     return m_spotLights[index];
+}
+
+Engine::SpotLight* Engine::LightSystem::GetSpotLightByTransformId(uint32_t index)
+{
+    for (size_t i = 0; i < m_spotLights.size(); i++)
+    {
+        if (m_spotLights[i].bindedObjectId == index)
+            return &m_spotLights[i];
+    }
+    return nullptr;
+}
+
+Engine::PointLight* Engine::LightSystem::GetPointLightByTransformId(uint32_t index)
+{
+    for (size_t i = 0; i < m_pointLights.size(); i++)
+    {
+        if (m_pointLights[i].bindedObjectId == index)
+            return &m_pointLights[i];
+    }
+    return nullptr;
 }
 
 void Engine::LightSystem::UpdateLightsBuffer()
@@ -196,6 +221,30 @@ void Engine::LightSystem::UpdateLightsBuffer()
         bufferData.flashLightsViewProjection = m_flashLight.flashLightsViewProjection;
 
     }
+
+    bufferData.alSize = (UINT)m_areaLight.size();
+    for (size_t i = 0; i < m_areaLight.size(); i++)
+    {
+        auto& transform = TS->GetModelTransforms(m_areaLight[i].bindedTransform)[0].modelToWold;
+        bufferData.areaLights[i].radiance = m_areaLight[i].radiance;
+        bufferData.areaLights[i].verticesAmount = m_areaLight[i].verticesAmount;
+        bufferData.areaLights[i].indicesAmount = m_areaLight[i].indicesAmount;
+
+        for (size_t j = 0; j < m_areaLight[i].verticesAmount; j++)
+        {
+            bufferData.areaLights[i].vertices[j] = m_areaLight[i].vertices[j] * transform;
+        }
+        
+        for (size_t j = 0; j < m_areaLight[i].indicesAmount; j++)
+        {
+            bufferData.areaLights[i].edges[j] = m_areaLight[i].edges[j];
+        }
+
+        bufferData.areaLights[i].radiance = m_areaLight[i].radiance;
+        bufferData.areaLights[i].intensity = m_areaLight[i].intensity;
+        bufferData.areaLights[i].bindedTransform = m_areaLight[i].bindedTransform;
+    }
+
 
     m_lighsBuffer.updateBuffer(&bufferData);
 }

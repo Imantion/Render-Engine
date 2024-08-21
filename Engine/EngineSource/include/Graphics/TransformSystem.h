@@ -30,6 +30,7 @@ namespace Engine
 		void RemoveModelTransform(uint32_t id);
 		void SetModelPosition(uint32_t id, const std::vector<vec3>& position);
 		void SetModelMeshPosition(uint32_t id, uint32_t meshIndex, const vec3& position);
+		void ScaleModelTransform(uint32_t id, float radius);
 		void TranslateModel(uint32_t id, vec3 position);
 
 	protected:

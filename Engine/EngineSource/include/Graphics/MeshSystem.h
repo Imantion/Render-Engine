@@ -90,6 +90,33 @@ namespace Engine
 
 		OpaqueInstances() { meshData.create(); materialData.create(); }
 
+		std::vector<I*> getInstanceByTransformId(uint32_t transformId)
+		{
+			std::vector<I*> modelInstanes;
+
+			for (size_t i = 0; i < perModel.size(); i++)
+			{
+				for (uint32_t meshIndex = 0; meshIndex < perModel[i].perMesh.size(); ++meshIndex)
+				{
+					const Mesh& mesh = perModel[i].model->m_meshes[meshIndex];
+
+					for (size_t j = 0; j < perModel[i].perMesh[meshIndex].perMaterial.size(); j++)
+					{
+						auto& instances = perModel[i].perMesh[meshIndex].perMaterial[j].instances;
+
+						uint32_t numModelInstances = (uint32_t)instances.size();
+						for (uint32_t index = 0; index < numModelInstances; ++index)
+						{
+							if (transformId == instances[index].transformsId)
+								modelInstanes.push_back(&instances[index].instanceData);
+						}
+					}
+				}
+			}
+
+			return modelInstanes;
+		}
+
 		uint32_t intersect(const ray& r, hitInfo& hInfo)
 		{
 			uint32_t transformId = -1;
@@ -347,10 +374,25 @@ namespace Engine
 			vec3 emmisiveColor;
 		};
 
+		struct PBRInstance
+		{
+			int isSelected = 0;
+			int shouldOverWriteMaterial = 0;
+			float roughness = 0.0f;
+			float metalness = 0.0f;
+		};
+
+		struct EmmisiveMaterial
+		{
+			vec4 padding;
+			bool operator==(const EmmisiveMaterial& other) const
+			{
+				return true;
+			}
+		};
 		OpaqueInstances<Instance, Materials::HologramMaterial> hologramGroup;
 		OpaqueInstances<Instance, Materials::NormVisMaterial> normVisGroup;
-		OpaqueInstances<Instance, Materials::TextureMaterial> textureGroup;
-		OpaqueInstances<Instance, Materials::OpaqueTextureMaterial> opaqueGroup;
+		OpaqueInstances<PBRInstance, Materials::OpaqueTextureMaterial> opaqueGroup;
 		OpaqueInstances<EmmisiveInstance, Materials::EmmisiveMaterial> emmisiveGroup;
 
 		int intersect(const ray& r, hitInfo& hInfo);
@@ -372,7 +414,7 @@ namespace Engine
 	};
 
 	template <>
-	inline void OpaqueInstances<MeshSystem::Instance, Materials::OpaqueTextureMaterial>::render();
+	inline void OpaqueInstances<MeshSystem::PBRInstance, Materials::OpaqueTextureMaterial>::render();
 
 
 	

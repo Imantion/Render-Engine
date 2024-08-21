@@ -9,14 +9,12 @@ int Engine::MeshSystem::intersect(const ray& r, hitInfo& hInfo)
 {
 	int first = hologramGroup.intersect(r, hInfo);
 	int second = normVisGroup.intersect(r, hInfo);
-	int third = textureGroup.intersect(r, hInfo);
-	int firth = opaqueGroup.intersect(r, hInfo);
-	int fifth = emmisiveGroup.intersect(r, hInfo);
-	if (fifth != -1)
-		return fifth;
+	int third = opaqueGroup.intersect(r, hInfo);
+	int fourth = emmisiveGroup.intersect(r, hInfo);
 
-	if (firth != -1)
-		return firth;
+
+	if (fourth != -1)
+		return fourth;
 	return third != -1? third: (second != -1? second: first);
 }
 
@@ -24,7 +22,6 @@ void Engine::MeshSystem::updateInstanceBuffers()
 {
 	normVisGroup.updateInstanceBuffers();
 	hologramGroup.updateInstanceBuffers();
-	textureGroup.updateInstanceBuffers();
 	opaqueGroup.updateInstanceBuffers();
 	emmisiveGroup.updateInstanceBuffers();
 }
@@ -33,7 +30,6 @@ void Engine::MeshSystem::render()
 {
 	normVisGroup.render();
 	hologramGroup.render();
-	textureGroup.render();
 	opaqueGroup.render();
 	emmisiveGroup.render();
 }
@@ -56,7 +52,7 @@ void Engine::MeshSystem::Deinit()
 }
 
 template <>
-inline void Engine::OpaqueInstances<Engine::MeshSystem::Instance, Materials::OpaqueTextureMaterial>::render()
+inline void Engine::OpaqueInstances<Engine::MeshSystem::PBRInstance, Materials::OpaqueTextureMaterial>::render()
 {
 
 	// Custom render implementation for TextureMaterial
@@ -85,7 +81,7 @@ inline void Engine::OpaqueInstances<Engine::MeshSystem::Instance, Materials::Opa
 					if (perMaterial.instances.empty()) continue;
 					const auto& material = perMaterial.material;
 
-					MaterialData data = { vec4(material.usedTextures, material.roughness, material.metalness,0.0f)};
+					MaterialData data = { vec4((float)material.usedTextures, material.roughness, material.metalness,0.0f)};
 
 					materialData.updateBuffer(&data);
 					uint32_t numInstances = uint32_t(perMaterial.instances.size());

@@ -8,6 +8,10 @@ struct VIn
     float3 bitangent : BITANGENT;
     float2 tc : TC;
     float4 modelToWorld[4] : TOWORLD;
+    int isSelected : ISSELECTED;
+    int shouldOverWriteMaterial : SHOULDOVERWRITE;
+    float roughness : ROUGHNESS;
+    float metalness : METALNESS;
 };
 
 struct VOut
@@ -16,6 +20,11 @@ struct VOut
     float3 worldPos : WorldPos;
     float3x3 tbn : TBN;
     float2 tc : TC;
+    int isSelected : ISSELECTED;
+    int shouldOverWriteMaterial : SHOULDOVERWRITE;
+    float roughness : ROUGHNESS;
+    float metalness : METALNESS;
+    
 };
 
 cbuffer meshData : register(b2)
@@ -39,6 +48,11 @@ VOut main(VIn input)
     output.tbn = float3x3(tangent, bitangent, normal);
     
     output.tc = input.tc;
+    
+    output.isSelected = input.isSelected;
+    output.shouldOverWriteMaterial = input.shouldOverWriteMaterial;
+    output.roughness = input.roughness;
+    output.metalness = input.metalness;
     
     return output;
 }

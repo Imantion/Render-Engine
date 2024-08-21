@@ -13,6 +13,7 @@ namespace dx = DirectX;
 namespace Engine
 {
 	class Camera;
+	class ISelected;
 }
 
 class D3DApplication
@@ -36,12 +37,31 @@ private:
 	void InitFloor();
 	void InitSkybox();
 	void InitPostProcess();
-
+	void GUI();
 private:
 	std::shared_ptr<Engine::Camera> camera;
 	std::unique_ptr<Engine::Window> pWindow;
 	
 	std::unique_ptr<Engine::IRayDraggable> dragger;
+	std::unique_ptr<Engine::ISelected> selected;
 	Engine::SkyBox skybox;
+
+	struct CameraStates
+	{
+		bool canMove = true;
+		bool canRotate = true;
+	} cameraStates;
+
+	enum Mode
+	{
+		Drag,
+		Select
+	} objectInteractions = Drag;
+
+	enum SelectedObject
+	{
+		Opaque,
+		Emmisive
+	} selectedObject;
 };
 

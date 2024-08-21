@@ -3,19 +3,45 @@
 
 Engine::Texture::Texture(const wchar_t* name)
 {
-	HRESULT hr = DirectX::CreateDDSTextureFromFile(Engine::D3D::GetInstance()->GetDevice(), name, nullptr, &m_srv);
+	HRESULT hr = DirectX::CreateDDSTextureFromFile(Engine::D3D::GetInstance()->GetDevice(), name, &m_texture, &m_srv);
 	assert(SUCCEEDED(hr));
 }
 
 void Engine::Texture::CreateTexture(const wchar_t* name)
 {
-	HRESULT hr = DirectX::CreateDDSTextureFromFile(Engine::D3D::GetInstance()->GetDevice(), name, nullptr, &m_srv);
+	HRESULT hr = DirectX::CreateDDSTextureFromFile(Engine::D3D::GetInstance()->GetDevice(), name, &m_texture, &m_srv);
 	assert(SUCCEEDED(hr));
 }
 
 void Engine::Texture::BindTexture(UINT slot) const
 {
 	D3D::GetInstance()->GetContext()->PSSetShaderResources(slot, 1u, m_srv.GetAddressOf());
+}
+
+UINT Engine::Texture::getTextureWidth()
+{
+	ID3D11Texture2D* texture;
+	HRESULT hr = m_texture->QueryInterface(__uuidof(ID3D11Texture2D), (void**)&texture);
+	assert(SUCCEEDED(hr));
+
+	D3D11_TEXTURE2D_DESC textDesc;
+	texture->GetDesc(&textDesc);
+
+	texture->Release();
+	return textDesc.Width;
+}
+
+UINT Engine::Texture::getTextureHeight()
+{
+	ID3D11Texture2D* texture;
+	HRESULT hr = m_texture->QueryInterface(__uuidof(ID3D11Texture2D), (void**)&texture);
+	assert(SUCCEEDED(hr));
+
+	D3D11_TEXTURE2D_DESC textDesc;
+	texture->GetDesc(&textDesc);
+
+	texture->Release();
+	return textDesc.Height;
 }
 
 /// ////////////////////////////////////////////////////// Texture Manager

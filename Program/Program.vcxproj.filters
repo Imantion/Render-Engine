@@ -31,6 +31,18 @@
     <Filter Include="Shaders\SkyBox">
       <UniqueIdentifier>{32051f6c-69de-44e5-a2b9-bf1e884ec58f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\IBL">
+      <UniqueIdentifier>{b305cecd-c60f-4d9e-beb1-ad048f73e973}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\emmisive">
+      <UniqueIdentifier>{ab5ace6c-1ce6-4b61-9a62-3e400c3bcb66}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\opaque">
+      <UniqueIdentifier>{f602be38-69cf-4054-9cb1-6da5e3f32b10}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\PostProcess">
+      <UniqueIdentifier>{d8d8d29b-51dd-4dad-8355-18ce8d06f2fb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Application\Input\Input.cpp">
@@ -95,11 +107,39 @@
     <None Include="Shaders\normalLines\GSnormal.hlsl">
       <Filter>Shaders\NormalVis</Filter>
     </None>
-    <None Include="Shaders\opaqueShader\opaqueVS.hlsl" />
-    <None Include="Shaders\opaqueShader\opaquePS.hlsl" />
-    <None Include="Shaders\emissive\emissivePS.hlsl" />
-    <None Include="Shaders\emissive\emissiveVS.hlsl" />
-    <None Include="Shaders\Lights.hlsli" />
+    <None Include="Shaders\ReflectionCapture\CubeMapVS.hlsl">
+      <Filter>Shaders\IBL</Filter>
+    </None>
+    <None Include="Shaders\ReflectionCapture\CubeMapGS.hlsl">
+      <Filter>Shaders\IBL</Filter>
+    </None>
+    <None Include="Shaders\ReflectionCapture\IBL.hlsli">
+      <Filter>Shaders\IBL</Filter>
+    </None>
+    <None Include="Shaders\ReflectionCapture\IBLdiffusePS.hlsl">
+      <Filter>Shaders\IBL</Filter>
+    </None>
+    <None Include="Shaders\ReflectionCapture\IBLReflectancePS.hlsl">
+      <Filter>Shaders\IBL</Filter>
+    </None>
+    <None Include="Shaders\ReflectionCapture\IBLReflectanceVS.hlsl">
+      <Filter>Shaders\IBL</Filter>
+    </None>
+    <None Include="Shaders\ReflectionCapture\IBLspecularIrradiancePS.hlsl">
+      <Filter>Shaders\IBL</Filter>
+    </None>
+    <None Include="Shaders\emissive\emissivePS.hlsl">
+      <Filter>Shaders\emmisive</Filter>
+    </None>
+    <None Include="Shaders\emissive\emissiveVS.hlsl">
+      <Filter>Shaders\emmisive</Filter>
+    </None>
+    <None Include="Shaders\opaqueShader\opaqueVS.hlsl">
+      <Filter>Shaders\opaque</Filter>
+    </None>
+    <None Include="Shaders\Lights.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\declarations.hlsli">
@@ -107,8 +147,14 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Shaders\PostProcess\PostProcessVS.hlsl" />
-    <FxCompile Include="Shaders\PostProcess\PostProcessPS.hlsl" />
-    <FxCompile Include="Shaders\opaqueShader\opaquePS.hlsl" />
+    <FxCompile Include="Shaders\opaqueShader\opaquePS.hlsl">
+      <Filter>Shaders\opaque</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\PostProcess\PostProcessPS.hlsl">
+      <Filter>Shaders\PostProcess</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\PostProcess\PostProcessVS.hlsl">
+      <Filter>Shaders\PostProcess</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
