@@ -36,7 +36,7 @@ void Engine::Renderer::InitDepthWithRTV(ID3D11Resource* RenderBuffer, UINT wWidt
 	{
 		HRESULT hr = device->CreateRenderTargetView(RenderBuffer, nullptr, &pRenderTarget);
 		assert(SUCCEEDED(hr));
-
+		InitGBuffer(wWidth, wHeight);
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> HDRtexture;
 
 		D3D11_TEXTURE2D_DESC hdrDesc;
@@ -81,6 +81,23 @@ void Engine::Renderer::InitDepth(UINT wWidth, UINT wHeight)
 	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 	dsDesc.DepthFunc = D3D11_COMPARISON_GREATER_EQUAL;
 
+	// Stencil test parameters
+	dsDesc.StencilEnable = TRUE;
+	dsDesc.StencilReadMask = 0xFF;
+	dsDesc.StencilWriteMask = 0xFF;
+
+	// Stencil operations if pixel is front-facing
+	dsDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+	dsDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+	dsDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_REPLACE;
+	dsDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+
+	// Stencil operations if pixel is back-facing
+	dsDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+	dsDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+	dsDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_REPLACE;
+	dsDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+
 	HRESULT hr = d3d->GetDevice()->CreateDepthStencilState(&dsDesc, &pDSState);
 	assert(SUCCEEDED(hr));
 
@@ -90,6 +107,29 @@ void Engine::Renderer::InitDepth(UINT wWidth, UINT wHeight)
 
 
 	d3d->GetContext()->OMSetDepthStencilState(pDSState.Get(), 1u);
+
+
+	ZeroMemory(&dsDesc, sizeof(dsDesc));
+	dsDesc.DepthEnable = FALSE;
+	dsDesc.StencilEnable = TRUE;
+	dsDesc.StencilReadMask = 0xFF;
+	dsDesc.StencilWriteMask = 0xFF;
+
+	dsDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+	dsDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+	dsDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+	dsDesc.FrontFace.StencilFunc = D3D11_COMPARISON_EQUAL;
+
+	// Stencil operations if pixel is back-facing
+	dsDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+	dsDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+	dsDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+	dsDesc.BackFace.StencilFunc = D3D11_COMPARISON_EQUAL;
+
+	hr = d3d->GetDevice()->CreateDepthStencilState(&dsDesc, &pDSStencilOnlyState);
+	assert(SUCCEEDED(hr));
+
+	
 
 	D3D11_TEXTURE2D_DESC descDepth;
 	ZeroMemory(&descDepth, sizeof(descDepth));
@@ -103,7 +143,7 @@ void Engine::Renderer::InitDepth(UINT wWidth, UINT wHeight)
 	descDepth.Usage = D3D11_USAGE_DEFAULT;
 	descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
 
-	hr = d3d->GetDevice()->CreateTexture2D(&descDepth, nullptr, &pDepthStencil);
+	hr = d3d->GetDevice()->CreateTexture2D(&descDepth, nullptr, &pDepthStencilTexture);
 	assert(SUCCEEDED(hr));
 
 	D3D11_DEPTH_STENCIL_VIEW_DESC descDVS;
@@ -112,7 +152,7 @@ void Engine::Renderer::InitDepth(UINT wWidth, UINT wHeight)
 	descDVS.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMS;
 	descDVS.Texture2D.MipSlice = 0u;
 
-	hr = d3d->GetDevice()->CreateDepthStencilView(pDepthStencil.Get(), &descDVS, &pViewDepth);
+	hr = d3d->GetDevice()->CreateDepthStencilView(pDepthStencilTexture.Get(), &descDVS, &pViewDepth);
 	assert(SUCCEEDED(hr));
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
@@ -125,7 +165,7 @@ void Engine::Renderer::InitDepth(UINT wWidth, UINT wHeight)
 	srvDesc.Texture2DArray.MostDetailedMip = 0u;
 	srvDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
 
-	hr = d3d->GetDevice()->CreateShaderResourceView(pDepthStencil.Get(), &srvDesc, &pDepthSRV);
+	hr = d3d->GetDevice()->CreateShaderResourceView(pDepthStencilTexture.Get(), &srvDesc, &pDepthSRV);
 	assert(SUCCEEDED(hr));
 
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> texture;
@@ -166,6 +206,67 @@ void Engine::Renderer::InitDepth(UINT wWidth, UINT wHeight)
 	hr = d3d->GetDevice()->CreateShaderResourceView(texture.Get(), &srvDesc, &pNoMSDepthSRV);
 	assert(SUCCEEDED(hr));
 
+}
+
+void Engine::Renderer::InitGBuffer(UINT wWidth, UINT wHeight)
+{
+	/*auto device = D3D::GetInstance()->GetDevice();
+
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> Albedo;
+
+	D3D11_TEXTURE2D_DESC textureDesc = {};
+	textureDesc.Width = (UINT)wWidth;
+	textureDesc.Height = (UINT)wHeight;
+	textureDesc.MipLevels = 1u;
+	textureDesc.ArraySize = 1u;
+	textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	textureDesc.SampleDesc.Count = 1;
+	textureDesc.Usage = D3D11_USAGE_DEFAULT;
+	textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+	textureDesc.CPUAccessFlags = 0;
+
+	HRESULT hr = device->CreateTexture2D(&textureDesc, nullptr, &Albedo);
+	assert(SUCCEEDED(hr));
+	hr = device->CreateShaderResourceView(Albedo.Get(), nullptr, &m_GBuffer.Normals);
+	assert(SUCCEEDED(hr));
+	hr = device->CreateRenderTargetView(Albedo.Get(), nullptr, &GBufferRTVs[0]);
+	assert(SUCCEEDED(hr));
+
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> RoughNormal;
+	textureDesc.Format = DXGI_FORMAT_R8G8_UINT;
+	hr = device->CreateTexture2D(&textureDesc, nullptr, &RoughNormal);
+	assert(SUCCEEDED(hr));
+	hr = device->CreateShaderResourceView(RoughNormal.Get(), nullptr, &m_GBuffer.Normals);
+	assert(SUCCEEDED(hr));
+	hr = device->CreateRenderTargetView(RoughNormal.Get(), nullptr, &GBufferRTVs[1]);
+	assert(SUCCEEDED(hr));
+
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> Normals;
+	textureDesc.Format = DXGI_FORMAT_R16G16B16A16_SNORM;
+	hr = device->CreateTexture2D(&textureDesc, nullptr, &Normals);
+	assert(SUCCEEDED(hr));
+	hr = device->CreateShaderResourceView(Normals.Get(), nullptr, &m_GBuffer.Normals);
+	assert(SUCCEEDED(hr));
+	hr = device->CreateRenderTargetView(Normals.Get(), nullptr, &GBufferRTVs[2]);
+	assert(SUCCEEDED(hr));
+
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> Emmision;
+	textureDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	hr = device->CreateTexture2D(&textureDesc, nullptr, &Emmision);
+	assert(SUCCEEDED(hr));
+	hr = device->CreateShaderResourceView(Emmision.Get(), nullptr, &m_GBuffer.Normals);
+	assert(SUCCEEDED(hr));
+	hr = device->CreateRenderTargetView(Emmision.Get(), nullptr, &GBufferRTVs[3]);
+	assert(SUCCEEDED(hr));
+
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> ObjectID;
+	textureDesc.Format = DXGI_FORMAT_R32_UINT;
+	hr = device->CreateTexture2D(&textureDesc, nullptr, &ObjectID);
+	assert(SUCCEEDED(hr));
+	hr = device->CreateShaderResourceView(ObjectID.Get(), nullptr, &m_GBuffer.Normals);
+	assert(SUCCEEDED(hr));
+	hr = device->CreateRenderTargetView(ObjectID.Get(), nullptr, &GBufferRTVs[4]);
+	assert(SUCCEEDED(hr));*/
 }
 
 void Engine::Renderer::updatePerFrameCB(float deltaTime, float wWidth, float wHeight, float farCLip, float nearClip)

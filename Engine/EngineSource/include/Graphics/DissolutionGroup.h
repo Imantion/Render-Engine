@@ -35,6 +35,7 @@ namespace Engine
 		{
 			uint32_t transformsId;
 			Instances::DissolutionInstance instanceData;
+			uint32_t instanceMeshId = g_meshIdGenerator++;
 		};
 
 		struct MeshData

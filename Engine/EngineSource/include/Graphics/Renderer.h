@@ -46,6 +46,7 @@ namespace Engine
 
 		void InitDepthWithRTV(ID3D11Resource* RenderBuffer, UINT wWidth, UINT wHeight);
 		void InitDepth(UINT wWidth, UINT wHeight);
+		void InitGBuffer(UINT wWidth, UINT wHeight);
 		void ReleaseRenderTarget() { pRenderTarget.ReleaseAndGetAddressOf(); }
 		void updatePerFrameCB(float deltaTime,float wWidth,float wHeight, float farCLip, float nearClip);
 		void CreateNoMSDepth();
@@ -73,6 +74,22 @@ namespace Engine
 
 		void Shadows(const Camera* camera);
 	private:
+		struct GBuffer
+		{
+			Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> Albedo;
+			Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> RoughMetal;
+			Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> Normals;
+			Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> Emmision;
+			Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> ObjectId;
+
+			void Bind(UINT startSlot)
+			{
+				auto context = D3D::GetInstance()->GetContext();
+				ID3D11ShaderResourceView* resources[5] = { Albedo.Get(), RoughMetal.Get(), Normals.Get(), Emmision.Get(), ObjectId.Get() };
+				context->PSSetShaderResources(startSlot, 5u, resources);
+			}
+		};
+	private:
 		ConstBuffer<PerFrameCB> perFrameBuffer;
 		PerFrameCB perFrameData;
 
@@ -81,13 +98,17 @@ namespace Engine
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pHDRtextureResource;
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pHDRRenderTarget;
 
+		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> GBufferRTVs[5];
+		GBuffer m_GBuffer;
+
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pRenderTarget;
 		Microsoft::WRL::ComPtr <ID3D11DepthStencilView> pViewDepth;
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pDepthSRV;
 
-		Microsoft::WRL::ComPtr<ID3D11Texture2D> pDepthStencil;
+		Microsoft::WRL::ComPtr<ID3D11Texture2D> pDepthStencilTexture;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> pDSState;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> pDSReadOnlyState;
+		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> pDSStencilOnlyState;
 
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pNoMSDepthSRV;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> pNoMSDepthStencil;

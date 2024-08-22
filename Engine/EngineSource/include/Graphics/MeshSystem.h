@@ -13,6 +13,9 @@
 
 namespace Engine
 {
+
+	static uint32_t g_meshIdGenerator = 0;
+
 	class MeshSystem;
 	class SpotLight;
 	class DirectionalLight;
@@ -55,6 +58,7 @@ namespace Engine
 		{
 			uint32_t transformsId;
 			I instanceData;
+			uint32_t instanceMeshId = g_meshIdGenerator++;
 		};
 
 		struct MeshData
