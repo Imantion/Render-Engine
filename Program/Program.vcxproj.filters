@@ -166,6 +166,8 @@
     <None Include="Shaders\Particles\VertexShader.hlsl" />
     <None Include="Shaders\Depth\DepthPS.hlsl" />
     <None Include="Shaders\Depth\DepthVS.hlsl" />
+    <None Include="Shaders\opaqueShader\OpaqueGBufferPS.hlsl" />
+    <None Include="Shaders\emissive\EmissiveGBufferPS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\declarations.hlsli">

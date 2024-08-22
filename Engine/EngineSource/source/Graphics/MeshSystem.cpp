@@ -34,20 +34,10 @@ void Engine::MeshSystem::updateInstanceBuffers()
 
 void Engine::MeshSystem::render()
 {
-	auto context = D3D::GetInstance()->GetContext();
-	ID3D11DepthStencilState* dsState;
-	UINT stencilValue;
-	context->OMGetDepthStencilState(&dsState, &stencilValue);
-
-	context->OMSetDepthStencilState(dsState, 1u);
 	opaqueGroup.render();
-
-	context->OMSetDepthStencilState(dsState, 2u);
 	normVisGroup.render();
 	hologramGroup.render();
 	emmisiveGroup.render();
-
-	context->OMSetDepthStencilState(dsState, stencilValue);
 }
 
 Engine::MeshSystem* Engine::MeshSystem::Init()

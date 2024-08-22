@@ -8,8 +8,8 @@ struct PSInput
     float3 worldPos : WorldPos;
     float3x3 tbn : TBN;
     float2 tc : TC;
-    float duration : DURATION;
-    float passedTime : TIMER;
+    nointerpolation float duration : DURATION;
+    nointerpolation float passedTime : TIMER;
 }; 
 
 float4 main(PSInput input) : SV_TARGET

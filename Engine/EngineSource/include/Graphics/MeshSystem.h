@@ -52,6 +52,7 @@ namespace Engine
 		{
 			TransformSystem::transforms transformData;
 			I instanceData;
+			uint32_t instanceID;
 		};
 
 		struct PerInstance
@@ -385,7 +386,7 @@ namespace Engine
 						uint32_t numModelInstances = (uint32_t)instances.size();
 						for (uint32_t index = 0; index < numModelInstances; ++index)
 						{
-							dst[copiedNum++] = instanceBufferData{ TS->GetModelTransforms(instances[index].transformsId)[meshIndex],  instances[index].instanceData };
+							dst[copiedNum++] = instanceBufferData{ TS->GetModelTransforms(instances[index].transformsId)[meshIndex],  instances[index].instanceData, instances[index].instanceMeshId};
 						}
 					}
 				}

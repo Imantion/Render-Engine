@@ -47,6 +47,7 @@ namespace Engine
 		void InitDepthWithRTV(ID3D11Resource* RenderBuffer, UINT wWidth, UINT wHeight);
 		void InitDepth(UINT wWidth, UINT wHeight);
 		void InitGBuffer(UINT wWidth, UINT wHeight);
+		void FillGBuffer();
 		void ReleaseRenderTarget() { pRenderTarget.ReleaseAndGetAddressOf(); }
 		void updatePerFrameCB(float deltaTime,float wWidth,float wHeight, float farCLip, float nearClip);
 		void CreateNoMSDepth();
@@ -126,9 +127,12 @@ namespace Engine
 
 		std::shared_ptr<SkyBox> pSkyBox;
 
-		uint32_t samplesAmount = 4;
+		uint32_t samplesAmount = 1;
 
 		std::shared_ptr<shader> depthShader;
+	public:
+		std::shared_ptr<shader> opaque;
+		std::shared_ptr<shader> emissive;
 	private:
 		static std::mutex mutex_;
 		static Renderer* pInstance;

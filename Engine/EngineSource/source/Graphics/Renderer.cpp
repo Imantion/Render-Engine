@@ -36,7 +36,6 @@ void Engine::Renderer::InitDepthWithRTV(ID3D11Resource* RenderBuffer, UINT wWidt
 	{
 		HRESULT hr = device->CreateRenderTargetView(RenderBuffer, nullptr, &pRenderTarget);
 		assert(SUCCEEDED(hr));
-		InitGBuffer(wWidth, wHeight);
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> HDRtexture;
 
 		D3D11_TEXTURE2D_DESC hdrDesc;
@@ -63,6 +62,7 @@ void Engine::Renderer::InitDepthWithRTV(ID3D11Resource* RenderBuffer, UINT wWidt
 
 
 		InitDepth(wWidth, wHeight);
+		InitGBuffer(wWidth, wHeight);
 
 		perFrameData.viewportWidth = wWidth;
 		perFrameData.viewportWidth = wHeight;
@@ -149,7 +149,7 @@ void Engine::Renderer::InitDepth(UINT wWidth, UINT wHeight)
 	D3D11_DEPTH_STENCIL_VIEW_DESC descDVS;
 	ZeroMemory(&descDVS, sizeof(descDVS));
 	descDVS.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-	descDVS.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMS;
+	descDVS.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 	descDVS.Texture2D.MipSlice = 0u;
 
 	hr = d3d->GetDevice()->CreateDepthStencilView(pDepthStencilTexture.Get(), &descDVS, &pViewDepth);
@@ -158,7 +158,7 @@ void Engine::Renderer::InitDepth(UINT wWidth, UINT wHeight)
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
 	ZeroMemory(&srvDesc, sizeof(srvDesc));
 
-	srvDesc.ViewDimension = D3D_SRV_DIMENSION_TEXTURE2DMS;
+	srvDesc.ViewDimension = D3D_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2DArray.ArraySize = 1;
 	srvDesc.Texture2DArray.FirstArraySlice = 0u;
 	srvDesc.Texture2DArray.MipLevels = 1u;
@@ -210,8 +210,7 @@ void Engine::Renderer::InitDepth(UINT wWidth, UINT wHeight)
 
 void Engine::Renderer::InitGBuffer(UINT wWidth, UINT wHeight)
 {
-	/*auto device = D3D::GetInstance()->GetDevice();
-
+	auto device = D3D::GetInstance()->GetDevice();
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> Albedo;
 
 	D3D11_TEXTURE2D_DESC textureDesc = {};
@@ -233,7 +232,7 @@ void Engine::Renderer::InitGBuffer(UINT wWidth, UINT wHeight)
 	assert(SUCCEEDED(hr));
 
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> RoughNormal;
-	textureDesc.Format = DXGI_FORMAT_R8G8_UINT;
+	textureDesc.Format = DXGI_FORMAT_R8G8_UNORM;
 	hr = device->CreateTexture2D(&textureDesc, nullptr, &RoughNormal);
 	assert(SUCCEEDED(hr));
 	hr = device->CreateShaderResourceView(RoughNormal.Get(), nullptr, &m_GBuffer.Normals);
@@ -266,8 +265,9 @@ void Engine::Renderer::InitGBuffer(UINT wWidth, UINT wHeight)
 	hr = device->CreateShaderResourceView(ObjectID.Get(), nullptr, &m_GBuffer.Normals);
 	assert(SUCCEEDED(hr));
 	hr = device->CreateRenderTargetView(ObjectID.Get(), nullptr, &GBufferRTVs[4]);
-	assert(SUCCEEDED(hr));*/
+	assert(SUCCEEDED(hr));
 }
+
 
 void Engine::Renderer::updatePerFrameCB(float deltaTime, float wWidth, float wHeight, float farCLip, float nearClip)
 {
@@ -306,8 +306,6 @@ void Engine::Renderer::CreateNoMSDepth()
 void Engine::Renderer::RenderParticles(Camera* camera)
 {
 	auto context = D3D::GetInstance()->GetContext();
-
-	CreateNoMSDepth();
 	context->OMSetDepthStencilState(pDSReadOnlyState.Get(), 1u);
 	context->OMSetBlendState(pBlendState.Get(), nullptr, 0xFFFFFFFF);
 
@@ -320,22 +318,38 @@ void Engine::Renderer::RenderParticles(Camera* camera)
 	context->PSSetShaderResources(23u, 1u, &pSRV);
 }
 
+void Engine::Renderer::FillGBuffer()
+{
+	auto context = Engine::D3D::GetInstance()->GetContext();
+	ID3D11RenderTargetView* views[5] = { GBufferRTVs[0].Get(),GBufferRTVs[1].Get(),GBufferRTVs[2].Get(),GBufferRTVs[3].Get(),GBufferRTVs[4].Get() };
+	ID3D11RenderTargetView* NULLviews[5] = { NULL,NULL,NULL,NULL,NULL };
+
+	context->OMSetBlendState(NULL, NULL, 0xffffffff);
+	context->OMSetRenderTargets(5U, views, pViewDepth.Get());
+	context->ClearDepthStencilView(pViewDepth.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 0.0f, 0u);
+
+	static const float color[] = { 0.5f, 0.5f,0.5f,1.0f };
+	for (size_t i = 0; i < 5; i++)
+	{
+		context->ClearRenderTargetView(GBufferRTVs[i].Get(), color);
+	}
+
+	context->OMSetDepthStencilState(pDSState.Get(), 1u);
+	MeshSystem::Init()->opaqueGroup.renderUsingShader(opaque);
+
+	context->OMSetDepthStencilState(pDSState.Get(), 2u);
+	MeshSystem::Init()->emmisiveGroup.renderUsingShader(emissive);
+	//MeshSystem::Init()->hologramGroup.render();
+
+	context->OMSetRenderTargets(5U, NULLviews, nullptr);
+}
+
+
 void Engine::Renderer::Render(Camera* camera)
 {
 	auto context = Engine::D3D::GetInstance()->GetContext();
 
-	context->OMSetDepthStencilState(pDSState.Get(), 1u);
-	context->OMSetBlendState(pBlendState.Get(), nullptr, 0xFFFFFFFF);
-
 	Shadows(camera);
-	
-	context->OMSetRenderTargets(1u, pHDRRenderTarget.GetAddressOf(), pViewDepth.Get());
-	
-
-	static const float color[] = { 0.5f, 0.5f,0.5f,1.0f };
-	
-	context->ClearRenderTargetView(pHDRRenderTarget.Get(), color);
-	context->ClearDepthStencilView(pViewDepth.Get(), D3D11_CLEAR_DEPTH, 0.0f, 0u);
 
 
 	PerViewCB perView = PerViewCB{ camera->getViewMatrix() * camera->getProjectionMatrix(), camera->getInverseViewMatrix(), vec4(camera->getCameraFrustrum(Camera::LeftDown),.0f),
@@ -345,6 +359,15 @@ void Engine::Renderer::Render(Camera* camera)
 
 	
 	perViewBuffer.updateBuffer(&perView);
+
+	FillGBuffer();
+	context->OMSetRenderTargets(1u, pHDRRenderTarget.GetAddressOf(), pViewDepth.Get());
+
+
+	static const float color[] = { 0.5f, 0.5f,0.5f,1.0f };
+
+	context->ClearDepthStencilView(pViewDepth.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 0.0f, 0u);
+	context->ClearRenderTargetView(pHDRRenderTarget.Get(), color);
 
 	LightSystem::Init()->BindLigtsBuffer(3u, shaderTypes::PS);
 
