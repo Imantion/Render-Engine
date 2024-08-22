@@ -9,6 +9,8 @@ cbuffer perView : register(b0)
 {
     matrix viewProjection;
     float4x4 g_viewMatrix;
+    matrix inverseProjection;
+    matrix inverseView;
     float3 bottomLeft;
     float3 topVector;
     float3 rightVector;

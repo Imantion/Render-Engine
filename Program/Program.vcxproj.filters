@@ -168,6 +168,9 @@
     <None Include="Shaders\Depth\DepthVS.hlsl" />
     <None Include="Shaders\opaqueShader\OpaqueGBufferPS.hlsl" />
     <None Include="Shaders\emissive\EmissiveGBufferPS.hlsl" />
+    <None Include="Shaders\fullScreenVS.hlsl" />
+    <None Include="Shaders\emissive\DefferedEmissivePS.hlsl" />
+    <None Include="Shaders\opaqueShader\DefferedOpaquePS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\declarations.hlsli">

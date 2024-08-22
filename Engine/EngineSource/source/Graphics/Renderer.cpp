@@ -226,7 +226,7 @@ void Engine::Renderer::InitGBuffer(UINT wWidth, UINT wHeight)
 
 	HRESULT hr = device->CreateTexture2D(&textureDesc, nullptr, &Albedo);
 	assert(SUCCEEDED(hr));
-	hr = device->CreateShaderResourceView(Albedo.Get(), nullptr, &m_GBuffer.Normals);
+	hr = device->CreateShaderResourceView(Albedo.Get(), nullptr, &m_GBuffer.Albedo);
 	assert(SUCCEEDED(hr));
 	hr = device->CreateRenderTargetView(Albedo.Get(), nullptr, &GBufferRTVs[0]);
 	assert(SUCCEEDED(hr));
@@ -235,7 +235,7 @@ void Engine::Renderer::InitGBuffer(UINT wWidth, UINT wHeight)
 	textureDesc.Format = DXGI_FORMAT_R8G8_UNORM;
 	hr = device->CreateTexture2D(&textureDesc, nullptr, &RoughNormal);
 	assert(SUCCEEDED(hr));
-	hr = device->CreateShaderResourceView(RoughNormal.Get(), nullptr, &m_GBuffer.Normals);
+	hr = device->CreateShaderResourceView(RoughNormal.Get(), nullptr, &m_GBuffer.RoughMetal);
 	assert(SUCCEEDED(hr));
 	hr = device->CreateRenderTargetView(RoughNormal.Get(), nullptr, &GBufferRTVs[1]);
 	assert(SUCCEEDED(hr));
@@ -253,7 +253,7 @@ void Engine::Renderer::InitGBuffer(UINT wWidth, UINT wHeight)
 	textureDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	hr = device->CreateTexture2D(&textureDesc, nullptr, &Emmision);
 	assert(SUCCEEDED(hr));
-	hr = device->CreateShaderResourceView(Emmision.Get(), nullptr, &m_GBuffer.Normals);
+	hr = device->CreateShaderResourceView(Emmision.Get(), nullptr, &m_GBuffer.Emmision);
 	assert(SUCCEEDED(hr));
 	hr = device->CreateRenderTargetView(Emmision.Get(), nullptr, &GBufferRTVs[3]);
 	assert(SUCCEEDED(hr));
@@ -262,7 +262,7 @@ void Engine::Renderer::InitGBuffer(UINT wWidth, UINT wHeight)
 	textureDesc.Format = DXGI_FORMAT_R32_UINT;
 	hr = device->CreateTexture2D(&textureDesc, nullptr, &ObjectID);
 	assert(SUCCEEDED(hr));
-	hr = device->CreateShaderResourceView(ObjectID.Get(), nullptr, &m_GBuffer.Normals);
+	hr = device->CreateShaderResourceView(ObjectID.Get(), nullptr, &m_GBuffer.ObjectId);
 	assert(SUCCEEDED(hr));
 	hr = device->CreateRenderTargetView(ObjectID.Get(), nullptr, &GBufferRTVs[4]);
 	assert(SUCCEEDED(hr));
@@ -320,6 +320,8 @@ void Engine::Renderer::RenderParticles(Camera* camera)
 
 void Engine::Renderer::FillGBuffer()
 {
+	m_GBuffer.Unbind();
+
 	auto context = Engine::D3D::GetInstance()->GetContext();
 	ID3D11RenderTargetView* views[5] = { GBufferRTVs[0].Get(),GBufferRTVs[1].Get(),GBufferRTVs[2].Get(),GBufferRTVs[3].Get(),GBufferRTVs[4].Get() };
 	ID3D11RenderTargetView* NULLviews[5] = { NULL,NULL,NULL,NULL,NULL };
@@ -352,7 +354,9 @@ void Engine::Renderer::Render(Camera* camera)
 	Shadows(camera);
 
 
-	PerViewCB perView = PerViewCB{ camera->getViewMatrix() * camera->getProjectionMatrix(), camera->getInverseViewMatrix(), vec4(camera->getCameraFrustrum(Camera::LeftDown),.0f),
+	PerViewCB perView = PerViewCB{ camera->getViewMatrix() * camera->getProjectionMatrix(), camera->getInverseViewMatrix(),
+		camera->getInverseProjectionMatrix(), camera->getInverseViewMatrix(),
+		vec4(camera->getCameraFrustrum(Camera::LeftDown),.0f),
 		vec4(camera->getCameraFrustrum(Camera::LeftUp) - camera->getCameraFrustrum(Camera::LeftDown),.0f),
 		vec4(camera->getCameraFrustrum(Camera::RightDown) - camera->getCameraFrustrum(Camera::LeftDown),.0f),
 		camera->getPosition()};
@@ -366,7 +370,6 @@ void Engine::Renderer::Render(Camera* camera)
 
 	static const float color[] = { 0.5f, 0.5f,0.5f,1.0f };
 
-	context->ClearDepthStencilView(pViewDepth.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 0.0f, 0u);
 	context->ClearRenderTargetView(pHDRRenderTarget.Get(), color);
 
 	LightSystem::Init()->BindLigtsBuffer(3u, shaderTypes::PS);
@@ -388,7 +391,18 @@ void Engine::Renderer::Render(Camera* camera)
 	LightSystem::Init()->BindLightTextures();
 	TextureManager::Init()->BindComparisonSampler(5u);
 
-	MeshSystem::Init()->render();
+	m_GBuffer.Bind(25u);
+	CreateNoMSDepth();
+	context->PSSetShaderResources(30u, 1u, pNoMSDepthSRV.GetAddressOf());
+	context->OMSetDepthStencilState(pDSStencilOnlyState.Get(), 1u);
+	defferedopaque->BindShader();
+	context->Draw(3u, 0);
+	context->OMSetDepthStencilState(pDSStencilOnlyState.Get(), 2u);
+	dfferedemissive->BindShader();
+	context->Draw(3u, 0);
+	ID3D11ShaderResourceView* const nullSRV = { NULL };
+	context->PSSetShaderResources(30u, 1u, &nullSRV);
+
 	pSkyBox->BindSkyBox(2u);
 	pSkyBox->Draw();
 

@@ -117,6 +117,8 @@ static void InitMeshSystem()
 	auto emissiveShader = Engine::ShaderManager::CompileAndCreateShader("EmmisiveShader", L"Shaders\\emissive\\emissiveVS.hlsl",
 		L"Shaders\\emissive\\emissivePS.hlsl", nullptr, nullptr);
 
+	auto DefferedEmissiveShader = Engine::ShaderManager::CompileAndCreateShader("DefferedEmissiveShader", L"Shaders\\fullScreenVS.hlsl",
+		L"Shaders\\emissive\\DefferedEmissivePS.hlsl", nullptr, nullptr);
 
 	auto GemissiveShader = Engine::ShaderManager::CompileAndCreateShader("GEmmisiveShader", L"Shaders\\emissive\\emissiveVS.hlsl",
 		L"Shaders\\emissive\\EmissiveGBufferPS.hlsl", nullptr, nullptr);
@@ -141,6 +143,9 @@ static void InitMeshSystem()
 
 	auto GopaqueShader = Engine::ShaderManager::CompileAndCreateShader("Gopaque", L"Shaders\\opaqueShader\\opaqueVS.hlsl",
 		L"Shaders\\opaqueShader\\OpaqueGBufferPS.hlsl", nullptr, shaders);
+
+	auto DefferedOpaqueShader = Engine::ShaderManager::CompileAndCreateShader("deferredopaque", L"Shaders\\fullScreenVS.hlsl",
+		L"Shaders\\opaqueShader\\DefferedOpaquePS.hlsl", nullptr, shaders);
 
 	auto NormalVisLines = Engine::ShaderManager::CompileAndCreateShader("NormalVisLines", L"Shaders\\normalLines\\VertexShader.hlsl",
 		L"Shaders\\normalLines\\PixelShader.hlsl", L"Shaders\\normalLines\\HullShader.hlsl", L"Shaders\\normalLines\\DomainShader.hlsl",
@@ -191,6 +196,9 @@ static void InitMeshSystem()
 
 	Engine::Renderer::GetInstance()->opaque = GopaqueShader;
 	Engine::Renderer::GetInstance()->emissive = GemissiveShader;
+
+	Engine::Renderer::GetInstance()->defferedopaque = DefferedOpaqueShader;
+	Engine::Renderer::GetInstance()->dfferedemissive = DefferedEmissiveShader;
 	auto ms = Engine::MeshSystem::Init();
 
 	ms->normVisGroup.addShader(NormalVisLines);

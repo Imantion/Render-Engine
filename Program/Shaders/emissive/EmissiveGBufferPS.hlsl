@@ -29,7 +29,13 @@ PSOutput main(PSIn input)
     output.normals.xy = packedNormal;
     output.normals.zw = packedNormal;
     
-    output.emission = input.emission;
+    float3 cameraDir = normalize(g_cameraPosition - input.worldPos);
+    float3 normedEmission = input.emission / max(input.emission.x,
+	max(input.emission.y, max(input.emission.z, 1.0)));
+    float3 normal = normalize(input.normal);
+    float NoV = dot(cameraDir, normal);
+    output.emission = lerp(normedEmission * 0.33, input.emission, pow(max(0.0, NoV), 8.0));
+    
     output.objectId = input.objectId;
     
     return output;

@@ -31,6 +31,8 @@ namespace Engine
 	{
 		mat4 ProjectedView;
 		mat4 viewMatrix;
+		mat4 inverseProjection;
+		mat4 inverseView;
 		vec4 BL, Top, Right;
 		vec3 camerPosition;
 		float padding;
@@ -85,11 +87,26 @@ namespace Engine
 
 			void Bind(UINT startSlot)
 			{
+				lastSlot = startSlot;
 				auto context = D3D::GetInstance()->GetContext();
 				ID3D11ShaderResourceView* resources[5] = { Albedo.Get(), RoughMetal.Get(), Normals.Get(), Emmision.Get(), ObjectId.Get() };
 				context->PSSetShaderResources(startSlot, 5u, resources);
 			}
-		};
+
+			void Unbind()
+			{
+				if (lastSlot != -1)
+				{
+					auto context = D3D::GetInstance()->GetContext();
+					ID3D11ShaderResourceView* resources[5] = {NULL,NULL,NULL,NULL,NULL};
+					context->PSSetShaderResources(lastSlot, 5u, resources);
+				}
+			}
+
+			int lastSlot = -1;
+		} m_GBuffer;
+
+		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> GBufferRTVs[5];
 	private:
 		ConstBuffer<PerFrameCB> perFrameBuffer;
 		PerFrameCB perFrameData;
@@ -98,9 +115,6 @@ namespace Engine
 
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pHDRtextureResource;
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pHDRRenderTarget;
-
-		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> GBufferRTVs[5];
-		GBuffer m_GBuffer;
 
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pRenderTarget;
 		Microsoft::WRL::ComPtr <ID3D11DepthStencilView> pViewDepth;
@@ -133,6 +147,9 @@ namespace Engine
 	public:
 		std::shared_ptr<shader> opaque;
 		std::shared_ptr<shader> emissive;
+
+		std::shared_ptr<shader> defferedopaque;
+		std::shared_ptr<shader> dfferedemissive;
 	private:
 		static std::mutex mutex_;
 		static Renderer* pInstance;
