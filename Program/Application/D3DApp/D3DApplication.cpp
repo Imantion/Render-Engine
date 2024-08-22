@@ -375,7 +375,7 @@ void D3DApplication::UpdateInput(float deltaTime)
 
 		if (selected && opaqueHit != selected->getTransformId() && selectedObject == Opaque)
 		{
-			Engine::MeshSystem::PBRInstance data = { false };
+			Instances::PBRInstance data = { false };
 			selected->update(&data);
 		}
 
@@ -394,7 +394,7 @@ void D3DApplication::UpdateInput(float deltaTime)
 	{
 		if (selectedObject == Opaque)
 		{
-			Engine::MeshSystem::PBRInstance data = { false };
+			Instances::PBRInstance data = { false };
 			selected->update(&data);
 		}
 		selected.release();
