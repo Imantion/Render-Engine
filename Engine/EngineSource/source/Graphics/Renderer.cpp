@@ -64,8 +64,8 @@ void Engine::Renderer::InitDepthWithRTV(ID3D11Resource* RenderBuffer, UINT wWidt
 		InitDepth(wWidth, wHeight);
 		InitGBuffer(wWidth, wHeight);
 
-		perFrameData.viewportWidth = wWidth;
-		perFrameData.viewportWidth = wHeight;
+		perFrameData.texelWidth = 1.0f / (float)wWidth;
+		perFrameData.texelHeight = 1.0f / (float)wHeight;
 
 		perViewBuffer.bind(0u, shaderTypes::VS | shaderTypes::PS | shaderTypes::DS | shaderTypes::GS);
 		perFrameBuffer.bind(1u, shaderTypes::VS | shaderTypes::PS | shaderTypes::GS);
@@ -79,7 +79,7 @@ void Engine::Renderer::InitDepth(UINT wWidth, UINT wHeight)
 	ZeroMemory(&dsDesc, sizeof(dsDesc));
 	dsDesc.DepthEnable = TRUE;
 	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-	dsDesc.DepthFunc = D3D11_COMPARISON_GREATER_EQUAL;
+	dsDesc.DepthFunc = D3D11_COMPARISON_GREATER;
 
 	// Stencil test parameters
 	dsDesc.StencilEnable = TRUE;
@@ -96,7 +96,7 @@ void Engine::Renderer::InitDepth(UINT wWidth, UINT wHeight)
 	dsDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
 	dsDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
 	dsDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_REPLACE;
-	dsDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+	dsDesc.BackFace.StencilFunc = D3D11_COMPARISON_NEVER;
 
 	HRESULT hr = d3d->GetDevice()->CreateDepthStencilState(&dsDesc, &pDSState);
 	assert(SUCCEEDED(hr));
@@ -124,13 +124,12 @@ void Engine::Renderer::InitDepth(UINT wWidth, UINT wHeight)
 	dsDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
 	dsDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
 	dsDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-	dsDesc.BackFace.StencilFunc = D3D11_COMPARISON_EQUAL;
+	dsDesc.BackFace.StencilFunc = D3D11_COMPARISON_NEVER;
 
 	hr = d3d->GetDevice()->CreateDepthStencilState(&dsDesc, &pDSStencilOnlyState);
 	assert(SUCCEEDED(hr));
 
 	
-
 	D3D11_TEXTURE2D_DESC descDepth;
 	ZeroMemory(&descDepth, sizeof(descDepth));
 	descDepth.Width = (UINT)wWidth;
@@ -326,8 +325,6 @@ void Engine::Renderer::FillGBuffer()
 	ID3D11RenderTargetView* views[5] = { GBufferRTVs[0].Get(),GBufferRTVs[1].Get(),GBufferRTVs[2].Get(),GBufferRTVs[3].Get(),GBufferRTVs[4].Get() };
 	ID3D11RenderTargetView* NULLviews[5] = { NULL,NULL,NULL,NULL,NULL };
 
-	context->OMSetBlendState(NULL, NULL, 0xffffffff);
-	context->OMSetRenderTargets(5U, views, pViewDepth.Get());
 	context->ClearDepthStencilView(pViewDepth.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 0.0f, 0u);
 
 	static const float color[] = { 0.5f, 0.5f,0.5f,1.0f };
@@ -335,6 +332,9 @@ void Engine::Renderer::FillGBuffer()
 	{
 		context->ClearRenderTargetView(GBufferRTVs[i].Get(), color);
 	}
+
+	context->OMSetBlendState(NULL, NULL, 0xffffffff);
+	context->OMSetRenderTargets(5U, views, pViewDepth.Get());
 
 	context->OMSetDepthStencilState(pDSState.Get(), 1u);
 	MeshSystem::Init()->opaqueGroup.renderUsingShader(opaque);
@@ -351,11 +351,13 @@ void Engine::Renderer::Render(Camera* camera)
 {
 	auto context = Engine::D3D::GetInstance()->GetContext();
 
+	static const float color[] = { 0.5f, 0.5f,0.5f,1.0f };
+	context->ClearRenderTargetView(pHDRRenderTarget.Get(), color);
+
 	Shadows(camera);
 
-
 	PerViewCB perView = PerViewCB{ camera->getViewMatrix() * camera->getProjectionMatrix(), camera->getInverseViewMatrix(),
-		camera->getInverseProjectionMatrix(), camera->getInverseViewMatrix(),
+		camera->getInverseProjectionMatrix() * camera->getInverseViewMatrix(), camera->getInverseViewMatrix(),
 		vec4(camera->getCameraFrustrum(Camera::LeftDown),.0f),
 		vec4(camera->getCameraFrustrum(Camera::LeftUp) - camera->getCameraFrustrum(Camera::LeftDown),.0f),
 		vec4(camera->getCameraFrustrum(Camera::RightDown) - camera->getCameraFrustrum(Camera::LeftDown),.0f),
@@ -367,10 +369,6 @@ void Engine::Renderer::Render(Camera* camera)
 	FillGBuffer();
 	context->OMSetRenderTargets(1u, pHDRRenderTarget.GetAddressOf(), pViewDepth.Get());
 
-
-	static const float color[] = { 0.5f, 0.5f,0.5f,1.0f };
-
-	context->ClearRenderTargetView(pHDRRenderTarget.Get(), color);
 
 	LightSystem::Init()->BindLigtsBuffer(3u, shaderTypes::PS);
 
@@ -518,7 +516,7 @@ void Engine::Renderer::Shadows(const Camera* camera)
 
 	Engine::MeshSystem::Init()->renderDepth2DDirectional(LightSystem::Init()->GetDirectionalLights(), camera);
 
-	context->RSSetState(MSAARasterizerState.Get());
+	context->RSSetState(nullptr);
 
 	ShadowSystem::Init()->BindShadowTextures(11u, 12u, 13u);
 	ShadowSystem::Init()->BindShadowBuffers(5u, 6u);

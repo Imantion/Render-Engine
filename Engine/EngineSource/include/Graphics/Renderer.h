@@ -23,16 +23,15 @@ namespace Engine
 		uint32_t samplesAmount;
 		float farClip;
 		float nearClip;
-		uint32_t viewportWidth;
-		uint32_t viewportHeight;
+		float texelWidth;
+		float texelHeight;
 	};
 
 	struct PerViewCB
 	{
 		mat4 ProjectedView;
+		mat4 inverseViewProjection;
 		mat4 viewMatrix;
-		mat4 inverseProjection;
-		mat4 inverseView;
 		vec4 BL, Top, Right;
 		vec3 camerPosition;
 		float padding;

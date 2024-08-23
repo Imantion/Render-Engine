@@ -21,12 +21,11 @@ float4 main(PSInput input) : SV_TARGET
     float metalness = roughmetal.y;
     float3 normal = unpackOctahedron(GBuffer_Normals.SampleLevel(g_linearWrap, input.textcord, 0).xy);
     float3 macroNormal = unpackOctahedron(GBuffer_Normals.SampleLevel(g_linearWrap, input.textcord, 0).zw);
-    float2 clip = input.pos.xy / float2(800, 400);
+    float2 clip = (input.pos.xy - 0.5f) * float2(g_texelWidth, g_texelHeight);
     clip.y = 1.0f - clip.y;
     clip = clip * 2.0f - 1.0f;
-    float4 pos = mul(float4(clip, DepthTexture.SampleLevel(g_linearWrap, input.textcord, 0).x, 1.0f), inverseProjection);
-    pos /= pos.w;
-    float3 worldPos = mul(pos, inverseView);
+    float4 pos = mul(float4(clip, DepthTexture.SampleLevel(g_linearWrap, input.textcord, 0).x, 1.0f), inverseViewProjection);
+    float3 worldPos = pos.xyz /= pos.w;
     float3 viewDir = normalize(g_cameraPosition - worldPos);
     float3 emission = GBuffer_Emmision.SampleLevel(g_linearWrap, input.textcord, 0);
 
