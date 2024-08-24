@@ -158,6 +158,7 @@
     <ClCompile Include="..\imgui\imgui_draw.cpp" />
     <ClCompile Include="..\imgui\imgui_tables.cpp" />
     <ClCompile Include="..\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="EngineSource\include\Graphics\DecalSystem.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\ParticleSystem.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\ShadowSystem.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\ReflectionCapture.cpp" />
@@ -193,6 +194,7 @@
     <ClInclude Include="EngineSource\include\Graphics\Buffers.h" />
     <ClInclude Include="EngineSource\include\Graphics\D3D.h" />
     <ClInclude Include="EngineSource\include\Graphics\DDSTextureLoader11.h" />
+    <ClInclude Include="EngineSource\include\Graphics\DecalSystem.h" />
     <ClInclude Include="EngineSource\include\Graphics\DissolutionGroup.h" />
     <ClInclude Include="EngineSource\include\Graphics\Engine.h" />
     <ClInclude Include="EngineSource\include\Graphics\Instances.h" />

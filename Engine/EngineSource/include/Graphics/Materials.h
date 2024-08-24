@@ -78,7 +78,7 @@ namespace Materials
 		std::shared_ptr<Engine::Texture> albedo;
 		std::shared_ptr<Engine::Texture> normal;
 
-		bool operator==(const DecalMaterial& other)
+		bool operator==(const DecalMaterial& other) const
 		{
 			return albedo == other.albedo && normal == other.normal;
 		}
