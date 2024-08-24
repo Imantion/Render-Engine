@@ -41,6 +41,7 @@ namespace Engine
 	{
 	protected:
 
+		friend class MeshSystem;
 		struct instanceOfModel
 		{
 			int modelIndex;
@@ -92,6 +93,7 @@ namespace Engine
 		};
 
 		std::vector<std::shared_ptr<shader>> m_shaders;
+		std::shared_ptr<shader> GBufferShader;
 		std::vector<PerModel> perModel;
 		VertexBuffer<instanceBufferData> instanceBuffer;
 		ConstBuffer<MeshData> meshData;
@@ -109,6 +111,11 @@ namespace Engine
 		void addShader(std::shared_ptr<shader> shdr)
 		{
 			m_shaders.push_back(shdr);
+		}
+
+		void setGBufferShader(std::shared_ptr<shader> shdr)
+		{
+			GBufferShader = shdr;
 		}
 
 		OpaqueInstances() { meshData.create(); materialData.create(); }
@@ -244,7 +251,7 @@ namespace Engine
 
 			if (it == perModel.end())
 			{
-				std::vector<PerInstance> inst(1, PerInstance{ modelTransformsId, instance });
+				std::vector<PerInstance> inst(1, PerInstance{ modelTransformsId, instance, g_meshIdGenerator++ });
 
 				PerMaterial perMat = { material,inst };
 
@@ -265,7 +272,7 @@ namespace Engine
 					{
 						if (material == perMaterial.material)
 						{
-							perMaterial.instances.push_back(PerInstance{ modelTransformsId, instance });
+							perMaterial.instances.push_back(PerInstance{ modelTransformsId, instance, g_meshIdGenerator++ });
 							inserted = true;
 						}
 					}
@@ -273,7 +280,7 @@ namespace Engine
 					if (!inserted)
 					{
 						std::vector<PerInstance> inst;
-						inst.push_back(PerInstance{ modelTransformsId, instance });
+						inst.push_back(PerInstance{ modelTransformsId, instance, g_meshIdGenerator++ });
 						pModel->perMesh[meshIndex].perMaterial.push_back(PerMaterial{ material, inst });
 					}
 				}
@@ -299,7 +306,7 @@ namespace Engine
 
 				for (size_t i = 0; i < model->m_meshes.size(); i++)
 				{
-					std::vector<PerInstance> inst(1, PerInstance{ modelTransformsId, instance });
+					std::vector<PerInstance> inst(1, PerInstance{ modelTransformsId, instance, g_meshIdGenerator++ });
 					PerMaterial perMat = { material[i],inst };
 					PerMesh perMes = { std::vector<PerMaterial>(1,perMat) };
 
@@ -319,7 +326,7 @@ namespace Engine
 					{
 						if (material[meshIndex] == perMaterial.material)
 						{
-							perMaterial.instances.push_back(PerInstance{ modelTransformsId, instance });
+							perMaterial.instances.push_back(PerInstance{ modelTransformsId, instance, g_meshIdGenerator++ });
 							inserted = true;
 						}
 					}
@@ -327,7 +334,7 @@ namespace Engine
 					if (!inserted)
 					{
 						std::vector<PerInstance> inst;
-						inst.push_back(PerInstance{ modelTransformsId, instance });
+						inst.push_back(PerInstance{ modelTransformsId, instance, g_meshIdGenerator++ });
 						pModel->perMesh[meshIndex].perMaterial.push_back(PerMaterial{ material[meshIndex], inst });
 					}
 				}
@@ -480,8 +487,13 @@ namespace Engine
 		void renderDepth2DDirectional(const std::vector<DirectionalLight>& directionalLights, const Camera* camera);
 
 		void render();
+		void renderGBuffer(ID3D11DepthStencilState* depthStencilState);
+		void defferedRender(ID3D11DepthStencilState* dsStencilOnlyState);
 		void renderTranslucent();
 
+
+		void setLitDefferedShader(std::shared_ptr<shader> lit);
+		void setEmissiveDefferedShader(std::shared_ptr<shader> emissive);
 
 		static MeshSystem* Init();
 
@@ -502,6 +514,9 @@ namespace Engine
 	protected:
 		static std::mutex mutex_;
 		static MeshSystem* pInstance;
+
+		std::shared_ptr<shader> litDefferedShader;
+		std::shared_ptr<shader> emissiveDefferedShader;
 	};
 
 	template <>

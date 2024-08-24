@@ -5,12 +5,14 @@ struct GSOutput
 	float4 pos : SV_POSITION;
     float3 spacePosition : SPACEPOS;
     float3 normal : VERTEXNORMAL;
+    uint objectID : OBJECTID;
 };
 
 struct VOut
 {
     float3 spacePosition : WORLDPOS;
     float3 normal : NORMAL;
+    uint objectID : OBJECTID;
 };
 
 float distanceIntensity(float value, float target, float fade)
@@ -77,6 +79,7 @@ void main(
         element.spacePosition = input[i].spacePosition + normal * offset;
         element.pos = mul(float4(element.spacePosition,1.0f), viewProjection);
         element.normal = input[i].normal;
+        element.objectID = input[i].objectID;
 		output.Append(element);
 	}
 }

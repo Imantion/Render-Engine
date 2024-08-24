@@ -143,12 +143,6 @@ namespace Engine
 		uint32_t samplesAmount = 1;
 
 		std::shared_ptr<shader> depthShader;
-	public:
-		std::shared_ptr<shader> opaque;
-		std::shared_ptr<shader> emissive;
-
-		std::shared_ptr<shader> defferedopaque;
-		std::shared_ptr<shader> dfferedemissive;
 	private:
 		static std::mutex mutex_;
 		static Renderer* pInstance;

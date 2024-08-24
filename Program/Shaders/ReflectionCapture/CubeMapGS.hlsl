@@ -1,4 +1,4 @@
-cbuffer PerFace : register(b0)
+cbuffer PerFace : register(b2)
 {
     float3 frustrum[18];
 };

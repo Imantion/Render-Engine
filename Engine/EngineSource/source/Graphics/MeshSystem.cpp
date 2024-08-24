@@ -40,6 +40,30 @@ void Engine::MeshSystem::render()
 	emmisiveGroup.render();
 }
 
+void Engine::MeshSystem::renderGBuffer(ID3D11DepthStencilState* depthStencilState)
+{
+	auto context = D3D::GetInstance()->GetContext();
+	context->OMSetDepthStencilState(depthStencilState, 1u);
+	opaqueGroup.renderUsingShader(opaqueGroup.GBufferShader);
+	dissolutionGroup.renderUsingShader(dissolutionGroup.GBufferShader);
+
+	context->OMSetDepthStencilState(depthStencilState, 2u);
+	emmisiveGroup.renderUsingShader(emmisiveGroup.GBufferShader);
+	hologramGroup.renderUsingShader(hologramGroup.GBufferShader);
+}
+
+void Engine::MeshSystem::defferedRender(ID3D11DepthStencilState* dsStencilOnlyState)
+{
+	auto context = D3D::GetInstance()->GetContext();
+
+	context->OMSetDepthStencilState(dsStencilOnlyState, 1u);
+	litDefferedShader->BindShader();
+	context->Draw(3u, 0);
+	context->OMSetDepthStencilState(dsStencilOnlyState, 2u);
+	emissiveDefferedShader->BindShader();
+	context->Draw(3u, 0);
+}
+
 Engine::MeshSystem* Engine::MeshSystem::Init()
 {
 	std::lock_guard<std::mutex> lock(mutex_);
@@ -136,4 +160,14 @@ inline void Engine::OpaqueInstances<Instances::PBRInstance, Materials::OpaqueTex
 			}
 		}
 	}
+}
+
+void Engine::MeshSystem::setLitDefferedShader(std::shared_ptr<shader> lit)
+{
+	litDefferedShader = lit;
+}
+
+void Engine::MeshSystem::setEmissiveDefferedShader(std::shared_ptr<shader> emissive)
+{
+	emissiveDefferedShader = emissive;
 }

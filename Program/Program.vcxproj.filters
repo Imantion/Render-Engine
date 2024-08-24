@@ -171,6 +171,8 @@
     <None Include="Shaders\fullScreenVS.hlsl" />
     <None Include="Shaders\emissive\DefferedEmissivePS.hlsl" />
     <None Include="Shaders\opaqueShader\DefferedOpaquePS.hlsl" />
+    <None Include="Shaders\opaqueShader\DissolutionGBufferPS.hlsl" />
+    <None Include="Shaders\Hologram\HologramGBuffer.shader" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\declarations.hlsli">

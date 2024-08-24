@@ -129,6 +129,9 @@ static void InitMeshSystem()
 	auto dissolutionShader = Engine::ShaderManager::CompileAndCreateShader("DissolutionShader", L"Shaders\\opaqueShader\\dissolutionVS.hlsl", L"Shaders\\opaqueShader\\dissolutionPS.hlsl",
 		nullptr, nullptr);
 
+	auto GdissolutionShader = Engine::ShaderManager::CompileAndCreateShader("GDissolutionShader", L"Shaders\\opaqueShader\\dissolutionVS.hlsl", L"Shaders\\opaqueShader\\DissolutionGBufferPS.hlsl",
+		nullptr, nullptr);
+
 	auto textureMap = Engine::ShaderManager::CompileAndCreateShader("texture", L"Shaders\\crateTextMap\\CrateVS.hlsl",
 		L"Shaders\\crateTextMap\\CratePS.hlsl", nullptr, nullptr);
 
@@ -166,9 +169,9 @@ static void InitMeshSystem()
 	if (!NormalVisColor)
 		throw std::runtime_error("Failed to compile and create shader!");
 
-	auto HologramGroup = Engine::ShaderManager::CompileAndCreateShader("HologramGroup", L"Shaders\\Hologram\\Hologram.shader",
-		L"Shaders\\Hologram\\Hologram.shader", L"Shaders\\Hologram\\HullShader.hlsl", L"Shaders\\Hologram\\DomainShader.hlsl", L"Shaders\\Hologram\\GSHologram.hlsl",
-		nullptr, nullptr, D3D_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST, "vsMain", "psMain");
+	auto HologramGroup = Engine::ShaderManager::CompileAndCreateShader("HologramGroup", L"Shaders\\Hologram\\HologramGBuffer.shader",
+		L"Shaders\\Hologram\\HologramGBuffer.shader", nullptr, nullptr, L"Shaders\\Hologram\\GSHologram.hlsl",
+		nullptr, nullptr, D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST, "vsMain", "psMain");
 
 	if (!HologramGroup)
 		throw std::runtime_error("Failed to compile and create shader!");
@@ -191,15 +194,22 @@ static void InitMeshSystem()
 	shadowShader3->BindInputLyout(fourthLayout);
 	shadowShader4->BindInputLyout(fourthLayout);
 	dissolutionShader->BindInputLyout(fourthLayout);
+	GdissolutionShader->BindInputLyout(fourthLayout);
 
 	Engine::ShadowSystem::Init()->SetShadowShaders(shadowShader, shadowShader2, shadowShader2);
 
-	Engine::Renderer::GetInstance()->opaque = GopaqueShader;
-	Engine::Renderer::GetInstance()->emissive = GemissiveShader;
+	
 
-	Engine::Renderer::GetInstance()->defferedopaque = DefferedOpaqueShader;
-	Engine::Renderer::GetInstance()->dfferedemissive = DefferedEmissiveShader;
+
 	auto ms = Engine::MeshSystem::Init();
+
+
+	ms->opaqueGroup.setGBufferShader(GopaqueShader);
+	ms->emmisiveGroup.setGBufferShader(GemissiveShader);
+	ms->dissolutionGroup.setGBufferShader(GdissolutionShader);
+	ms->hologramGroup.setGBufferShader(HologramGroup);
+	ms->setLitDefferedShader(DefferedOpaqueShader);
+	ms->setEmissiveDefferedShader(DefferedEmissiveShader);
 
 	ms->normVisGroup.addShader(NormalVisLines);
 	ms->normVisGroup.addShader(NormalVisColor);
@@ -719,6 +729,8 @@ void D3DApplication::InitSamuraiModel()
 		Engine::transformMatrix(Engine::vec3(0.0f, -1.0f, 0.0f), Engine::vec3(0.0f, 0.0f, 1.0f), Engine::vec3(1.0f, 0.0f, 0.0f), Engine::vec3(0.0f, 1.0f, 0.0f)) };
 	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, samuraiTextures, inst);
 
+	changepos(inst, Engine::vec3(4.0f, -3.0f, 0.0f));
+	Engine::MeshSystem::Init()->hologramGroup.addModel(model, Materials::HologramMaterial{ Engine::vec3(0,0,1), 0, Engine::vec3(1,0,0) }, inst);
 	auto samuraiInstance = inst;
 
 	changescale(samuraiInstance, 0, 1.5f); changescale(samuraiInstance, 1, 1.0f); changescale(samuraiInstance, 2, 0.5f);

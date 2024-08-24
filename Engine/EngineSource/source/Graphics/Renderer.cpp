@@ -67,7 +67,7 @@ void Engine::Renderer::InitDepthWithRTV(ID3D11Resource* RenderBuffer, UINT wWidt
 		perFrameData.texelWidth = 1.0f / (float)wWidth;
 		perFrameData.texelHeight = 1.0f / (float)wHeight;
 
-		perViewBuffer.bind(0u, shaderTypes::VS | shaderTypes::PS | shaderTypes::DS | shaderTypes::GS);
+		perViewBuffer.bind(0u, shaderTypes::VS | shaderTypes::PS | shaderTypes::GS);
 		perFrameBuffer.bind(1u, shaderTypes::VS | shaderTypes::PS | shaderTypes::GS);
 	}
 }
@@ -335,14 +335,7 @@ void Engine::Renderer::FillGBuffer()
 
 	context->OMSetBlendState(NULL, NULL, 0xffffffff);
 	context->OMSetRenderTargets(5U, views, pViewDepth.Get());
-
-	context->OMSetDepthStencilState(pDSState.Get(), 1u);
-	MeshSystem::Init()->opaqueGroup.renderUsingShader(opaque);
-
-	context->OMSetDepthStencilState(pDSState.Get(), 2u);
-	MeshSystem::Init()->emmisiveGroup.renderUsingShader(emissive);
-	//MeshSystem::Init()->hologramGroup.render();
-
+	MeshSystem::Init()->renderGBuffer(pDSState.Get());
 	context->OMSetRenderTargets(5U, NULLviews, nullptr);
 }
 
@@ -392,12 +385,7 @@ void Engine::Renderer::Render(Camera* camera)
 	m_GBuffer.Bind(25u);
 	CreateNoMSDepth();
 	context->PSSetShaderResources(30u, 1u, pNoMSDepthSRV.GetAddressOf());
-	context->OMSetDepthStencilState(pDSStencilOnlyState.Get(), 1u);
-	defferedopaque->BindShader();
-	context->Draw(3u, 0);
-	context->OMSetDepthStencilState(pDSStencilOnlyState.Get(), 2u);
-	dfferedemissive->BindShader();
-	context->Draw(3u, 0);
+	MeshSystem::Init()->defferedRender(pDSStencilOnlyState.Get());
 	ID3D11ShaderResourceView* const nullSRV = { NULL };
 	context->PSSetShaderResources(30u, 1u, &nullSRV);
 
@@ -405,8 +393,6 @@ void Engine::Renderer::Render(Camera* camera)
 	pSkyBox->Draw();
 
 	RenderParticles(camera);
-	MeshSystem::Init()->renderTranslucent();
-
 	ID3D11ShaderResourceView* const pSRV[3] = { NULL, NULL, NULL };
 	context->PSSetShaderResources(11, 3u, pSRV);
 }
