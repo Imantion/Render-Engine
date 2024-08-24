@@ -73,6 +73,17 @@ namespace Materials
 		}
 	};
 
+	struct DecalMaterial
+	{
+		std::shared_ptr<Engine::Texture> albedo;
+		std::shared_ptr<Engine::Texture> normal;
+
+		bool operator==(const DecalMaterial& other)
+		{
+			return albedo == other.albedo && normal == other.normal;
+		}
+	};
+
 	using OpaqueTextureMaterial = TextureMaterial;
 	using HologramMaterial = Material;
 	using NormVisMaterial = Material;
