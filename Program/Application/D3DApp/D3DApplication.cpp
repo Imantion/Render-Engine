@@ -749,8 +749,7 @@ void D3DApplication::InitSamuraiModel()
 	Engine::MeshSystem::Init()->hologramGroup.addModel(model, Materials::HologramMaterial{ Engine::vec3(0,0,1), 0, Engine::vec3(1,0,0) }, inst);
 	auto samuraiInstance = inst;
 
-	changepos(inst, Engine::vec3(3.75f, -3.0f, 0.0f));
-	Engine::DecalSystem::Init()->AddDecal(Materials::DecalMaterial{ emptyTexture , TM->LoadFromFile("Decal_Normal", L"Textures\\DecalNormal.dds") }, inst.modelToWold, 8);
+
 	changescale(samuraiInstance, 0, 1.5f); changescale(samuraiInstance, 1, 1.0f); changescale(samuraiInstance, 2, 0.5f);
 	changepos(samuraiInstance, Engine::vec3(4.0f, -1.0f, 0.0f));
 	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, samuraiTextures, samuraiInstance);
@@ -854,10 +853,13 @@ void D3DApplication::InitCrateModel()
 	changepos(inst, Engine::vec3(1.0f, -1.0f, 4.0f));
 	auto issd = Engine::MeshSystem::Init()->opaqueGroup.addModel(model, crateMaterial, inst);
 
+
 	auto goldenCube = goldenSphereTextures;
 	goldenCube.usedTextures = Materials::METALNESS;
 	changepos(inst, Engine::vec3(-3.0f, -1.0f, 2.0f));
 	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, goldenCube, inst);
+	changepos(inst, Engine::vec3(-2.5f, -0.5f, 1.f));
+	Engine::DecalSystem::Init()->AddDecal(Materials::DecalMaterial{ std::make_shared<Engine::Texture>() , TM->LoadFromFile("Decal_Normal", L"Textures\\DecalNormal.dds")}, inst.modelToWold, 42);
 
 	auto rotZ = Engine::mat4::rotateZ(3.14f * (-45.0f) / 360.0f);
 	changescale(inst, 0, 5);

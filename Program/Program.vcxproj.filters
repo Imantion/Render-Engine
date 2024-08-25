@@ -174,7 +174,6 @@
     <None Include="Shaders\opaqueShader\DissolutionGBufferPS.hlsl" />
     <None Include="Shaders\Hologram\HologramGBuffer.shader" />
     <None Include="Shaders\Decal\DecalVS.hlsl" />
-    <None Include="Shaders\Decal\DecalPS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\declarations.hlsli">
@@ -191,5 +190,6 @@
     <FxCompile Include="Shaders\opaqueShader\opaquePS.hlsl">
       <Filter>Shaders\opaque</Filter>
     </FxCompile>
+    <FxCompile Include="Shaders\Decal\DecalPS.hlsl" />
   </ItemGroup>
 </Project>

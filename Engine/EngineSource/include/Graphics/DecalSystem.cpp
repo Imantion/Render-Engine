@@ -77,8 +77,8 @@ void Engine::DecalSystem::Draw()
     UINT renderedInstances = 0;
     for (size_t i = 0; i < m_perTexture.size(); i++)
     {
-        m_perTexture[i].material.albedo->BindTexture(10u);
-        m_perTexture[i].material.normal->BindTexture(11u);
+        m_perTexture[i].material.albedo->BindTexture(23u);
+        m_perTexture[i].material.normal->BindTexture(24u);
 
         D3D::GetInstance()->GetContext()->DrawIndexedInstanced(36u, (UINT)m_perTexture[i].instances.size(), 0, 0, renderedInstances);
         renderedInstances += (UINT)m_perTexture[i].instances.size();
@@ -112,24 +112,25 @@ Engine::DecalSystem::DecalSystem()
 {
     unsigned int indices[] =
     {
-        // Front face (counterclockwise winding)
-        0, 2, 1,    0, 3, 2,   // Triangle 1, Triangle 2
+        // Front face
+        0, 1, 2,    0, 2, 3,   // Triangle 1, Triangle 2
 
-        // Back face (counterclockwise winding)
-        4, 5, 6,    4, 6, 7,   // Triangle 3, Triangle 4
+        // Back face
+        4, 6, 5,    4, 7, 6,   // Triangle 3, Triangle 4
 
-        // Left face (counterclockwise winding)
-        4, 3, 0,    4, 7, 3,   // Triangle 5, Triangle 6
+        // Left face
+        4, 0, 3,    4, 3, 7,   // Triangle 5, Triangle 6
 
-        // Right face (counterclockwise winding)
-        1, 6, 5,    1, 2, 6,   // Triangle 7, Triangle 8
+        // Right face
+        1, 5, 6,    1, 6, 2,   // Triangle 7, Triangle 8
 
-        // Top face (counterclockwise winding)
-        4, 1, 5,    4, 0, 1,   // Triangle 9, Triangle 10
+        // Top face
+        4, 5, 1,    4, 1, 0,   // Triangle 9, Triangle 10
 
-        // Bottom face (counterclockwise winding)
-        3, 6, 2,    3, 7, 6    // Triangle 11, Triangle 12
+        // Bottom face
+        3, 2, 6,    3, 6, 7    // Triangle 11, Triangle 12
     };
+
 
 
     m_indexBuffer.create(indices, 36u);

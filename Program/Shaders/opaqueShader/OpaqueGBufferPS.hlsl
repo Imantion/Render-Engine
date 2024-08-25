@@ -15,7 +15,7 @@ struct PSInput
 
 struct PSOutput
 {
-    float3 albedo : SV_Target0;
+    float4 albedo : SV_Target0;
     float2 roughMetal : SV_Target1;
     float4 normals : SV_Target2;
     float3 emission : SV_Target3;
@@ -27,7 +27,7 @@ PSOutput main(PSInput input)
 {
     PSOutput output;
     
-    output.albedo = CalculateAlbedo(input.tc);
+    output.albedo = float4(CalculateAlbedo(input.tc), 1.0f);
     CalculateMaterialProperties(input.tc, output.roughMetal.y, output.roughMetal.x);
     
     if (input.isSelected)

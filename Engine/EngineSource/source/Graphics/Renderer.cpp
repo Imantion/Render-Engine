@@ -231,22 +231,30 @@ void Engine::Renderer::InitGBuffer(UINT wWidth, UINT wHeight)
 	hr = device->CreateRenderTargetView(Albedo.Get(), nullptr, &GBufferRTVs[0]);
 	assert(SUCCEEDED(hr));
 
-	Microsoft::WRL::ComPtr<ID3D11Texture2D> RoughNormal;
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> RoughMetal;
 	textureDesc.Format = DXGI_FORMAT_R8G8_UNORM;
-	hr = device->CreateTexture2D(&textureDesc, nullptr, &RoughNormal);
+	hr = device->CreateTexture2D(&textureDesc, nullptr, &RoughMetal);
 	assert(SUCCEEDED(hr));
-	hr = device->CreateShaderResourceView(RoughNormal.Get(), nullptr, &m_GBuffer.RoughMetal);
+	hr = device->CreateShaderResourceView(RoughMetal.Get(), nullptr, &m_GBuffer.RoughMetal);
 	assert(SUCCEEDED(hr));
-	hr = device->CreateRenderTargetView(RoughNormal.Get(), nullptr, &GBufferRTVs[1]);
+	hr = device->CreateRenderTargetView(RoughMetal.Get(), nullptr, &GBufferRTVs[1]);
 	assert(SUCCEEDED(hr));
 
-	Microsoft::WRL::ComPtr<ID3D11Texture2D> Normals;
+
 	textureDesc.Format = DXGI_FORMAT_R16G16B16A16_SNORM;
-	hr = device->CreateTexture2D(&textureDesc, nullptr, &Normals);
+	hr = device->CreateTexture2D(&textureDesc, nullptr, &m_GBuffer.normalsTexture);
 	assert(SUCCEEDED(hr));
-	hr = device->CreateShaderResourceView(Normals.Get(), nullptr, &m_GBuffer.Normals);
+	hr = device->CreateShaderResourceView(m_GBuffer.normalsTexture.Get(), nullptr, &m_GBuffer.Normals);
 	assert(SUCCEEDED(hr));
-	hr = device->CreateRenderTargetView(Normals.Get(), nullptr, &GBufferRTVs[2]);
+	D3D11_RENDER_TARGET_VIEW_DESC rtvNormalDesc;
+
+	hr = device->CreateRenderTargetView(m_GBuffer.normalsTexture.Get(), nullptr, &GBufferRTVs[2]);
+	assert(SUCCEEDED(hr));
+
+
+	hr = device->CreateTexture2D(&textureDesc, nullptr, &m_GBuffer.secondNormalsTexture);
+	assert(SUCCEEDED(hr));
+	hr = device->CreateShaderResourceView(m_GBuffer.secondNormalsTexture.Get(), nullptr, &m_GBuffer.SecondNormals);
 	assert(SUCCEEDED(hr));
 
 	Microsoft::WRL::ComPtr<ID3D11Texture2D> Emmision;
@@ -324,7 +332,6 @@ void Engine::Renderer::FillGBuffer()
 
 	auto context = Engine::D3D::GetInstance()->GetContext();
 	ID3D11RenderTargetView* views[5] = { GBufferRTVs[0].Get(),GBufferRTVs[1].Get(),GBufferRTVs[2].Get(),GBufferRTVs[3].Get(),GBufferRTVs[4].Get() };
-	ID3D11RenderTargetView* NULLviews[5] = { NULL,NULL,NULL,NULL,NULL };
 
 	context->ClearDepthStencilView(pViewDepth.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 0.0f, 0u);
 
@@ -337,7 +344,7 @@ void Engine::Renderer::FillGBuffer()
 	context->OMSetBlendState(NULL, NULL, 0xffffffff);
 	context->OMSetRenderTargets(5U, views, pViewDepth.Get());
 	MeshSystem::Init()->renderGBuffer(pDSState.Get());
-	context->OMSetRenderTargets(5U, NULLviews, nullptr);
+	context->OMSetRenderTargets(0u, nullptr, nullptr);
 }
 
 
@@ -361,6 +368,9 @@ void Engine::Renderer::Render(Camera* camera)
 	perViewBuffer.updateBuffer(&perView);
 
 	FillGBuffer();
+	CreateNoMSDepth();
+	RenderDecals();
+
 	context->OMSetRenderTargets(1u, pHDRRenderTarget.GetAddressOf(), pViewDepth.Get());
 
 
@@ -384,21 +394,52 @@ void Engine::Renderer::Render(Camera* camera)
 	TextureManager::Init()->BindComparisonSampler(5u);
 
 	m_GBuffer.Bind(25u);
-	CreateNoMSDepth();
 	context->PSSetShaderResources(30u, 1u, pNoMSDepthSRV.GetAddressOf());
 	MeshSystem::Init()->defferedRender(pDSStencilOnlyState.Get());
 	ID3D11ShaderResourceView* const nullSRV = { NULL };
 	context->PSSetShaderResources(30u, 1u, &nullSRV);
 
+
+
 	pSkyBox->BindSkyBox(2u);
 	pSkyBox->Draw();
 
+
 	context->OMSetDepthStencilState(pDSState.Get(), 0u);
-	DecalSystem::Init()->UpdateBuffer();
-	DecalSystem::Init()->Draw();
 	RenderParticles(camera);
 	ID3D11ShaderResourceView* const pSRV[3] = { NULL, NULL, NULL };
 	context->PSSetShaderResources(11, 3u, pSRV);
+}
+
+void Engine::Renderer::RenderDecals()
+{
+	auto context = Engine::D3D::GetInstance()->GetContext();
+
+	context->CopyResource(m_GBuffer.secondNormalsTexture.Get(), m_GBuffer.normalsTexture.Get());
+
+	ID3D11RenderTargetView* views[4] = { GBufferRTVs[0].Get(),GBufferRTVs[1].Get(),GBufferRTVs[2].Get(),GBufferRTVs[3].Get()};
+
+	context->OMSetRenderTargets(4, views, pViewDepth.Get());
+	context->OMSetDepthStencilState(pDSReadOnlyState.Get(), 0u);
+	context->RSSetState(pCullBackRasterizerState.Get()); 
+	//float blendFactor[4] = { 1.0f, 1.0f, 1.0f, 1.0f };  // Set blend factor (usually {1, 1, 1, 1} for standard blending)
+	//UINT sampleMask = 0xFFFFFFFF;  // Sample mask (use all samples)
+	//context->OMSetBlendState(pBlendState.Get(), blendFactor, sampleMask);
+	context->PSSetShaderResources(25u, 1, m_GBuffer.ObjectId.GetAddressOf());
+	context->PSSetShaderResources(26u, 1, m_GBuffer.SecondNormals.GetAddressOf());
+	context->PSSetShaderResources(27u, 1, pNoMSDepthSRV.GetAddressOf());
+	
+	DecalSystem::Init()->UpdateBuffer();
+	DecalSystem::Init()->Draw();
+
+	context->OMSetRenderTargets(0u, nullptr, pViewDepth.Get());
+
+	ID3D11ShaderResourceView* srvs[3] = { NULL,NULL,NULL };
+	context->PSSetShaderResources(25, 3, srvs);
+
+	///*
+	//DecalSystem::Init()->UpdateBuffer();
+	//DecalSystem::Init()->Draw();
 }
 
 void Engine::Renderer::PostProcess()
@@ -474,6 +515,7 @@ Engine::Renderer::Renderer() :
 	rasterDesc.CullMode = D3D11_CULL_BACK;
 
 	hr = D3D::GetInstance()->GetDevice()->CreateRasterizerState(&rasterDesc, &pCullBackRasterizerState);
+	assert(SUCCEEDED(hr));
 
 	D3D11_BLEND_DESC blendDesc = {};
 	blendDesc.RenderTarget[0].BlendEnable = TRUE;
@@ -485,7 +527,41 @@ Engine::Renderer::Renderer() :
 	blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 	blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
+	blendDesc.IndependentBlendEnable = TRUE;  // Enable independent blending for each render target
+
+	// Enable blending for Albedo, Metalness, Roughness, Emission
+	for (int i = 0; i < 4; i++) {
+		if (i == 2)
+			continue;
+
+		blendDesc.RenderTarget[i].BlendEnable = TRUE;  // Enable blending
+		blendDesc.RenderTarget[i].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+		blendDesc.RenderTarget[i].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+		blendDesc.RenderTarget[i].BlendOp = D3D11_BLEND_OP_ADD;
+		blendDesc.RenderTarget[i].SrcBlendAlpha = D3D11_BLEND_ONE;
+		blendDesc.RenderTarget[i].DestBlendAlpha = D3D11_BLEND_ZERO;
+		blendDesc.RenderTarget[i].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+		blendDesc.RenderTarget[i].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	}
+
+	blendDesc.RenderTarget[2].BlendEnable = FALSE;  // No blending for normals
+	blendDesc.RenderTarget[2].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;  // Still write to the buffer
+
+	blendDesc.RenderTarget[4].BlendEnable = FALSE;  // No blending for normals
+	blendDesc.RenderTarget[4].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;  // Still write to the buffer
+
 	hr = D3D::GetInstance()->GetDevice()->CreateBlendState(&blendDesc, &pBlendState);
+	assert(SUCCEEDED(hr));
+
+	D3D11_DEPTH_STENCIL_DESC depthStencilDesc = {};
+
+	// Enable depth testing
+	depthStencilDesc.DepthEnable = TRUE;
+	depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO; // Disable depth writes
+	depthStencilDesc.DepthFunc = D3D11_COMPARISON_GREATER;
+
+	hr = D3D::GetInstance()->GetDevice()->CreateDepthStencilState(&depthStencilDesc, &pDSReadOnlyState);
+	assert(SUCCEEDED(hr));
 
 	depthShader = ShaderManager::CompileAndCreateShader("Depth", L"Shaders\\Depth\\DepthVS.hlsl", L"Shaders\\Depth\\DepthPS.hlsl", nullptr, nullptr);
 }

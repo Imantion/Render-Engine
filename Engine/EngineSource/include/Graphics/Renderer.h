@@ -55,6 +55,7 @@ namespace Engine
 
 		void RenderParticles(Camera* camera);
 		void Render(Camera* camera);
+		void RenderDecals();
 		void PostProcess();
 
 		void setSkyBox(std::shared_ptr<SkyBox> skybox);
@@ -81,14 +82,21 @@ namespace Engine
 			Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> Albedo;
 			Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> RoughMetal;
 			Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> Normals;
+			Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> SecondNormals;
 			Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> Emmision;
 			Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> ObjectId;
 
-			void Bind(UINT startSlot)
+			Microsoft::WRL::ComPtr<ID3D11Texture2D> normalsTexture;
+			Microsoft::WRL::ComPtr<ID3D11Texture2D> secondNormalsTexture;
+
+			void Bind(UINT startSlot, ID3D11ShaderResourceView* normals = nullptr) // if normals == nullptr. Normals will be set
 			{
 				lastSlot = startSlot;
+
+				if (!normals)
+					normals = Normals.Get();
 				auto context = D3D::GetInstance()->GetContext();
-				ID3D11ShaderResourceView* resources[5] = { Albedo.Get(), RoughMetal.Get(), Normals.Get(), Emmision.Get(), ObjectId.Get() };
+				ID3D11ShaderResourceView* resources[5] = { Albedo.Get(), RoughMetal.Get(), normals, Emmision.Get(), ObjectId.Get() };
 				context->PSSetShaderResources(startSlot, 5u, resources);
 			}
 
@@ -116,13 +124,14 @@ namespace Engine
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pHDRRenderTarget;
 
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pRenderTarget;
-		Microsoft::WRL::ComPtr <ID3D11DepthStencilView> pViewDepth;
+		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> pViewDepth;
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pDepthSRV;
 
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> pDepthStencilTexture;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> pDSState;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> pDSReadOnlyState;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> pDSStencilOnlyState;
+		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> pDSReadOnlyState;
 
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pNoMSDepthSRV;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> pNoMSDepthStencil;
