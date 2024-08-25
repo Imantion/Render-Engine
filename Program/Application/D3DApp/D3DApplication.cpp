@@ -13,6 +13,7 @@
 #include "Graphics/SkyBox.h"
 #include "Graphics/LightSystem.h"
 #include "Graphics/ParticleSystem.h"
+#include "Graphics/DecalSystem.h"
 #include "imgui.h"
 #include "backends/imgui_impl_dx11.h"
 #include "backends/imgui_impl_win32.h"
@@ -114,6 +115,20 @@ static void InitMeshSystem()
 	{"OBJECTID", 0, DXGI_FORMAT_R32_UINT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
 	};
 
+	D3D11_INPUT_ELEMENT_DESC decalIED[] = {
+		{"TOWORLD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT , 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+		{"TOWORLD", 1, DXGI_FORMAT_R32G32B32A32_FLOAT , 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+		{"TOWORLD", 2, DXGI_FORMAT_R32G32B32A32_FLOAT , 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+		{"TOWORLD", 3, DXGI_FORMAT_R32G32B32A32_FLOAT , 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+		{"TODECAL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT , 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+		{"TODECAL", 1, DXGI_FORMAT_R32G32B32A32_FLOAT , 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+		{"TODECAL", 2, DXGI_FORMAT_R32G32B32A32_FLOAT , 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+		{"TODECAL", 3, DXGI_FORMAT_R32G32B32A32_FLOAT , 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+		{"OBJECTID",0, DXGI_FORMAT_R32_UINT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1}
+	};
+
+	auto decalShader = Engine::ShaderManager::CompileAndCreateShader("DecalShader", L"Shaders\\Decal\\DecalVS.hlsl", L"Shaders\\Decal\\DecalPS.hlsl", nullptr, nullptr);
+
 	auto emissiveShader = Engine::ShaderManager::CompileAndCreateShader("EmmisiveShader", L"Shaders\\emissive\\emissiveVS.hlsl",
 		L"Shaders\\emissive\\emissivePS.hlsl", nullptr, nullptr);
 
@@ -176,11 +191,13 @@ static void InitMeshSystem()
 	if (!HologramGroup)
 		throw std::runtime_error("Failed to compile and create shader!");
 
+	auto decalLayout = Engine::ShaderManager::CreateInputLayout("Decal", decalShader->vertexBlob.Get(), decalIED, sizeof(decalIED) / sizeof(D3D11_INPUT_ELEMENT_DESC));
 	auto inputLayout = Engine::ShaderManager::CreateInputLayout("Default", opaqueShader->vertexBlob.Get(), ied, sizeof(ied) / sizeof(D3D11_INPUT_ELEMENT_DESC));
 	auto secondInputLayout = Engine::ShaderManager::CreateInputLayout("Second", emissiveShader->vertexBlob.Get(), secondIed, sizeof(secondIed) / sizeof(D3D11_INPUT_ELEMENT_DESC));
 	auto thirdLayout = Engine::ShaderManager::CreateInputLayout("Third", NormalVisLines->vertexBlob.Get(), normalIED, sizeof(normalIED) / sizeof(D3D11_INPUT_ELEMENT_DESC));
 	auto fourthLayout = Engine::ShaderManager::CreateInputLayout("Fourth", dissolutionShader->vertexBlob.Get(), thirdIed, sizeof(thirdIed) / sizeof(D3D11_INPUT_ELEMENT_DESC));
 
+	decalShader->BindInputLyout(decalLayout);
 	NormalVisColor->BindInputLyout(thirdLayout);
 	NormalVisLines->BindInputLyout(thirdLayout);
 	HologramGroup->BindInputLyout(thirdLayout);
@@ -197,9 +214,8 @@ static void InitMeshSystem()
 	GdissolutionShader->BindInputLyout(fourthLayout);
 
 	Engine::ShadowSystem::Init()->SetShadowShaders(shadowShader, shadowShader2, shadowShader2);
-
+	Engine::DecalSystem::Init()->SetShader(decalShader);
 	
-
 
 	auto ms = Engine::MeshSystem::Init();
 
@@ -733,6 +749,8 @@ void D3DApplication::InitSamuraiModel()
 	Engine::MeshSystem::Init()->hologramGroup.addModel(model, Materials::HologramMaterial{ Engine::vec3(0,0,1), 0, Engine::vec3(1,0,0) }, inst);
 	auto samuraiInstance = inst;
 
+	changepos(inst, Engine::vec3(3.75f, -3.0f, 0.0f));
+	Engine::DecalSystem::Init()->AddDecal(Materials::DecalMaterial{ emptyTexture , TM->LoadFromFile("Decal_Normal", L"Textures\\DecalNormal.dds") }, inst.modelToWold, 8);
 	changescale(samuraiInstance, 0, 1.5f); changescale(samuraiInstance, 1, 1.0f); changescale(samuraiInstance, 2, 0.5f);
 	changepos(samuraiInstance, Engine::vec3(4.0f, -1.0f, 0.0f));
 	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, samuraiTextures, samuraiInstance);

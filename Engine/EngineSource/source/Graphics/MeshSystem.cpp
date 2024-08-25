@@ -22,6 +22,36 @@ int Engine::MeshSystem::intersect(const ray& r, hitInfo& hInfo)
 	return third != -1? third: (second != -1? second: first);
 }
 
+int Engine::MeshSystem::intersectMesh(const ray& r, hitInfo& hInfo)
+{
+	int first = hologramGroup.intersectMesh(r, hInfo);
+	int second = normVisGroup.intersectMesh(r, hInfo);
+	int third = opaqueGroup.intersectMesh(r, hInfo);
+	int fourth = emmisiveGroup.intersectMesh(r, hInfo);
+	int fifth = dissolutionGroup.intersectMesh(r, hInfo);
+
+	if (fifth != -1)
+		return fifth;
+	if (fourth != -1)
+		return fourth;
+	return third != -1 ? third : (second != -1 ? second : first);
+}
+
+int Engine::MeshSystem::getTransformIdByMeshInstanceId(uint32_t meshInstanceId)
+{
+	int first = hologramGroup.getTrasnformIdByInstanceMeshId(meshInstanceId);
+	int second = normVisGroup.getTrasnformIdByInstanceMeshId(meshInstanceId);
+	int third = opaqueGroup.getTrasnformIdByInstanceMeshId(meshInstanceId);
+	int fourth = emmisiveGroup.getTrasnformIdByInstanceMeshId(meshInstanceId);
+	int fifth = dissolutionGroup.getTrasnformIdByInstanceMeshId(meshInstanceId);
+
+	if (fifth != -1)
+		return fifth;
+	if (fourth != -1)
+		return fourth;
+	return third != -1 ? third : (second != -1 ? second : first);
+}
+
 void Engine::MeshSystem::updateInstanceBuffers()
 {
 	normVisGroup.updateInstanceBuffers();

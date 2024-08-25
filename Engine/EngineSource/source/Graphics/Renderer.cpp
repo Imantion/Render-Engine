@@ -6,6 +6,7 @@
 #include "Graphics/ShadowSystem.h"
 #include "Graphics/ParticleSystem.h"
 #include "Graphics/ShaderManager.h"
+#include "Graphics/DecalSystem.h"
 #include "Graphics/SkyBox.h"
 #include "Render/Camera.h"
 
@@ -392,6 +393,9 @@ void Engine::Renderer::Render(Camera* camera)
 	pSkyBox->BindSkyBox(2u);
 	pSkyBox->Draw();
 
+	context->OMSetDepthStencilState(pDSState.Get(), 0u);
+	DecalSystem::Init()->UpdateBuffer();
+	DecalSystem::Init()->Draw();
 	RenderParticles(camera);
 	ID3D11ShaderResourceView* const pSRV[3] = { NULL, NULL, NULL };
 	context->PSSetShaderResources(11, 3u, pSRV);
@@ -468,9 +472,8 @@ Engine::Renderer::Renderer() :
 	rasterDesc.DepthBias = 0;
 	rasterDesc.SlopeScaledDepthBias = 0;
 	rasterDesc.CullMode = D3D11_CULL_BACK;
-	rasterDesc.MultisampleEnable = true;
 
-	hr = D3D::GetInstance()->GetDevice()->CreateRasterizerState(&rasterDesc, &MSAARasterizerState);
+	hr = D3D::GetInstance()->GetDevice()->CreateRasterizerState(&rasterDesc, &pCullBackRasterizerState);
 
 	D3D11_BLEND_DESC blendDesc = {};
 	blendDesc.RenderTarget[0].BlendEnable = TRUE;

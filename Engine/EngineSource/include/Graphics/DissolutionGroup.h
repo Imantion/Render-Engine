@@ -122,9 +122,34 @@ namespace Engine
 			return modelInstanes;
 		}
 
-		uint32_t intersect(const ray& r, hitInfo& hInfo)
+		int getTrasnformIdByInstanceMeshId(uint32_t meshId)
 		{
-			uint32_t transformId = -1;
+			for (size_t i = 0; i < perModel.size(); i++)
+			{
+				for (uint32_t meshIndex = 0; meshIndex < perModel[i].perMesh.size(); ++meshIndex)
+				{
+					const Mesh& mesh = perModel[i].model->m_meshes[meshIndex];
+
+					for (size_t j = 0; j < perModel[i].perMesh[meshIndex].perMaterial.size(); j++)
+					{
+						auto& instances = perModel[i].perMesh[meshIndex].perMaterial[j].instances;
+
+						uint32_t numModelInstances = (uint32_t)instances.size();
+						for (uint32_t index = 0; index < numModelInstances; ++index)
+						{
+							if (meshId == instances[index].instanceMeshId)
+								return instances[index].transformsId;
+						}
+					}
+				}
+			}
+
+			return -1;
+		}
+
+		int intersect(const ray& r, hitInfo& hInfo)
+		{
+			int transformId = -1;
 			auto TS = TransformSystem::Init();
 			ray transformedRay = r;
 			for (size_t i = 0; i < perModel.size(); i++)
@@ -158,6 +183,44 @@ namespace Engine
 			}
 
 			return transformId;
+		}
+
+		int intersectMesh(const ray& r, hitInfo& hInfo)
+		{
+			int meshIsntanceId = -1;
+			auto TS = TransformSystem::Init();
+			ray transformedRay = r;
+			for (size_t i = 0; i < perModel.size(); i++)
+			{
+				for (uint32_t meshIndex = 0; meshIndex < perModel[i].perMesh.size(); ++meshIndex)
+				{
+					const Mesh& mesh = perModel[i].model->m_meshes[meshIndex];
+
+					for (size_t j = 0; j < perModel[i].perMesh[meshIndex].perMaterial.size(); j++)
+					{
+						auto& instances = perModel[i].perMesh[meshIndex].perMaterial[j].instances;
+
+						uint32_t numModelInstances = (uint32_t)instances.size();
+						for (uint32_t index = 0; index < numModelInstances; ++index)
+						{
+							uint32_t currentId = instances[index].transformsId;
+							uint32_t meshId = instances[index].instanceMeshId;
+							auto& meshInstanceTransform = TS->GetModelTransforms(currentId)[meshIndex].modelToWold;
+
+							transformedRay.origin = vec4(r.origin, 1.0f) * mat4::Inverse(meshInstanceTransform) * mesh.invInstances[0];
+							transformedRay.direction = vec4(r.direction, 0.0f) * mat4::Inverse(meshInstanceTransform) * mesh.invInstances[0];
+
+							if (mesh.intersect(transformedRay, hInfo))
+							{
+								meshIsntanceId = meshId;
+								hInfo.p = vec4(transformedRay.point_at_parameter(hInfo.t), 1.0f) * mesh.instances[0] * meshInstanceTransform;
+							}
+						}
+					}
+				}
+			}
+
+			return meshIsntanceId;
 		}
 
 		ModelInstanceData removeByTransformId(uint32_t transformId, bool deleteTransform = true)

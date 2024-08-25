@@ -128,7 +128,7 @@ namespace Engine
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> pNoMSDepthStencil;
 
 		Microsoft::WRL::ComPtr<ID3D11RasterizerState> pRasterizerState;
-		Microsoft::WRL::ComPtr<ID3D11RasterizerState> MSAARasterizerState;
+		Microsoft::WRL::ComPtr<ID3D11RasterizerState> pCullBackRasterizerState;
 		Microsoft::WRL::ComPtr<ID3D11BlendState> pBlendState;
 
 		std::shared_ptr<Texture> diffuseIBL;
