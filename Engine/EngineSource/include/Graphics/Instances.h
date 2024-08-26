@@ -8,6 +8,7 @@ namespace Engine
 	class OpaqueInstances;
 	class Texture;
 	struct mat4;
+	struct vec3;
 }
 
 namespace Instances
@@ -35,6 +36,10 @@ namespace Instances
 		Engine::mat4 decalToWorld;
 		Engine::mat4 worldToDecal;
 		uint32_t bindedObject;
+		uint32_t usedTextures = Materials::NORMAL;
+		float roughness = 0.05f;
+		float metalness = 0.05f;
+		Engine::vec3 decalColor;
 	};
 
 	struct DissolutionInstance

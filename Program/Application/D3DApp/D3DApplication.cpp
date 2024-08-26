@@ -125,7 +125,11 @@ static void InitMeshSystem()
 		{"TODECAL", 1, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
 		{"TODECAL", 2, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
 		{"TODECAL", 3, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
-		{"OBJECTID",0, DXGI_FORMAT_R32_UINT, 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1}
+		{"OBJECTID",0, DXGI_FORMAT_R32_UINT, 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+		{"USEDTEXTURES",0, DXGI_FORMAT_R32_UINT, 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+		{"ROUGHNESS",0, DXGI_FORMAT_R32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+		{"METALNESS",0, DXGI_FORMAT_R32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+		{"ALBEDO",0, DXGI_FORMAT_R32G32B32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
 	};
 
 	auto decalShader = Engine::ShaderManager::CompileAndCreateShader("DecalShader", L"Shaders\\Decal\\DecalVS.hlsl", L"Shaders\\Decal\\DecalPS.hlsl", nullptr, nullptr);
@@ -857,12 +861,16 @@ void D3DApplication::InitCrateModel()
 
 	auto goldenCube = goldenSphereTextures;
 	goldenCube.usedTextures = Materials::METALNESS;
+	auto emptyTexture = std::make_shared<Engine::Texture>();
 	changepos(inst, Engine::vec3(-3.0f, -1.0f, 2.0f));
 	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, goldenCube, inst);
 	changepos(inst, Engine::vec3(-2.75f, -0.5f, 1.f));
-	Engine::DecalSystem::Init()->AddDecal(Materials::DecalMaterial{ std::make_shared<Engine::Texture>() , TM->LoadFromFile("Decal_Normal", L"Textures\\DecalNormal.dds")}, inst.modelToWold, 42);
+	Engine::DecalSystem::Init()->AddDecal(inst.modelToWold, 42, Materials::DecalMaterial{ emptyTexture , TM->LoadFromFile("Decal_Normal", L"Textures\\DecalNormal.dds"), emptyTexture , emptyTexture , Materials::NORMAL }, 
+		Engine::vec3(0,0.2f,1.0f));
+	
 	changepos(inst, Engine::vec3(-3.0f, -0.5f, 1.f));
-	Engine::DecalSystem::Init()->AddDecal(Materials::DecalMaterial{ std::make_shared<Engine::Texture>() , TM->GetTexture("Decal_Normal")}, inst.modelToWold, 42);
+	Engine::DecalSystem::Init()->AddDecal(inst.modelToWold, 42, Materials::DecalMaterial{ emptyTexture , TM->GetTexture("Decal_Normal"), emptyTexture , emptyTexture , Materials::NORMAL },
+		Engine::vec3(1.0, 0.2f, 1.0f));
 
 	auto rotZ = Engine::mat4::rotateZ(3.14f * (-45.0f) / 360.0f);
 	changescale(inst, 0, 5);

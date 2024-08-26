@@ -27,6 +27,8 @@ namespace Materials
 	{
 		ROUGHNESS = 1,
 		METALNESS = 2,
+		ALBEDO = 4,
+		NORMAL = 8,
 	};
 
 	struct TextureMaterial
@@ -77,10 +79,13 @@ namespace Materials
 	{
 		std::shared_ptr<Engine::Texture> albedo;
 		std::shared_ptr<Engine::Texture> normal;
+		std::shared_ptr<Engine::Texture> metalness;
+		std::shared_ptr<Engine::Texture> roughness;
+		uint32_t usedTextures;
 
 		bool operator==(const DecalMaterial& other) const
 		{
-			return albedo == other.albedo && normal == other.normal;
+			return albedo == other.albedo && normal == other.normal && metalness == other.metalness && roughness == other.roughness;
 		}
 	};
 

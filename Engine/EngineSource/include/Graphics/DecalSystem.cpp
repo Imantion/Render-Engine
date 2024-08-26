@@ -32,17 +32,18 @@ void Engine::DecalSystem::UpdateBuffer()
     {
         for (size_t j = 0; j < m_perTexture[i].instances.size(); j++)
         {
-            vec3 position = (vec3&)*TransformSystem::Init()->GetModelTransforms(m_perTexture[i].instances[j].objectTransformID)[0].modelToWold[3];
-            mat4 newTransform = m_perTexture[i].instances[j].transform;
-            (vec3&)*newTransform[3] = position + m_perTexture[i].instances[j].relPosition;
-            dst[copiedNum++] = Instances::DecalInstance{ newTransform, mat4::Inverse(newTransform), m_perTexture[i].instances[j].objectID };
+            auto& instance = m_perTexture[i].instances[j];
+            vec3 position = (vec3&)*TransformSystem::Init()->GetModelTransforms(instance.objectTransformID)[0].modelToWold[3];
+            mat4 newTransform = instance.transform;
+            (vec3&)*newTransform[3] = position + instance.relPosition;
+            dst[copiedNum++] = Instances::DecalInstance{ newTransform, mat4::Inverse(newTransform), instance.objectID,instance.usedTextures,instance.roughness,instance.metalness,instance.decalColor };
         }
     }
 
     m_instanceBuffer.unmap();
 }
 
-void Engine::DecalSystem::AddDecal(const Materials::DecalMaterial& material, const mat4& decalToWorld, uint32_t objectID)
+void Engine::DecalSystem::AddDecal(const mat4& decalToWorld, uint32_t objectID, const Materials::DecalMaterial& material, vec3 albedo,float roughness, float metalness)
 {
     auto iterator = std::find(m_perTexture.begin(), m_perTexture.end(), material);
     
@@ -50,7 +51,7 @@ void Engine::DecalSystem::AddDecal(const Materials::DecalMaterial& material, con
     if (transformId == -1)
         throw("Invalid objectID");
 
-    DecalData instance = { decalToWorld, objectID, (uint32_t)transformId};
+    DecalData instance = { decalToWorld, objectID, (uint32_t)transformId, vec3(0.0f), material.usedTextures, roughness, metalness, albedo};
     instance.relPosition = (vec3&)*instance.transform[3] - (vec3&)*TransformSystem::Init()->GetModelTransforms(instance.objectTransformID)[0].modelToWold[3];
     if (iterator == m_perTexture.end())
     {
@@ -78,8 +79,11 @@ void Engine::DecalSystem::Draw()
     UINT renderedInstances = 0;
     for (size_t i = 0; i < m_perTexture.size(); i++)
     {
-        m_perTexture[i].material.albedo->BindTexture(23u);
-        m_perTexture[i].material.normal->BindTexture(24u);
+        m_perTexture[i].material.normal->BindTexture(21u);
+        m_perTexture[i].material.albedo->BindTexture(22u);
+        m_perTexture[i].material.roughness->BindTexture(23u);
+        m_perTexture[i].material.metalness->BindTexture(24u);
+        
 
         D3D::GetInstance()->GetContext()->DrawIndexedInstanced(36u, (UINT)m_perTexture[i].instances.size(), 0, 0, renderedInstances);
         renderedInstances += (UINT)m_perTexture[i].instances.size();

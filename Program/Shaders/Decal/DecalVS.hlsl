@@ -6,6 +6,10 @@ struct VIn
     float4 decalToWorld[4] : TOWORLD;
     float4 worldToDecal[4] : TODECAL;
     uint objectID : OBJECTID;
+    uint usedTextures : USEDTEXTURES;
+    float roughness : ROUGHNESS;
+    float metalness : METALNESS;
+    float3 albedo : ALBEDO;
 };
     
 struct VOut
@@ -13,6 +17,10 @@ struct VOut
     float4 pos : SV_Position;
     nointerpolation float4x4 worldToDecal : TODECAL;
     nointerpolation uint objectID : OBJECTID;
+    uint usedTextures : USEDTEXTURES;
+    float roughness : ROUGHNESS;
+    float metalness : METALNESS;
+    float3 albedo : ALBEDO;
 };
 
 
@@ -26,6 +34,10 @@ VOut main(VIn input)
     output.pos = mul(output.pos, viewProjection);
     output.worldToDecal = worldToDecal;
     output.objectID = input.objectID;
+    output.usedTextures = input.usedTextures;
+    output.roughness = input.roughness;
+    output.metalness = input.metalness;
+    output.albedo = input.albedo;
     
     return output;
 }

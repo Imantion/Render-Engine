@@ -1,6 +1,9 @@
 #include "..\declarations.hlsli"
 
-Texture2D<float4> decalNormals : register(t24);
+Texture2D<float4> decalNormals : register(t21);
+Texture2D<float4> decalAlbedo : register(t22);
+Texture2D<float4> decalRoughness : register(t23);
+Texture2D<float4> decalMetalness : register(t24);
 
 Texture2D<uint> idsTexutre : register(t25);
 Texture2D<float4> normals : register(t26);
@@ -11,6 +14,10 @@ struct PSIn
     float4 pos : SV_Position;
     nointerpolation float4x4 worldToDecal : TODECAL;
     nointerpolation uint objectID : OBJECTID;
+    uint usedTextures : USEDTEXTURES;
+    float roughness : ROUGHNESS;
+    float metalness : METALNESS;
+    float3 albedo : ALBEDO;
 };
 
 struct PSOut
@@ -63,7 +70,8 @@ PSOut main(PSIn input)
     if (DecalSpaceNormal.z > 0.0f)
         discard;
     
-    float4 DecalNormal = decalNormals.SampleLevel(g_linearWrap, decalPos.xy + 0.5f, 0);
+    decalPos.xy += 0.5f;
+    float4 DecalNormal = decalNormals.SampleLevel(g_linearWrap, decalPos.xy, 0);
     
     if (DecalNormal.a < 0.025f)
     {
@@ -72,8 +80,19 @@ PSOut main(PSIn input)
     float3x3 TBN = basisFromDir(normal);
     float3 transformedDecalNormal = mul((float3) DecalNormal, TBN);
     
-    output.Albedo = float4(0, 1, 1, DecalNormal.a);
-    output.RoughMetal = float4(0.5, 0.5, 0, DecalNormal.a);
+    float3 albedo = input.albedo;
+    float2 roughMetal = float2(input.roughness, input.metalness);
+    
+    if (input.usedTextures & 1)
+        roughMetal.x = decalRoughness.Sample(g_linearWrap, decalPos.xy).x;
+    if (input.usedTextures & 2)
+        roughMetal.y = decalMetalness.Sample(g_linearWrap, decalPos.xy).x;
+    if(input.usedTextures & 4)
+        albedo = decalAlbedo.Sample(g_linearWrap, decalPos.xy).xyz;
+
+    
+    output.Albedo = float4(albedo, DecalNormal.a);
+    output.RoughMetal = float4(roughMetal, 0, DecalNormal.a);
     output.Normals = float4(packOctahedron(transformedDecalNormal), packOctahedron(normal));
     output.Emmisive = float4(0, 0, 0, 0);
     
