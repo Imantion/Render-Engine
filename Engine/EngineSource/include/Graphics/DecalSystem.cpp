@@ -72,7 +72,8 @@ void Engine::DecalSystem::Draw()
 
     m_shader->BindShader();
     m_indexBuffer.bind();
-    m_instanceBuffer.bind(0u);
+    m_vertexBuffer.bind(0u);
+    m_instanceBuffer.bind(1u);
 
     UINT renderedInstances = 0;
     for (size_t i = 0; i < m_perTexture.size(); i++)
@@ -112,26 +113,40 @@ Engine::DecalSystem::DecalSystem()
 {
     unsigned int indices[] =
     {
-        // Front face
+        // Front face (counterclockwise winding)
         0, 1, 2,    0, 2, 3,   // Triangle 1, Triangle 2
 
-        // Back face
+        // Back face (counterclockwise winding)
         4, 6, 5,    4, 7, 6,   // Triangle 3, Triangle 4
 
-        // Left face
-        4, 0, 3,    4, 3, 7,   // Triangle 5, Triangle 6
+        // Left face (counterclockwise winding)
+        4, 3, 7,    4, 0, 3,   // Triangle 5, Triangle 6
 
-        // Right face
+        // Right face (counterclockwise winding)
         1, 5, 6,    1, 6, 2,   // Triangle 7, Triangle 8
 
-        // Top face
+        // Top face (counterclockwise winding)
         4, 5, 1,    4, 1, 0,   // Triangle 9, Triangle 10
 
-        // Bottom face
+        // Bottom face (counterclockwise winding)
         3, 2, 6,    3, 6, 7    // Triangle 11, Triangle 12
     };
 
+    vec3 vertices[] =
+    {
+        // Front face
+        { -0.5f,  0.5f, -0.5f }, // Top-left (0)
+        {  0.5f,  0.5f, -0.5f }, // Top-right (1)
+        {  0.5f, -0.5f, -0.5f }, // Bottom-right (2)
+        { -0.5f, -0.5f, -0.5f }, // Bottom-left (3)
 
+        // Back face
+        { -0.5f,  0.5f,  0.5f }, // Top-left (4)
+        {  0.5f,  0.5f,  0.5f }, // Top-right (5)
+        {  0.5f, -0.5f,  0.5f }, // Bottom-right (6)
+        { -0.5f, -0.5f,  0.5f }, // Bottom-left (7)
+    };
 
     m_indexBuffer.create(indices, 36u);
+    m_vertexBuffer.create(vertices, 8u);
 }

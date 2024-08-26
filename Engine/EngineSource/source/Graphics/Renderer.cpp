@@ -414,24 +414,25 @@ void Engine::Renderer::Render(Camera* camera)
 void Engine::Renderer::RenderDecals()
 {
 	auto context = Engine::D3D::GetInstance()->GetContext();
-
+	DecalSystem::Init()->UpdateBuffer();
 	context->CopyResource(m_GBuffer.secondNormalsTexture.Get(), m_GBuffer.normalsTexture.Get());
 
 	ID3D11RenderTargetView* views[4] = { GBufferRTVs[0].Get(),GBufferRTVs[1].Get(),GBufferRTVs[2].Get(),GBufferRTVs[3].Get()};
 
 	context->OMSetRenderTargets(4, views, pViewDepth.Get());
-	context->OMSetDepthStencilState(pDSReadOnlyState.Get(), 0u);
+	context->OMSetDepthStencilState(pDSStencilOnlyState.Get(), 1u);
 	context->RSSetState(pCullBackRasterizerState.Get()); 
-	//float blendFactor[4] = { 1.0f, 1.0f, 1.0f, 1.0f };  // Set blend factor (usually {1, 1, 1, 1} for standard blending)
-	//UINT sampleMask = 0xFFFFFFFF;  // Sample mask (use all samples)
-	//context->OMSetBlendState(pBlendState.Get(), blendFactor, sampleMask);
+	float blendFactor[4] = { 1.0f, 1.0f, 1.0f, 1.0f };  // Set blend factor (usually {1, 1, 1, 1} for standard blending)
+	UINT sampleMask = 0xFFFFFFFF;  // Sample mask (use all samples)
+	context->OMSetBlendState(pBlendState.Get(), blendFactor, sampleMask);
 	context->PSSetShaderResources(25u, 1, m_GBuffer.ObjectId.GetAddressOf());
 	context->PSSetShaderResources(26u, 1, m_GBuffer.SecondNormals.GetAddressOf());
 	context->PSSetShaderResources(27u, 1, pNoMSDepthSRV.GetAddressOf());
 	
-	DecalSystem::Init()->UpdateBuffer();
+
 	DecalSystem::Init()->Draw();
 
+	context->RSSetState(nullptr);
 	context->OMSetRenderTargets(0u, nullptr, pViewDepth.Get());
 
 	ID3D11ShaderResourceView* srvs[3] = { NULL,NULL,NULL };
@@ -498,7 +499,7 @@ Engine::Renderer::Renderer() :
 	ZeroMemory(&rasterDesc, sizeof(rasterDesc));
 	rasterDesc.FillMode = D3D11_FILL_SOLID;
 	rasterDesc.CullMode = D3D11_CULL_BACK;
-	rasterDesc.FrontCounterClockwise = false;
+	rasterDesc.FrontCounterClockwise = FALSE;
 	rasterDesc.DepthBias = -64;
 	rasterDesc.DepthBiasClamp = 0.0f;
 	rasterDesc.SlopeScaledDepthBias = -1.0f;
@@ -512,7 +513,7 @@ Engine::Renderer::Renderer() :
 
 	rasterDesc.DepthBias = 0;
 	rasterDesc.SlopeScaledDepthBias = 0;
-	rasterDesc.CullMode = D3D11_CULL_BACK;
+	rasterDesc.CullMode = D3D11_CULL_NONE;
 
 	hr = D3D::GetInstance()->GetDevice()->CreateRasterizerState(&rasterDesc, &pCullBackRasterizerState);
 	assert(SUCCEEDED(hr));

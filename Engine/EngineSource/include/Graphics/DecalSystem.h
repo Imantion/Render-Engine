@@ -57,6 +57,7 @@ namespace Engine
 		std::shared_ptr<shader> m_shader;
 		std::vector<PerTexture> m_perTexture;
 		IndexBuffer m_indexBuffer;
+		VertexBuffer<vec3> m_vertexBuffer;
 		VertexBuffer<Instances::DecalInstance> m_instanceBuffer;
 	};
 }
