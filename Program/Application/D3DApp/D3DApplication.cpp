@@ -861,6 +861,8 @@ void D3DApplication::InitCrateModel()
 	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, goldenCube, inst);
 	changepos(inst, Engine::vec3(-2.75f, -0.5f, 1.f));
 	Engine::DecalSystem::Init()->AddDecal(Materials::DecalMaterial{ std::make_shared<Engine::Texture>() , TM->LoadFromFile("Decal_Normal", L"Textures\\DecalNormal.dds")}, inst.modelToWold, 42);
+	changepos(inst, Engine::vec3(-3.0f, -0.5f, 1.f));
+	Engine::DecalSystem::Init()->AddDecal(Materials::DecalMaterial{ std::make_shared<Engine::Texture>() , TM->GetTexture("Decal_Normal")}, inst.modelToWold, 42);
 
 	auto rotZ = Engine::mat4::rotateZ(3.14f * (-45.0f) / 360.0f);
 	changescale(inst, 0, 5);

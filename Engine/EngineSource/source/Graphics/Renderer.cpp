@@ -419,12 +419,13 @@ void Engine::Renderer::RenderDecals()
 
 	ID3D11RenderTargetView* views[4] = { GBufferRTVs[0].Get(),GBufferRTVs[1].Get(),GBufferRTVs[2].Get(),GBufferRTVs[3].Get()};
 
-	context->OMSetRenderTargets(4, views, pViewDepth.Get());
-	context->OMSetDepthStencilState(pDSStencilOnlyState.Get(), 1u);
-	context->RSSetState(pCullBackRasterizerState.Get()); 
+	context->OMSetRenderTargets(4, views, nullptr);
+	context->OMSetDepthStencilState(nullptr, 0u);
+	context->RSSetState(pCullFrontRasterizerState.Get()); 
 	float blendFactor[4] = { 1.0f, 1.0f, 1.0f, 1.0f };  // Set blend factor (usually {1, 1, 1, 1} for standard blending)
 	UINT sampleMask = 0xFFFFFFFF;  // Sample mask (use all samples)
 	context->OMSetBlendState(pBlendState.Get(), blendFactor, sampleMask);
+
 	context->PSSetShaderResources(25u, 1, m_GBuffer.ObjectId.GetAddressOf());
 	context->PSSetShaderResources(26u, 1, m_GBuffer.SecondNormals.GetAddressOf());
 	context->PSSetShaderResources(27u, 1, pNoMSDepthSRV.GetAddressOf());
@@ -437,10 +438,6 @@ void Engine::Renderer::RenderDecals()
 
 	ID3D11ShaderResourceView* srvs[3] = { NULL,NULL,NULL };
 	context->PSSetShaderResources(25, 3, srvs);
-
-	///*
-	//DecalSystem::Init()->UpdateBuffer();
-	//DecalSystem::Init()->Draw();
 }
 
 void Engine::Renderer::PostProcess()
@@ -513,9 +510,9 @@ Engine::Renderer::Renderer() :
 
 	rasterDesc.DepthBias = 0;
 	rasterDesc.SlopeScaledDepthBias = 0;
-	rasterDesc.CullMode = D3D11_CULL_NONE;
+	rasterDesc.CullMode = D3D11_CULL_FRONT;
 
-	hr = D3D::GetInstance()->GetDevice()->CreateRasterizerState(&rasterDesc, &pCullBackRasterizerState);
+	hr = D3D::GetInstance()->GetDevice()->CreateRasterizerState(&rasterDesc, &pCullFrontRasterizerState);
 	assert(SUCCEEDED(hr));
 
 	D3D11_BLEND_DESC blendDesc = {};

@@ -41,54 +41,43 @@ float3x3 basisFromDir(float3 dir)
     return rotation;
 }
 
-//PSOut main(PSIn input)
-//{
-//    PSOut output;
-    
-//    uint objectId = idsTexutre.Load(int3(input.pos.xy, 0));
-//    if (objectId != input.objectID)
-//        discard;
-    
-//    float2 textCoord = (input.pos.xy - 0.5f) * float2(g_texelWidth, g_texelHeight);
-//    float2 clipSpace = (input.pos.xy - 0.5f) * float2(g_texelWidth, g_texelHeight);
-//    clipSpace.y = 1.0f - clipSpace.y;
-//    clipSpace = clipSpace * 2.0f - 1.0f;
-//    float4 pos = mul(float4(clipSpace, depth.Load(float3(input.pos.xy, 0)).x, 1.0f), inverseViewProjection);
-//    float3 worldPos = pos.xyz /= pos.w;
-//    float3 decalPos = mul(float4(worldPos, 1.0f), input.worldToDecal);
-//    clip(0.5f - abs(decalPos));
-    
-//    float3 normal = unpackOctahedron(normals.Load(int3(input.pos.xy, 0)).zw);
-//    float3 DecalSpaceNormal = mul(normal, (float3x3) input.worldToDecal);
-//    if (DecalSpaceNormal.z > 0.0f)
-//        discard;
-    
-//    float4 DecalNormal = decalNormals.SampleLevel(g_linearWrap, decalPos.xy + 0.5f, 0);
-//    float3 transformedDecalNormal = unpackOctahedron(normals.Load(int3(input.pos.xy, 0)).xy);
-    
-//    if(DecalNormal.a > 0.001f)
-//    {
-//        float3x3 TBN = basisFromDir(normal);
-//        transformedDecalNormal = mul((float3) DecalNormal, TBN);
-//    }
-    
-//    output.Albedo = float4(0, 1, 1, DecalNormal.a);
-//    output.RoughMetal = float4(0.5, 0.5, 0, 0);
-//    output.Normals = float4(packOctahedron(transformedDecalNormal), packOctahedron(normal));
-//    output.Emmisive = float4(0, 0, 0, 0);
-    
-//    return output;
-//}
-
 PSOut main(PSIn input)
 {
     PSOut output;
     
-    output.Albedo = float4(1, 1, 1,1);
-    output.RoughMetal = float4(0.5, 0.5, 0, 0);
-    output.Normals = float4(packOctahedron(float3(1, 1, 1)), packOctahedron(float3(1, 1, 1)));
+    uint objectId = idsTexutre.Load(int3(input.pos.xy, 0));
+    if (objectId != input.objectID)
+        discard;
+    
+    float2 textCoord = (input.pos.xy - 0.5f) * float2(g_texelWidth, g_texelHeight);
+    float2 clipSpace = (input.pos.xy - 0.5f) * float2(g_texelWidth, g_texelHeight);
+    clipSpace.y = 1.0f - clipSpace.y;
+    clipSpace = clipSpace * 2.0f - 1.0f;
+    float4 pos = mul(float4(clipSpace, depth.Load(float3(input.pos.xy, 0)).x, 1.0f), inverseViewProjection);
+    float3 worldPos = pos.xyz /= pos.w;
+    float3 decalPos = mul(float4(worldPos, 1.0f), input.worldToDecal);
+    clip(0.5f - abs(decalPos));
+    
+    float3 normal = unpackOctahedron(normals.Load(int3(input.pos.xy, 0)).zw);
+    float3 DecalSpaceNormal = mul(normal, (float3x3) input.worldToDecal);
+    if (DecalSpaceNormal.z > 0.0f)
+        discard;
+    
+    float4 DecalNormal = decalNormals.SampleLevel(g_linearWrap, decalPos.xy + 0.5f, 0);
+    
+    if (DecalNormal.a < 0.025f)
+    {
+        discard;
+    }
+    float3x3 TBN = basisFromDir(normal);
+    float3 transformedDecalNormal = mul((float3) DecalNormal, TBN);
+    
+    output.Albedo = float4(0, 1, 1, DecalNormal.a);
+    output.RoughMetal = float4(0.5, 0.5, 0, DecalNormal.a);
+    output.Normals = float4(packOctahedron(transformedDecalNormal), packOctahedron(normal));
     output.Emmisive = float4(0, 0, 0, 0);
     
     return output;
 }
+
 
