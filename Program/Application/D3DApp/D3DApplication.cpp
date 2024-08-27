@@ -9,7 +9,7 @@
 #include "Math/quaternion.h"
 #include "Graphics/MeshSystem.h"
 #include "Graphics/TextureManager.h"
-#include "Graphics/PostProcess.h"
+#include "Graphics/PostProcess.h"	
 #include "Graphics/SkyBox.h"
 #include "Graphics/LightSystem.h"
 #include "Graphics/ParticleSystem.h"
@@ -19,6 +19,7 @@
 #include "backends/imgui_impl_win32.h"
 #include "Graphics/ShadowSystem.h"
 #include "Utils/ISelected.h"
+#include "Utils/Random.h"
 #include <assert.h>
 
 #ifdef UNICODE
@@ -347,11 +348,17 @@ void D3DApplication::UpdateInput(float deltaTime)
 		if (hitId != -1)
 		{
 			Engine::mat4 transfrom = camera->getInverseViewMatrix();
-			Engine::vec3 upDir = Engine::cross(camera->getForward(), camera->getRight());
-			(Engine::vec3&)*transfrom[3] = hInfo.p ;
+			Engine::quaternion rotaton = Engine::quaternion::angleAxis(get_random(g_distribution_0_2PI), camera->getForward());
+			Engine::vec3 rotatatedRight = Engine::quaternion::rotate(rotaton, camera->getRight());
+			Engine::vec3 up = Engine::cross(camera->getForward(), rotatatedRight);
+			transfrom = Engine::transformMatrix(hInfo.p, camera->getForward(), rotatatedRight, up);
+
+
+			Engine::vec3 albedo = Engine::vec3(get_random(g_distribution_0_2), get_random(g_distribution_0_2), get_random(g_distribution_0_2)) * 0.5f;
+			
 
 			Engine::DecalSystem::Init()->AddDecal(transfrom, hitId, decalMaterial,
-				decalAlbedo,decalRoughMetal.x, decalRoughMetal.y);
+				albedo, decalRoughMetal.x, decalRoughMetal.y);
 		}
 	}
 
@@ -689,6 +696,34 @@ void D3DApplication::GUI()
 
 			ImGui::EndTabItem();
 		}
+
+
+		if (ImGui::BeginTabItem("Decal"))
+		{
+			ImGui::SliderFloat("Roughness", &decalRoughMetal.x, 0.05f, 1.0f);
+			ImGui::SliderFloat("Metalness", &decalRoughMetal.y, 0.05f, 1.0f);
+
+			/*ImGui::InputFloat3("Color", (float*)&decalAlbedo);*/
+
+			ImGui::EndTabItem();
+		}
+
+		static float qualitySubpix = 0.75f;
+		static float qualityEdgeThreshold = 0.166f;
+		static float qualityEdgeThresholdMin = 0.0833f;
+		if (ImGui::BeginTabItem("FXAA"))
+		{
+			ImGui::SliderFloat("Sub Pixel quality", &qualitySubpix, 0.f, 1.0f);
+			ImGui::SliderFloat("Edge Threshold", &qualityEdgeThreshold, 0.063f, 0.333f);
+
+			ImGui::SliderFloat("Minimal Edge Threshold", &qualityEdgeThresholdMin, 0.0f, 0.0833f);
+
+			Engine::PostProcess::Init()->UpdateFXAABuffer(qualitySubpix, qualityEdgeThreshold, qualityEdgeThresholdMin);
+
+			ImGui::EndTabItem();
+		}
+
+		ImGui::EndTabBar();
 	}
 
 	ImGui::End();
@@ -889,14 +924,6 @@ void D3DApplication::InitCrateModel()
 	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, goldenCube, inst);
 
 	decalMaterial = Materials::DecalMaterial{ emptyTexture , TM->LoadFromFile("Decal_Normal", L"Textures\\DecalNormal.dds"), emptyTexture , emptyTexture , Materials::NORMAL };
-
-	//changepos(inst, Engine::vec3(-2.75f, -0.5f, 1.f));
-	//Engine::DecalSystem::Init()->AddDecal(inst.modelToWold, 42, decalMaterial,
-	//	Engine::vec3(0,0.2f,1.0f));
-	//
-	//changepos(inst, Engine::vec3(-3.0f, -0.5f, 1.f));
-	//Engine::DecalSystem::Init()->AddDecal(inst.modelToWold, 42, decalMaterial,
-	//	Engine::vec3(1.0, 0.2f, 1.0f));
 
 	auto rotZ = Engine::mat4::rotateZ(3.14f * (-45.0f) / 360.0f);
 	changescale(inst, 0, 5);
