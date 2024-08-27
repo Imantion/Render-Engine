@@ -87,7 +87,7 @@ PSOut main(PSIn input)
         roughMetal.x = decalRoughness.Sample(g_linearWrap, decalPos.xy).x;
     if (input.usedTextures & 2)
         roughMetal.y = decalMetalness.Sample(g_linearWrap, decalPos.xy).x;
-    if(input.usedTextures & 4)
+    if (input.usedTextures & 4)
         albedo = decalAlbedo.Sample(g_linearWrap, decalPos.xy).xyz;
 
     
@@ -99,4 +99,18 @@ PSOut main(PSIn input)
     return output;
 }
 
+
+//PSOut main(PSIn input)
+//{
+//    PSOut output;
+   
+
+    
+//    output.Albedo = float4(float3(1,0,1), 1);
+//    output.RoughMetal = float4(0.5,0.5, 0, 1);
+//    output.Normals = float4(packOctahedron(float3(1, 1, 1)), packOctahedron(float3(1, 1, 1)));
+//    output.Emmisive = float4(0, 0, 0, 0);
+    
+//    return output;
+//}
 

@@ -30,6 +30,9 @@ typedef std::ostringstream tstringstream;
 Engine::vec2 previousMousePosition;
 static std::vector<Materials::DissolutionMaterial> samuraiDisolutionMaterial;
 static Materials::DissolutionMaterial cubeDisolutionMaterial;
+static Materials::DecalMaterial decalMaterial;
+static Engine::vec2 decalRoughMetal = Engine::vec2(0.05f,0.05f);
+static Engine::vec3 decalAlbedo = Engine::vec3(0.0f,0.2f,1.0f);
 static float animationDuration = 4.0f;
 Engine::Emitter* pEmitter;
 
@@ -328,6 +331,27 @@ void D3DApplication::UpdateInput(float deltaTime)
 		ls->SetFlashLightAttachedState(!ls->IsFlashLightAttached());
 	}
 
+	if (Input::keyPresseed(Input::KeyboardButtons::G))
+	{
+		Engine::ray r;
+		Engine::vec2 screenCoord = Engine::screenSpaceToNormalizeScreenSpace(mousePosition, pWindow->getWindowWidth(), pWindow->getWindowHeight());
+		r.origin = camera->getPosition();
+		r.direction = camera->calculateRayDirection(screenCoord).normalized();
+
+		Engine::hitInfo hInfo; hInfo.reset_parameter_t();
+		uint32_t hitId = Engine::MeshSystem::Init()->opaqueGroup.intersectMesh(r, hInfo);
+		
+		if (hitId != -1)
+		{
+			Engine::mat4 transfrom = camera->getInverseViewMatrix();
+			Engine::vec3 upDir = Engine::cross(camera->getForward(), camera->getRight());
+			(Engine::vec3&)*transfrom[3] = hInfo.p ;
+
+			Engine::DecalSystem::Init()->AddDecal(transfrom, hitId, decalMaterial,
+				decalAlbedo,decalRoughMetal.x, decalRoughMetal.y);
+		}
+	}
+
 	if (Input::keyPresseed(Input::KeyboardButtons::ONE))
 		Engine::TextureManager::Init()->BindSampleByFilter(D3D11_FILTER_MIN_MAG_MIP_POINT, 3u);
 	else if (Input::keyPresseed(Input::KeyboardButtons::TWO))
@@ -393,10 +417,9 @@ void D3DApplication::UpdateInput(float deltaTime)
 
 	if (Input::mouseWasPressed(Input::MouseButtons::RIGHT) && objectInteractions == Drag)
 	{
-		Engine::vec2 screenCoord(mousePosition.x, pWindow->getWindowHeight() - mousePosition.y);
+		
 		Engine::ray r;
-		screenCoord.x = (screenCoord.x / pWindow->getWindowWidth() - 0.5f) * 2.0f;
-		screenCoord.y = (screenCoord.y / pWindow->getWindowHeight() - 0.5f) * 2.0f;
+		Engine::vec2 screenCoord = Engine::screenSpaceToNormalizeScreenSpace(mousePosition, pWindow->getWindowWidth(), pWindow->getWindowHeight());
 		r.origin = camera->getPosition();
 		r.direction = camera->calculateRayDirection(screenCoord).normalized();
 
@@ -415,10 +438,8 @@ void D3DApplication::UpdateInput(float deltaTime)
 	if (Input::mouseWasPressed(Input::MouseButtons::RIGHT) && objectInteractions == Select)
 	{
 	
-		Engine::vec2 screenCoord(mousePosition.x, pWindow->getWindowHeight() - mousePosition.y);
 		Engine::ray r;
-		screenCoord.x = (screenCoord.x / pWindow->getWindowWidth() - 0.5f) * 2.0f;
-		screenCoord.y = (screenCoord.y / pWindow->getWindowHeight() - 0.5f) * 2.0f;
+		Engine::vec2 screenCoord = Engine::screenSpaceToNormalizeScreenSpace(mousePosition, pWindow->getWindowWidth(), pWindow->getWindowHeight());
 		r.origin = camera->getPosition();
 		r.direction = camera->calculateRayDirection(screenCoord);
 
@@ -665,7 +686,6 @@ void D3DApplication::GUI()
 
 			ImGui::EndTabItem();
 		}
-		ImGui::EndTabBar();
 	}
 
 	ImGui::End();
@@ -864,13 +884,16 @@ void D3DApplication::InitCrateModel()
 	auto emptyTexture = std::make_shared<Engine::Texture>();
 	changepos(inst, Engine::vec3(-3.0f, -1.0f, 2.0f));
 	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, goldenCube, inst);
-	changepos(inst, Engine::vec3(-2.75f, -0.5f, 1.f));
-	Engine::DecalSystem::Init()->AddDecal(inst.modelToWold, 42, Materials::DecalMaterial{ emptyTexture , TM->LoadFromFile("Decal_Normal", L"Textures\\DecalNormal.dds"), emptyTexture , emptyTexture , Materials::NORMAL }, 
-		Engine::vec3(0,0.2f,1.0f));
-	
-	changepos(inst, Engine::vec3(-3.0f, -0.5f, 1.f));
-	Engine::DecalSystem::Init()->AddDecal(inst.modelToWold, 42, Materials::DecalMaterial{ emptyTexture , TM->GetTexture("Decal_Normal"), emptyTexture , emptyTexture , Materials::NORMAL },
-		Engine::vec3(1.0, 0.2f, 1.0f));
+
+	decalMaterial = Materials::DecalMaterial{ emptyTexture , TM->LoadFromFile("Decal_Normal", L"Textures\\DecalNormal.dds"), emptyTexture , emptyTexture , Materials::NORMAL };
+
+	//changepos(inst, Engine::vec3(-2.75f, -0.5f, 1.f));
+	//Engine::DecalSystem::Init()->AddDecal(inst.modelToWold, 42, decalMaterial,
+	//	Engine::vec3(0,0.2f,1.0f));
+	//
+	//changepos(inst, Engine::vec3(-3.0f, -0.5f, 1.f));
+	//Engine::DecalSystem::Init()->AddDecal(inst.modelToWold, 42, decalMaterial,
+	//	Engine::vec3(1.0, 0.2f, 1.0f));
 
 	auto rotZ = Engine::mat4::rotateZ(3.14f * (-45.0f) / 360.0f);
 	changescale(inst, 0, 5);
