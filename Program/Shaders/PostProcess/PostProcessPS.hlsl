@@ -47,6 +47,11 @@ struct PSINPUT
     float2 textcord : TEXTCOORD0;
 };
 
+float LinearRgbToLuminance(float3 linearRgb)
+{
+    return dot(linearRgb, float3(0.2126729f, 0.7151522f, 0.0721750f));
+}
+
 
 float4 main(PSINPUT input) : SV_TARGET
 {
@@ -54,6 +59,6 @@ float4 main(PSINPUT input) : SV_TARGET
     color = adjustExposure(color, c_EV100);;
     color = acesHdr2Ldr(color);
     color = correctGamma(color, c_gamma);
-
-    return float4(color, 1.0f);
+    
+    return float4(color, LinearRgbToLuminance(color));
 }

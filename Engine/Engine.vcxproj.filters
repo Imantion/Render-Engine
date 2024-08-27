@@ -131,7 +131,7 @@
     <ClCompile Include="EngineSource\source\Graphics\ParticleSystem.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="EngineSource\include\Graphics\DecalSystem.cpp">
+    <ClCompile Include="EngineSource\source\Graphics\DecalSystem.cpp">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>

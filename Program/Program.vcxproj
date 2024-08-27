@@ -544,6 +544,12 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </None>
+    <None Include="Shaders\PostProcess\fxaa.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\PostProcess\Fxaa3_11.hlsl">
+      <FileType>Document</FileType>
+    </None>
     <FxCompile Include="Shaders\PostProcess\PostProcessPS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>

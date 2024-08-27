@@ -397,11 +397,11 @@ namespace Engine
 		return vec3(c, 1.0f - b, -dir.y);
 	}
 
-	inline vec2 screenSpaceToNormalizeScreenSpace(vec2 screenPos, float width, float height)
+	inline vec2 screenSpaceToNormalizeScreenSpace(vec2 screenPos, int width, int height)
 	{
-		vec2 screenCoord(screenPos.x, height - screenPos.y);
-		screenCoord.x = (screenCoord.x / width - 0.5f) * 2.0f;
-		screenCoord.y = (screenCoord.y / height - 0.5f) * 2.0f;
+		vec2 screenCoord(screenPos.x, (float)height - screenPos.y);
+		screenCoord.x = (screenCoord.x / (float)width - 0.5f) * 2.0f;
+		screenCoord.y = (screenCoord.y / (float)height - 0.5f) * 2.0f;
 
 		return screenCoord;
 	}

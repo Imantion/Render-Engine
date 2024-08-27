@@ -1,4 +1,4 @@
-#include "DecalSystem.h"
+#include "Graphics/DecalSystem.h"
 #include "Math/matrix.h"
 #include "Graphics/TextureManager.h"
 #include "Graphics/MeshSystem.h"

@@ -35,7 +35,7 @@ void Engine::Renderer::InitDepthWithRTV(ID3D11Resource* RenderBuffer, UINT wWidt
 {
 	if (auto device = D3D::GetInstance()->GetDevice())
 	{
-		HRESULT hr = device->CreateRenderTargetView(RenderBuffer, nullptr, &pRenderTarget);
+		HRESULT hr = device->CreateRenderTargetView(RenderBuffer, nullptr, &pFXAARenderTarget);
 		assert(SUCCEEDED(hr));
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> HDRtexture;
 
@@ -59,6 +59,20 @@ void Engine::Renderer::InitDepthWithRTV(ID3D11Resource* RenderBuffer, UINT wWidt
 
 		hr = device->CreateShaderResourceView(HDRtexture.Get(), nullptr, &pHDRtextureResource);
 		assert(SUCCEEDED(hr));
+
+		Microsoft::WRL::ComPtr<ID3D11Texture2D> ldrTexture;
+
+		hdrDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+
+		hr = device->CreateTexture2D(&hdrDesc, nullptr, &ldrTexture);
+		assert(SUCCEEDED(hr));
+
+		hr = device->CreateRenderTargetView(ldrTexture.Get(), nullptr, &pRenderTarget);
+		assert(SUCCEEDED(hr));
+
+		hr = device->CreateShaderResourceView(ldrTexture.Get(), nullptr, &pRenderTargetSRV);
+		assert(SUCCEEDED(hr));
+
 
 
 
@@ -285,7 +299,7 @@ void Engine::Renderer::updatePerFrameCB(float deltaTime, float wWidth, float wHe
 	{
 		perFrameData.g_resolution[0] = wWidth;
 		perFrameData.g_resolution[1] = wHeight;
-		perFrameData.g_resolution[2] = perFrameData.g_resolution[3] = 1 / (wWidth * wHeight);
+		perFrameData.g_resolution[2] = perFrameData.g_resolution[3] = 1.0f / (wWidth * wHeight);
 	}
 
 	perFrameData.shadowResolution = (float)ShadowSystem::Init()->GetShadowTextureResolution();
@@ -444,6 +458,14 @@ void Engine::Renderer::PostProcess()
 {
 	D3D::GetInstance()->GetContext()->RSSetState(nullptr);
 	PostProcess::Init()->Resolve(pHDRtextureResource.Get(), pRenderTarget.Get());
+}
+
+void Engine::Renderer::FXAA()
+{
+	D3D::GetInstance()->GetContext()->RSSetState(nullptr);
+	
+	PostProcess::Init()->SetRTSize((UINT)perFrameData.g_resolution[0], (UINT)perFrameData.g_resolution[1]);
+	PostProcess::Init()->FXAA(pRenderTargetSRV.Get(), pFXAARenderTarget.Get());
 }
 
 void Engine::Renderer::setSkyBox(std::shared_ptr<SkyBox> skybox)

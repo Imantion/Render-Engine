@@ -49,7 +49,7 @@ namespace Engine
 		void InitDepth(UINT wWidth, UINT wHeight);
 		void InitGBuffer(UINT wWidth, UINT wHeight);
 		void FillGBuffer();
-		void ReleaseRenderTarget() { pRenderTarget.ReleaseAndGetAddressOf(); }
+		void ReleaseRenderTarget() { pFXAARenderTarget.ReleaseAndGetAddressOf(); }
 		void updatePerFrameCB(float deltaTime,float wWidth,float wHeight, float farCLip, float nearClip);
 		void CreateNoMSDepth();
 
@@ -57,6 +57,7 @@ namespace Engine
 		void Render(Camera* camera);
 		void RenderDecals();
 		void PostProcess();
+		void FXAA();
 
 		void setSkyBox(std::shared_ptr<SkyBox> skybox);
 		void setIBLLight(std::shared_ptr<Texture> diffuse, std::shared_ptr<Texture> specular, std::shared_ptr<Texture> reflectance);
@@ -124,6 +125,8 @@ namespace Engine
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pHDRRenderTarget;
 
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pRenderTarget;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pRenderTargetSRV;
+		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pFXAARenderTarget;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> pViewDepth;
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pDepthSRV;
 

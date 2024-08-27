@@ -159,6 +159,8 @@ static void InitMeshSystem()
 		L"Shaders\\crateTextMap\\CratePS.hlsl", nullptr, nullptr);
 
 
+
+
 	D3D_SHADER_MACRO shaders[] = { "MAX_DIRECTIONAL_LIGHTS", "1",
 		"MAX_POINT_LIGHTS", "10",
 		"MAX_SPOT_LIGHTS","10",
@@ -290,6 +292,7 @@ void D3DApplication::Update(float deltaTime)
 	renderer->Render(camera.get());
 		
 	renderer->PostProcess();
+	renderer->FXAA();
 
 	ImGui::Render();
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
@@ -941,5 +944,9 @@ void D3DApplication::InitPostProcess()
 	auto postshader = Engine::ShaderManager::CompileAndCreateShader("PostProcess", L"shaders/PostProcess/PostProcessVS.hlsl", L"shaders/PostProcess/PostProcessPS.hlsl",
 		nullptr, nullptr, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+	auto FXAA = Engine::ShaderManager::CompileAndCreateShader("FXAA", L"Shaders\\fullScreenVS.hlsl",
+		L"Shaders\\PostProcess\\fxaa.hlsl", nullptr, nullptr);
+
 	Engine::PostProcess::Init()->SetLightToColorShader(postshader);
+	Engine::PostProcess::Init()->SetFXAAShader(FXAA);
 }
