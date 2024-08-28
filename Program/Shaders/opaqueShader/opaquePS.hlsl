@@ -76,13 +76,14 @@ float4 main(PSInput input) : SV_TARGET
     }
     for (i = 0; i < plSize; ++i)
     {
-        float3 directionToLight = input.worldPos - pointLights[i].position;
-        float3 normalizedDirectionToLight = normalize(directionToLight);
-        directionToLight += offset(2.0f / g_shadowResolution, macroNormal, -normalizedDirectionToLight);
-
-        float depth = 1.0f - length(directionToLight - SHADOW_DEPTH_OFFSET * normalizedDirectionToLight) / g_PointLightFarPlane;
-        
-        float shadowValue = pointLightsShadowMap.SampleCmpLevelZero(compr, float4(normalizedDirectionToLight + macroNormal * 2.0f * depth / g_shadowResolution, i), depth).r;
+        float3 lightDirection = input.worldPos - pointLights[i].position;
+        float3 normalizedLightDirection = normalize(lightDirection);
+ 
+        float clampValue = dot(-normalizedLightDirection, macroNormal);
+        clampValue = max(0, sign(clampValue));
+        float depth = 1.0f - length(lightDirection - SHADOW_DEPTH_OFFSET * normalizedLightDirection * clampValue) / g_PointLightFarPlane;
+ 
+        float shadowValue = pointLightsShadowMap.SampleCmpLevelZero(compr, float4(normalizedLightDirection + macroNormal * 2.0f * depth / g_shadowResolution, i), depth).r;
         finalColor += shadowValue * PBRLight(pointLights[i], input.worldPos, albedo, metalness, roughness, input.tbn._31_32_33, normal, v, specularState, diffuseState);
     }
     
