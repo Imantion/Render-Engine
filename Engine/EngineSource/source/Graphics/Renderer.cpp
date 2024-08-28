@@ -421,6 +421,8 @@ void Engine::Renderer::Render(Camera* camera)
 
 	context->OMSetDepthStencilState(pDSState.Get(), 0u);
 	RenderParticles(camera);
+	RenderParticles(camera,0.0166667f);
+
 	ID3D11ShaderResourceView* const pSRV[3] = { NULL, NULL, NULL };
 	context->PSSetShaderResources(11, 3u, pSRV);
 }
