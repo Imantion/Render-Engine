@@ -35,6 +35,8 @@ static const int MAX_AREA_IND = 4;
 #endif
 
 #define PI 3.141
+#define SHADOW_DEPTH_OFFSET 0.02f
+
 static const float g_MIN_F0 = 0.01;
 
 Texture2D flashlighTexture : register(t1);
