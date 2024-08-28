@@ -65,11 +65,12 @@ PSOut main(PSIn input)
     float3 decalPos = mul(float4(worldPos, 1.0f), input.worldToDecal);
     clip(0.5f - abs(decalPos));
     
-    float3 normal = unpackOctahedron(normals.Load(int3(input.pos.xy, 0)).zw);
-    float3 DecalSpaceNormal = mul(normal, (float3x3) input.worldToDecal);
+    float3 macroNormal = unpackOctahedron(normals.Load(int3(input.pos.xy, 0)).zw);
+    float3 DecalSpaceNormal = mul(macroNormal, (float3x3) input.worldToDecal);
     if (DecalSpaceNormal.z > 0.0f)
         discard;
     
+    float3 normal = unpackOctahedron(normals.Load(int3(input.pos.xy, 0)).xy);
     decalPos.xy += 0.5f;
     float4 DecalNormal = decalNormals.SampleLevel(g_linearWrap, decalPos.xy, 0);
     
@@ -93,7 +94,7 @@ PSOut main(PSIn input)
     
     output.Albedo = float4(albedo, DecalNormal.a);
     output.RoughMetal = float4(roughMetal, 0, DecalNormal.a);
-    output.Normals = float4(packOctahedron(transformedDecalNormal), packOctahedron(normal));
+    output.Normals = float4(packOctahedron(transformedDecalNormal), packOctahedron(macroNormal));
     output.Emmisive = float4(0, 0, 0, 0);
     
     return output;
