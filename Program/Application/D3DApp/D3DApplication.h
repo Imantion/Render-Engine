@@ -63,7 +63,8 @@ private:
 	enum SelectedObject
 	{
 		Opaque,
-		Emmisive
+		Emmisive,
+		Emitter
 	} selectedObject;
 };
 

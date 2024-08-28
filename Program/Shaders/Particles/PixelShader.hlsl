@@ -38,7 +38,7 @@ struct PSIn
 void DepthClipping(inout float alpha, float3 UVnDepth)
 {
 
-    float sampledDepth = g_DepthTexture.SampleLevel(g_sampler, UVnDepth.xy, 0);
+    float sampledDepth = g_DepthTexture.Load(float3(UVnDepth.xy, 0));
     sampledDepth = linearize_depth(sampledDepth, g_nearClip, g_farClip);
     UVnDepth.z = linearize_depth(UVnDepth.z, g_nearClip, g_farClip);
     
@@ -118,13 +118,12 @@ float4 main(PSIn input) : SV_TARGET
     
     float3 directionToLight = flashLight.position - input.worldPos;
     float solidAngle = SolidAngle(flashLight.radiusOfCone, dot(directionToLight, directionToLight));
-    finalRadiance += SixWayLightMap(flashLight.radiance * SpotLightCuttOffFactor(flashLight, input.worldPos, g_cameraPosition), normalize(directionToLight), lightmapRLUDBF);
+    finalRadiance += SixWayLightMap(flashLight.radiance * SpotLightCuttOffFactor(flashLight, input.worldPos, g_cameraPosition) * solidAngle, normalize(directionToLight), lightmapRLUDBF);
     finalRadiance += emissionAlpha.r;
     finalRadiance *= input.rgba.rgb;
 
     float4 output = float4(finalRadiance, input.rgba.a * emissionAlpha.g);
-    float3 UVnDepth = float3((input.position.x - 0.5f) / g_viewportWidth, (input.position.y - 0.5f) / g_viewportHeight, input.position.z);
-    DepthClipping(output.a, UVnDepth);
+    DepthClipping(output.a, input.position.xyz);
     
     return output;
 

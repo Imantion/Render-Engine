@@ -260,9 +260,8 @@ void Engine::Renderer::Render(Camera* camera)
 	pSkyBox->Draw();
 
 	context->OMSetDepthStencilState(pDSState.Get(), 1u);
-	MeshSystem::Init()->renderTranslucent();
-
 	RenderParticles(camera, 0.0166667f);
+	MeshSystem::Init()->renderTranslucent();
 
 	ID3D11ShaderResourceView* const pSRV[3] = { NULL, NULL, NULL };
 	context->PSSetShaderResources(11, 3u, pSRV);

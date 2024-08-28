@@ -124,13 +124,22 @@ void Engine::Emitter::DestroyParticles()
 	
 }
 
-void Engine::Emitter::adjustParameters(vec3 maxSpeed, vec2 size, float spawnRate, float lifetime)
+void Engine::Emitter::adjustParameters(const vec3& maxSpeed, const vec2& size, float spawnRate, float lifetime)
 {
 	m_maxSpeed = maxSpeed;
 	m_size = size;
 	m_particleMaxLifeTime = lifetime;
-	m_spawnRate = spawnRate;
-	m_particles.resize((size_t)ceil(m_spawnRate * m_particleMaxLifeTime));
+	
+	if (m_spawnRate != spawnRate)
+	{
+		m_spawnRate = spawnRate;
+		m_particles.resize((size_t)ceil(m_spawnRate * m_particleMaxLifeTime));
+	}
+}
+
+void Engine::Emitter::setColor(const vec3& color)
+{
+	m_particleColor = color;
 }
 
 
@@ -163,6 +172,16 @@ void Engine::ParticleSystem::addSmokeEmitter(const Emitter& emitter)
 	m_vertexBufferSortedData.resize(m_vertexBufferSortedData.size() + emitter.getMaxSize());
 	m_indexedDistance.resize(m_indexedDistance.size() + emitter.getMaxSize());
 	m_sortedIndexedDistance.resize(m_sortedIndexedDistance.size() + emitter.getMaxSize());
+}
+
+Engine::Emitter* Engine::ParticleSystem::getEmitterByTransformId(uint32_t id)
+{
+	for (size_t i = 0; i < m_emmiters.size(); i++)
+	{
+		if (m_emmiters[i].getBindedTransformId() == id)
+			return &m_emmiters[i];
+	}
+	return nullptr;
 }
 
 void Engine::ParticleSystem::Update(float deltaTime)

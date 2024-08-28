@@ -37,8 +37,16 @@ namespace Engine
 		uint32_t getMaxSize() const { return (uint32_t)m_particles.size(); }
 		uint32_t getSize() const { return m_particleCount; }
 		const std::vector<Particle>& getParticles() const { return m_particles; }
+		uint32_t getBindedTransformId() const { return m_transformId; }
 
-		void adjustParameters(vec3 max_speed, vec2 size, float spawnRate, float lifetime);
+		void adjustParameters(const vec3& maxSpeed, const vec2& size, float spawnRate, float lifetime);
+		void setColor(const vec3& color);
+
+		vec2 getParticleSize() { return m_size; }
+		vec3 getParticleMaxSpeed() { return m_maxSpeed; }
+		float getParticleSpawnRate() { return m_spawnRate; }
+		float getParticleLifeTime() { return m_particleMaxLifeTime; }
+		vec3 getParticleColor() { return m_particleColor; }
 
 	private:
 		void DestroyParticles();
@@ -70,6 +78,7 @@ namespace Engine
 		static void Deinit();
 
 		void addSmokeEmitter(const Emitter& emitter);
+		Emitter* getEmitterByTransformId(uint32_t id);
 		void Update(float deltaTime);
 		void UpdateBuffers(const vec3& cameraPosition);
 

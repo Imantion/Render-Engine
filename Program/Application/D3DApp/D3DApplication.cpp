@@ -30,6 +30,7 @@ Engine::vec2 previousMousePosition;
 static std::vector<Materials::DissolutionMaterial> samuraiDisolutionMaterial;
 static Materials::DissolutionMaterial cubeDisolutionMaterial;
 static float animationDuration = 4.0f;
+Engine::Emitter* pEmitter;
 
 static enum objectToSpawn
 {
@@ -279,7 +280,7 @@ void D3DApplication::UpdateInput(float deltaTime)
 	else if (Input::keyPresseed(Input::KeyboardButtons::THREE))
 		Engine::TextureManager::Init()->BindSampleByFilter(D3D11_FILTER_ANISOTROPIC, 3u);
 
-	if (Input::keyPresseed(Input::KeyboardButtons::N))
+	if (Input::keyPresseed(Input::KeyboardButtons::M))
 	{
 		auto MS = Engine::MeshSystem::Init();
 		
@@ -379,7 +380,13 @@ void D3DApplication::UpdateInput(float deltaTime)
 			selected->update(&data);
 		}
 
-		if (emmisiveHit != -1 && Engine::LightSystem::Init()->GetPointLightByTransformId(emmisiveHit))
+		auto emitter = Engine::ParticleSystem::Init()->getEmitterByTransformId(emmisiveHit);
+		if (emitter)
+		{
+			pEmitter = emitter;
+			selectedObject = Emitter;
+		}
+		else if(emmisiveHit != -1 && Engine::LightSystem::Init()->GetPointLightByTransformId(emmisiveHit))
 		{
 			selectedObject = Emmisive;
 			selected = std::make_unique<Engine::IInstanceSelected<Instances::EmmisiveInstance>>(emmisiveHit, std::move(emmisiveGroup.getInstanceByTransformId(emmisiveHit)));
@@ -398,6 +405,7 @@ void D3DApplication::UpdateInput(float deltaTime)
 			selected->update(&data);
 		}
 		selected.release();
+		pEmitter = nullptr;
 	}
 
 	if (cameraMoveDirection != Engine::vec3(0.0f) || cameraRotated)
@@ -490,7 +498,7 @@ void D3DApplication::GUI()
 			case D3DApplication::Select:
 				ImGui::Text("Select Mode");
 				
-				if (selected)
+				if (selected || pEmitter)
 				{
 					switch (selectedObject)
 					{
@@ -544,6 +552,34 @@ void D3DApplication::GUI()
 					
 						break;
 					}
+					case D3DApplication::Emitter:
+					{
+						static float particleMaxLifeTime = pEmitter->getParticleLifeTime();
+						static float spawnRate = pEmitter->getParticleSpawnRate();
+						static Engine::vec2 size = pEmitter->getParticleSize();
+						static Engine::vec3 maxSpeed = pEmitter->getParticleMaxSpeed();
+						static Engine::vec3 color = pEmitter->getParticleColor();
+
+						ImGui::SliderFloat("Life time", &particleMaxLifeTime, 0.05f, 10.0f);
+						ImGui::InputFloat("Spawn rate", &spawnRate);
+						ImGui::InputFloat2("Particle size", (float*)&size);
+						ImGui::InputFloat3("Max speed", (float*)&maxSpeed);
+						ImGui::InputFloat3("Color",(float*)&color);
+
+						Engine::clamp(size);
+						Engine::clamp(maxSpeed);
+						Engine::clamp(color);
+						maxSpeed = Engine::clampVec(maxSpeed, 3.0f);
+
+						spawnRate = spawnRate < 0.1f ? 0.1f : spawnRate;
+
+						pEmitter->adjustParameters(maxSpeed, size, spawnRate, particleMaxLifeTime);
+						pEmitter->setColor(color);
+
+						Engine::MeshSystem::Init()->emmisiveGroup.getInstanceByTransformId(pEmitter->getBindedTransformId())[0]->emmisiveColor = color;
+						Engine::MeshSystem::Init()->emmisiveGroup.updateInstanceBuffers();
+						break;
+					}
 					default:
 						break;
 					}
@@ -575,33 +611,6 @@ void D3DApplication::GUI()
 			ImGui::EndTabItem();
 		}
 		ImGui::EndTabBar();
-
-
-		//static float m_particleMaxLifeTime = 10.0f;
-		//static float m_accumulatedTime = 0.0f;
-		//static Engine::vec2 m_size = Engine::vec2(0.5f);
-		//static Engine::vec3 m_maxSpeed = Engine::vec3(0.5f, 0.05f, 0.5f);
-
-		//if (ImGui::BeginTabItem("Particles"))
-		//{
-		//	// New section for mode selection and conditional rendering
-		//	ImGui::Separator();
-		//	ImGui::Text("Model to spawn");
-
-		//	static const char* items[] = { "Samurai", "Crate" };
-		//	static int currentItem = 0; // 0 for Drag, 1 for Select
-
-		//	if (ImGui::Combo("Mode", &currentItem, items, IM_ARRAYSIZE(items)))
-		//	{
-		//		// Update the current mode based on selection
-		//		modelToSpawn = (objectToSpawn)currentItem;
-		//	}
-
-		//	ImGui::SliderFloat("Spawn duration", &animationDuration, 0.05f, 10.0f);
-
-		//	ImGui::EndTabItem();
-		//}
-		//ImGui::EndTabBar();
 	}
 
 	ImGui::End();
