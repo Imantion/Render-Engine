@@ -77,8 +77,10 @@ float4 main(PSInput input) : SV_TARGET
     for (i = 0; i < plSize; ++i)
     {
         float3 directionToLight = input.worldPos - pointLights[i].position;
-        float NoL = 1 - saturate(dot(normalize(-directionToLight), macroNormal));
-        float depthOffset = 0.00020f;
+        float3 normalizedDirectionToLight = normalize(directionToLight);
+        float angleFactor = saturate(dot(normalize(macroNormal), -normalizedDirectionToLight));
+        
+        float depthOffset = 0.0002f + 0.0025f * (1 - smoothstep(0.0f, 0.1f, angleFactor));
         
         float depth = 1.0f - length(directionToLight) / g_PointLightFarPlane + depthOffset;
         float shadowValue = pointLightsShadowMap.SampleCmpLevelZero(compr, float4(directionToLight, i), depth).r;
