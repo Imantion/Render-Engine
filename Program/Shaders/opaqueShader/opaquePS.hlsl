@@ -78,12 +78,13 @@ float4 main(PSInput input) : SV_TARGET
     {
         float3 directionToLight = input.worldPos - pointLights[i].position;
         float3 normalizedDirectionToLight = normalize(directionToLight);
+        directionToLight += offset(2.0f / g_shadowResolution, macroNormal, -normalizedDirectionToLight);
         float angleFactor = saturate(dot(normalize(macroNormal), -normalizedDirectionToLight));
         
-        float depthOffset = 0.0002f + 0.0025f * (1 - smoothstep(0.0f, 0.1f, angleFactor));
+        float depthOffset = 0.0002f + 0.003f * (1 - smoothstep(0.0f, 0.1f, angleFactor));
+        float depth = 1.0f - length(directionToLight) / g_PointLightFarPlane;
         
-        float depth = 1.0f - length(directionToLight) / g_PointLightFarPlane + depthOffset;
-        float shadowValue = pointLightsShadowMap.SampleCmpLevelZero(compr, float4(directionToLight, i), depth).r;
+        float shadowValue = pointLightsShadowMap.SampleCmpLevelZero(compr, float4(directionToLight + macroNormal * 2.0f * depth / g_shadowResolution, i), depth + depthOffset).r;
         finalColor += shadowValue * PBRLight(pointLights[i], input.worldPos, albedo, metalness, roughness, input.tbn._31_32_33, normal, v, specularState, diffuseState);
     }
     
