@@ -226,6 +226,7 @@ void D3DApplication::Update(float deltaTime)
 	ShadingGroupSwap();
 
 	Engine::TextureManager::Init()->BindSamplers();
+	Engine::ParticleSystem::Init()->Update(deltaTime);
 
 	Engine::Renderer* renderer = Engine::Renderer::GetInstance();
 	renderer->updatePerFrameCB(deltaTime, (FLOAT)pWindow->getWindowWidth(), (FLOAT)pWindow->getWindowHeight(), camera->getNearClip(), camera->getFarClip());

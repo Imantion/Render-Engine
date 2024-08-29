@@ -48,7 +48,7 @@ namespace Engine
 		void updatePerFrameCB(float deltaTime,float wWidth,float wHeight, float farCLip, float nearClip);
 		void CreateNoMSDepth();
 
-		void RenderParticles(Camera* camera, float deltaTime);
+		void RenderParticles(Camera* camera);
 		void Render(Camera* camera);
 		void PostProcess();
 

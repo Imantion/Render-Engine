@@ -196,13 +196,16 @@ void Engine::Renderer::CreateNoMSDepth()
 	context->OMSetRenderTargets(1u, pHDRRenderTarget.GetAddressOf(), pViewDepth.Get());
 }
 
-void Engine::Renderer::RenderParticles(Camera* camera, float deltaTime)
+void Engine::Renderer::RenderParticles(Camera* camera)
 {
 	auto context = D3D::GetInstance()->GetContext();
+
 	CreateNoMSDepth();
+	context->OMSetDepthStencilState(pDSState.Get(), 1u);
+	context->OMSetBlendState(pBlendState.Get(), nullptr, 0xFFFFFFFF);
+
 	context->PSSetShaderResources(23u, 1u, pNoMSDepthSRV.GetAddressOf());
 
-	ParticleSystem::Init()->Update(deltaTime);
 	ParticleSystem::Init()->UpdateBuffers(camera->getPosition());
 	ParticleSystem::Init()->Render();
 
@@ -259,8 +262,7 @@ void Engine::Renderer::Render(Camera* camera)
 	pSkyBox->BindSkyBox(2u);
 	pSkyBox->Draw();
 
-	context->OMSetDepthStencilState(pDSState.Get(), 1u);
-	RenderParticles(camera, 0.0166667f);
+	RenderParticles(camera);
 	MeshSystem::Init()->renderTranslucent();
 
 	ID3D11ShaderResourceView* const pSRV[3] = { NULL, NULL, NULL };
