@@ -32,7 +32,7 @@ namespace Engine
 
 		struct postProcessData
 		{
-			float EV100 = 1.0f;
+			float EV100 = 2.0f;
 			float gamma = 2.2f;
 			float padding[2];
 		} m_postProcessData;

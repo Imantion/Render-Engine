@@ -575,16 +575,16 @@ void D3DApplication::InitLights()
 	Engine::ModelManager::GetInstance()->initUnitSphere();
 	auto model = Engine::ModelManager::GetInstance()->GetModel("UNIT_SPHERE");
 
-	Engine::LightSystem::Init()->AddPointLight(Engine::vec3(1.5f, 0.0f, 0.9f), 1.0f, 2.236f, Engine::vec3(-5.0f, 0.0f, 2.0f), model);
-	Engine::LightSystem::Init()->AddPointLight(Engine::vec3(2.35f), 0.5f, 1.0f, Engine::vec3(2.0f, -1.0f, 0.0f), model);
-	Engine::LightSystem::Init()->AddPointLight(Engine::vec3(0.0f, 4.0f, 0.0f), 0.5f, 1.0f, Engine::vec3(2.0f, 2.0f, 0.0f), model);
-	Engine::LightSystem::Init()->AddPointLight(Engine::vec3(0.1f), 0.05f, 1.0f, Engine::vec3(0.0f, 0.0f, -0.5f), model);
+	Engine::LightSystem::Init()->AddPointLight(Engine::vec3(1.5f, 0.0f, 0.9f), 1.0f, 3.0f, Engine::vec3(-5.0f, 0.0f, 2.0f), model);
+	Engine::LightSystem::Init()->AddPointLight(Engine::vec3(2.35f), 0.5f, 1.84f, Engine::vec3(2.0f, -1.0f, 0.0f), model);
+	Engine::LightSystem::Init()->AddPointLight(Engine::vec3(0.0f, 4.0f, 0.0f), 0.5f, 2.25f, Engine::vec3(2.0f, 2.0f, 0.0f), model);
+	Engine::LightSystem::Init()->AddPointLight(Engine::vec3(0.1f), 0.05f, 1.4f, Engine::vec3(0.0f, 0.0f, -0.5f), model);
 
 	Engine::SpotLight spotLight(Engine::vec3(1.0f), 1.0f, 11.18f, Engine::vec3(0.0f, 0.0f, 0.0f), Engine::vec3(.0f, .0f, 1.0f), 0.5 / 2.0f);
 	spotLight.bindedObjectId = camera->getCameraTransformId();
 	Engine::LightSystem::Init()->AddFlashLight(spotLight, TM->LoadFromFile("flashlight", L"Textures\\flashlightMask.dds"));
 
-	Engine::DirectionalLight directionalLight(Engine::vec3(-0.3205475307f, -0.595605361f, -0.10348193f).normalized(), Engine::vec3(0.84f * 10.0f, 0.86264f * 10.0f, 0.89019f * 10.0f), 0.15f);
+	Engine::DirectionalLight directionalLight(Engine::vec3(-0.3205475307f, -0.595605361f, -0.10348193f).normalized(), Engine::vec3(0.84f * 7.5f, 0.86264f * 7.5f, 0.89019f * 7.5f), 0.15f);
 	Engine::LightSystem::Init()->AddDirectionalLight(directionalLight);
 
 
