@@ -28,7 +28,7 @@ namespace Engine
 
 		static vec3 radianceFromIrradiance(const vec3& irradiance, float radius, float distanceSquared)
 		{
-			return irradiance / (1 - sqrt(1 - min(radius * radius / distanceSquared, 1.0f)));
+			return irradiance / (1 - sqrt(1 - Min(radius * radius / distanceSquared, 1.0f)));
 		}
 
 	public:
@@ -158,7 +158,7 @@ namespace Engine
 		void operator=(const LightSystem& other) = delete;
 		LightSystem(const LightSystem& other) = delete;
 
-		void AddFlashLight(const SpotLight& spotLight, std::shared_ptr<Texture> texture, float nearCLip = 0.01f, float farClip = 10.0f); // near and far clip for projection matrix
+		void AddFlashLight(const SpotLight& spotLight, std::shared_ptr<Texture> texture, float nearCLip = 0.01f, float farClip = 100.0f); // near and far clip for projection matrix
 
 
 		void AddDirectionalLight(const vec3& direction, const vec3& radiance, float solidAngle);
@@ -176,14 +176,22 @@ namespace Engine
 
 		SpotLight& GetSpotLight(uint32_t index);
 		SpotLight* GetSpotLightByTransformId(uint32_t index);
+		std::vector<SpotLight> GetSpotLights();
+
 		PointLight* GetPointLightByTransformId(uint32_t index);
+		void GetPointLightsPositions(std::vector<vec3>& positions);
+		void GetPointLightsRadius(std::vector<float>& radiuses);
 
 		void UpdateLightsBuffer();
 		void BindLigtsBuffer(UINT slot, UINT typeOfShader);
 		void BindLightTextures();
 
 		void SetFlashLightAttachedState(bool attach);
-		bool IsFlashLightAttached() const { return m_flashLight.isAttached; }
+		bool IsFlashLightAttached() const { return m_flashLight.light.bindedObjectId != -1; }
+		SpotLight getFlashLight() const { return m_flashLight.light; }
+		mat4 getFlashLightViewProjection() const { return m_flashLight.flashLightsViewProjection; }
+
+		std::vector<DirectionalLight> GetDirectionalLights();
 
 	private:
 		LightSystem();
@@ -199,7 +207,7 @@ namespace Engine
 			vec3 worldDirection;
 			std::shared_ptr<Texture> flashLightMask;
 			mat4 flashLightsViewProjection;
-			bool isAttached = false;
+			int lastBindedTransform = -1;
 
 		} m_flashLight;
 

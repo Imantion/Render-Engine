@@ -45,7 +45,7 @@ void Engine::LightSystem::AddFlashLight(const SpotLight& spotLight, std::shared_
         throw "Spotlight must be attached!";
     }
 
-    m_flashLight.isAttached = true;
+    m_flashLight.lastBindedTransform = spotLight.bindedObjectId;
 }
 
 void Engine::LightSystem::BindLightTextures()
@@ -55,7 +55,7 @@ void Engine::LightSystem::BindLightTextures()
 
 void Engine::LightSystem::SetFlashLightAttachedState(bool attach)
 {
-    m_flashLight.isAttached = attach;
+    m_flashLight.light.bindedObjectId = attach ? m_flashLight.lastBindedTransform : -1;
 }
 
 void Engine::LightSystem::AddDirectionalLight(const vec3& direction, const vec3& radiance, float solidAngle)
@@ -151,6 +151,26 @@ Engine::PointLight* Engine::LightSystem::GetPointLightByTransformId(uint32_t ind
     return nullptr;
 }
 
+void Engine::LightSystem::GetPointLightsPositions(std::vector<vec3>& positions)
+{
+    positions.reserve(m_pointLights.size());
+    auto TS = TransformSystem::Init();
+    for (size_t i = 0; i < m_pointLights.size(); i++)
+    {
+        auto& transform = TS->GetModelTransforms(m_pointLights[i].bindedObjectId)[0].modelToWold;
+        positions.push_back((vec3&)*transform[3] + m_pointLights[i].position);
+    }
+}
+
+void Engine::LightSystem::GetPointLightsRadius(std::vector<float>& radiuses)
+{
+    radiuses.reserve(m_pointLights.size());
+    for (size_t i = 0; i < m_pointLights.size(); i++)
+    {
+        radiuses.push_back(m_pointLights[i].radius);
+    }
+}
+
 void Engine::LightSystem::UpdateLightsBuffer()
 {
 
@@ -189,7 +209,6 @@ void Engine::LightSystem::UpdateLightsBuffer()
             bufferData.spotLights[i].position = m_spotLights[i].position + (vec3&)(*bindedTransform[3]);
             bufferData.spotLights[i].direction = vec4(m_spotLights[i].direction, 0.0f) * bindedTransform;
             bufferData.spotLights[i].direction = bufferData.spotLights[i].direction.normalized();
-            bufferData.flashLightsViewProjection = mat4::Inverse(bindedTransform) * projectionMatrix(0.5f, 0.1f, 10.0f, 100, 100);;
         }
         else
         {
@@ -202,25 +221,23 @@ void Engine::LightSystem::UpdateLightsBuffer()
         bufferData.spotLights[i].radius = m_spotLights[i].radius;
     }
 
+
     if (m_flashLight.light.bindedObjectId != -1)
     {
-        if (m_flashLight.isAttached)
-        {
-            auto& bindedTransform = TS->GetModelTransforms(m_flashLight.light.bindedObjectId)[0].modelToWold;
-            m_flashLight.worldPosition = m_flashLight.light.position + (vec3&)(*bindedTransform[3]);
-            m_flashLight.worldDirection = (vec4(m_flashLight.light.direction, 0.0f) * bindedTransform).normalized();
-            m_flashLight.flashLightsViewProjection = mat4::Inverse(bindedTransform) * projectionMatrix(m_flashLight.light.cutoffAngle * 2.0f, flProjectionData.nearClip,
-                                                                                                       flProjectionData.farClip, flProjectionData.aspectRatio);
-        }
-           
-        bufferData.flashLight.direction = m_flashLight.worldDirection;
-        bufferData.flashLight.position = m_flashLight.worldPosition;
-        bufferData.flashLight.radiance = m_flashLight.light.radiance;
-        bufferData.flashLight.cutoffAngle = cosf(m_flashLight.light.cutoffAngle);
-        bufferData.flashLight.radius = m_flashLight.light.radius;
-        bufferData.flashLightsViewProjection = m_flashLight.flashLightsViewProjection;
-
+        auto& bindedTransform = TS->GetModelTransforms(m_flashLight.light.bindedObjectId)[0].modelToWold;
+        m_flashLight.worldPosition = m_flashLight.light.position + (vec3&)(*bindedTransform[3]);
+        m_flashLight.worldDirection = (vec4(m_flashLight.light.direction, 0.0f) * bindedTransform).normalized();
+        m_flashLight.flashLightsViewProjection = viewMatrix(m_flashLight.worldPosition,m_flashLight.worldDirection,topFromDir(m_flashLight.worldDirection)) *
+                projectionMatrix(m_flashLight.light.cutoffAngle * 2.0f, flProjectionData.nearClip, flProjectionData.farClip, flProjectionData.aspectRatio);
     }
+           
+    bufferData.flashLight.direction = m_flashLight.worldDirection;
+    bufferData.flashLight.position = m_flashLight.worldPosition;
+    bufferData.flashLight.radiance = m_flashLight.light.radiance;
+    bufferData.flashLight.cutoffAngle = cosf(m_flashLight.light.cutoffAngle);
+    bufferData.flashLight.radius = m_flashLight.light.radius;
+    bufferData.flashLightsViewProjection = m_flashLight.flashLightsViewProjection;
+
 
     bufferData.alSize = (UINT)m_areaLight.size();
     for (size_t i = 0; i < m_areaLight.size(); i++)
@@ -252,6 +269,11 @@ void Engine::LightSystem::UpdateLightsBuffer()
 void Engine::LightSystem::BindLigtsBuffer(UINT slot, UINT typeOfShader)
 {
     m_lighsBuffer.bind(slot, typeOfShader);
+}
+
+std::vector<Engine::DirectionalLight> Engine::LightSystem::GetDirectionalLights()
+{
+    return m_directionalLights;
 }
 
 Engine::LightSystem::LightSystem()

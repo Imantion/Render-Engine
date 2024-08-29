@@ -16,7 +16,9 @@ namespace Engine
 		int specular  = 1;
 		int IBL = 1;
 		int LTC = 1;
-		float padding[3];
+		float shadowResolution;
+		float pointLightFarPlan;
+		float padding;
 	};
 
 	struct PerViewCB
@@ -57,6 +59,8 @@ namespace Engine
 
 	protected:
 		Renderer();
+
+		void Shadows(const Camera* camera);
 	private:
 		ConstBuffer<PerFrameCB> perFrameBuffer;
 		PerFrameCB perFrameData;
@@ -71,12 +75,15 @@ namespace Engine
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> pDepthStencil;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> pDSState;
 
+		Microsoft::WRL::ComPtr<ID3D11RasterizerState> pRasterizerState;
+
 		std::shared_ptr<Texture> diffuseIBL;
 		std::shared_ptr<Texture> specularIBL;
 		std::shared_ptr<Texture> reflectanceIBL;
 
 		std::shared_ptr<Texture> LTCmat;
 		std::shared_ptr<Texture> LTCamp;
+
 	private:
 		static std::mutex mutex_;
 		static Renderer* pInstance;

@@ -9,6 +9,7 @@ namespace Engine
 
 namespace Materials
 {
+
 	struct Material
 	{
 		Engine::vec3 shortWaveColor;
@@ -63,4 +64,5 @@ namespace Materials
 	using OpaqueTextureMaterial = TextureMaterial;
 	using HologramMaterial = Material;
 	using NormVisMaterial = Material;
+	using ShadowMaterial = EmmisiveMaterial;
 }

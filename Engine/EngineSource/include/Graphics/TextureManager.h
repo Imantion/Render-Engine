@@ -40,6 +40,7 @@ namespace Engine
 		
 		void BindSamplers();
 		void BindSampleByFilter(D3D11_FILTER filter, UINT slot);
+		void BindComparisonSampler(UINT slot);
 
 	protected:
 		TextureManager();
@@ -54,6 +55,8 @@ namespace Engine
 		Microsoft::WRL::ComPtr<ID3D11SamplerState> m_pointSamplareState;
 		Microsoft::WRL::ComPtr<ID3D11SamplerState> m_linearSamplareState;
 		Microsoft::WRL::ComPtr<ID3D11SamplerState> m_anisotropicSamplareState;
+		Microsoft::WRL::ComPtr<ID3D11SamplerState> m_compsampler;
+
 
 	};
 

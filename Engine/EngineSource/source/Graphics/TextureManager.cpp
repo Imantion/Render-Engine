@@ -95,6 +95,7 @@ void Engine::TextureManager::BindSamplers()
 	static ID3D11SamplerState* samplers[3] = { m_pointSamplareState.Get(), m_linearSamplareState.Get(), m_anisotropicSamplareState.Get() };
 
 	context->PSSetSamplers(0, 3, samplers);
+	context->PSSetSamplers(4, 1, m_pointSamplareState.GetAddressOf());
 }
 
 void Engine::TextureManager::BindSampleByFilter(D3D11_FILTER filter, UINT slot)
@@ -114,6 +115,11 @@ void Engine::TextureManager::BindSampleByFilter(D3D11_FILTER filter, UINT slot)
 	default:
 		break;
 	}
+}
+
+void Engine::TextureManager::BindComparisonSampler(UINT slot)
+{
+	D3D::GetInstance()->GetContext()->PSSetSamplers(slot, 1, m_compsampler.GetAddressOf());
 }
 
 Engine::TextureManager::TextureManager()
@@ -143,5 +149,23 @@ Engine::TextureManager::TextureManager()
 	assert(SUCCEEDED(hr));
 
 	d3d->GetContext()->PSSetSamplers(3u, 1, m_pointSamplareState.GetAddressOf());
+
+	D3D11_SAMPLER_DESC sampDesc = {};
+	sampDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
+	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+	sampDesc.MipLODBias = 0.0f;
+	sampDesc.MaxAnisotropy = 1;
+	sampDesc.ComparisonFunc = D3D11_COMPARISON_GREATER_EQUAL;
+	sampDesc.BorderColor[0] = 1.0f;
+	sampDesc.BorderColor[1] = 1.0f;
+	sampDesc.BorderColor[2] = 1.0f;
+	sampDesc.BorderColor[3] = 1.0f;
+	sampDesc.MinLOD = 0;
+	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+	hr = D3D::GetInstance()->GetDevice()->CreateSamplerState(&sampDesc, &m_compsampler);
+	assert(SUCCEEDED(hr));
 }
 

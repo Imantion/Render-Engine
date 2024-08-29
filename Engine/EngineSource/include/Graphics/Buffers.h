@@ -9,7 +9,7 @@ namespace Engine
 	{
 	public:
 		
-		bool create(D3D11_USAGE usage = D3D11_USAGE_DYNAMIC)
+		bool create(D3D11_USAGE usage = D3D11_USAGE_DYNAMIC, UINT amount = 1)
 		{
 			if (D3D* d3d = D3D::GetInstance())
 			{
@@ -18,7 +18,7 @@ namespace Engine
 				cbd.Usage = usage;
 				cbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 				cbd.MiscFlags = 0u;
-				cbd.ByteWidth = sizeof(T);
+				cbd.ByteWidth = sizeof(T) * amount;
 				cbd.StructureByteStride = 0u;
 
 				HRESULT hr = d3d->GetDevice()->CreateBuffer(&cbd, nullptr, &m_constBuffer);
@@ -29,7 +29,7 @@ namespace Engine
 			return false;
 
 		}
-		bool updateBuffer(const T* constBufferSource)
+		bool updateBuffer(const T* constBufferSource, UINT amount = 1u)
 		{
 			D3D* d3d = D3D::GetInstance();
 			if (d3d && m_constBuffer.Get())
@@ -38,7 +38,7 @@ namespace Engine
 				HRESULT hr = d3d->GetContext()->Map(m_constBuffer.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &mappedResource);
 				assert(SUCCEEDED(hr));
 				T* data = (T*)mappedResource.pData;
-				memcpy(data, constBufferSource, sizeof(T));
+				memcpy(data, constBufferSource, sizeof(T) * amount);
 				d3d->GetContext()->Unmap(m_constBuffer.Get(), 0u);
 
 				return true;

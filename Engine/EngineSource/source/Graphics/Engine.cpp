@@ -7,6 +7,7 @@
 #include "Graphics/TransformSystem.h"
 #include "Graphics/PostProcess.h"
 #include "Graphics/LightSystem.h"
+#include "Graphics/ShadowSystem.h"
 #include "Window/Window.h"
 #include "imgui.h"
 #include "backends/imgui_impl_win32.h"
@@ -26,6 +27,7 @@ void Engine::Engine::Init()
 	TransformSystem::Init();
 	PostProcess::Init();
 	LightSystem::Init();
+	ShadowSystem::Init();
 
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -52,4 +54,5 @@ void Engine::Engine::Deinit()
 	TransformSystem::Deinit();
 	PostProcess::Deinit();
 	LightSystem::Deinit();
+	ShadowSystem::Deinit();
 }

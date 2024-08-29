@@ -15,6 +15,7 @@
 #include "imgui.h"
 #include "backends/imgui_impl_dx11.h"
 #include "backends/imgui_impl_win32.h"
+#include "Graphics/ShadowSystem.h"
 #include "Utils/ISelected.h"
 #include <assert.h>
 
@@ -106,6 +107,12 @@ static void InitMeshSystem()
 		L"Shaders\\normalLines\\PixelShader.hlsl", L"Shaders\\normalLines\\HullShader.hlsl", L"Shaders\\normalLines\\DomainShader.hlsl",
 		L"Shaders\\normalLines\\GSnormal.hlsl", nullptr, nullptr, D3D_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
 
+
+	auto shadowShader = Engine::ShaderManager::CompileAndCreateShader("shadowShader", L"Shaders\\Shadow\\PointLightShadowVS.hlsl", L"Shaders\\Shadow\\PointLightShadowPS.hlsl",
+		nullptr, nullptr, L"Shaders\\Shadow\\PointLightShadowGS.hlsl", nullptr, nullptr);
+
+	auto shadowShader2 = Engine::ShaderManager::CompileAndCreateShader("shadowShader2", L"Shaders\\Shadow\\ShadowVS.hlsl", L"Shaders\\Shadow\\ShadowPS.hlsl", nullptr, nullptr);
+
 	NormalVisLines->DisableShader();
 	if (!NormalVisColor)
 		throw std::runtime_error("Failed to compile and create shader!");
@@ -127,6 +134,10 @@ static void InitMeshSystem()
 	textureMap->BindInputLyout(thirdLayout);
 	opaqueShader->BindInputLyout(inputLayout);
 	emissiveShader->BindInputLyout(secondInputLayout);
+	shadowShader->BindInputLyout(thirdLayout);
+	shadowShader2->BindInputLyout(thirdLayout);
+
+	Engine::ShadowSystem::Init()->SetShadowShaders(shadowShader, shadowShader2, shadowShader2);
 
 	auto ms = Engine::MeshSystem::Init();
 
@@ -491,7 +502,7 @@ void D3DApplication::GUI()
 
 void D3DApplication::InitCamera(int windowWidth, int windowHeight)
 {
-	camera.reset(new Engine::Camera(45.0f, 0.1f, 100.0f));
+	camera.reset(new Engine::Camera(45.0f, 0.01f, 100.0f));
 	camera->calculateProjectionMatrix(windowWidth, windowHeight);
 	camera->calculateRayDirections();
 }
@@ -564,16 +575,16 @@ void D3DApplication::InitLights()
 	Engine::ModelManager::GetInstance()->initUnitSphere();
 	auto model = Engine::ModelManager::GetInstance()->GetModel("UNIT_SPHERE");
 
-	Engine::LightSystem::Init()->AddPointLight(Engine::vec3(1.5f, 0.0f, 0.9f), 1.0f, 2.236f, Engine::vec3(-5.0f, 0.0f, 2.0f), model);
-	Engine::LightSystem::Init()->AddPointLight(Engine::vec3(2.35f), 0.5f, 1.0f, Engine::vec3(2.0f, -1.0f, 0.0f), model);
-	Engine::LightSystem::Init()->AddPointLight(Engine::vec3(0.0f, 4.0f, 0.0f), 0.5f, 1.0f, Engine::vec3(2.0f, 2.0f, 0.0f), model);
-	Engine::LightSystem::Init()->AddPointLight(Engine::vec3(0.1f), 0.05f, 1.0f, Engine::vec3(0.0f, 0.0f, -0.5f), model);
+	Engine::LightSystem::Init()->AddPointLight(Engine::vec3(1.5f, 0.0f, 0.9f), 1.0f, 3.0f, Engine::vec3(-5.0f, 0.0f, 2.0f), model);
+	Engine::LightSystem::Init()->AddPointLight(Engine::vec3(2.35f), 0.5f, 1.84f, Engine::vec3(2.0f, -1.0f, 0.0f), model);
+	Engine::LightSystem::Init()->AddPointLight(Engine::vec3(0.0f, 4.0f, 0.0f), 0.5f, 2.25f, Engine::vec3(2.0f, 2.0f, 0.0f), model);
+	Engine::LightSystem::Init()->AddPointLight(Engine::vec3(0.1f), 0.05f, 1.4f, Engine::vec3(0.0f, 0.0f, -0.5f), model);
 
-	Engine::SpotLight spotLight(Engine::vec3(1.0f), 1.0f, 5.0f, Engine::vec3(0.0f, 0.0f, 0.0f), Engine::vec3(.0f, .0f, 1.0f), 0.5 / 2.0f);
+	Engine::SpotLight spotLight(Engine::vec3(1.0f), 1.0f, 11.18f, Engine::vec3(0.0f, 0.0f, 0.0f), Engine::vec3(.0f, .0f, 1.0f), 0.5 / 2.0f);
 	spotLight.bindedObjectId = camera->getCameraTransformId();
 	Engine::LightSystem::Init()->AddFlashLight(spotLight, TM->LoadFromFile("flashlight", L"Textures\\flashlightMask.dds"));
 
-	Engine::DirectionalLight directionalLight(Engine::vec3(-0.605475307f, -0.795605361f, 0.0203348193f), Engine::vec3(0.84f * 10.0f, 0.86264f * 10.0f, 0.89019f * 10.0f), 0.15f);
+	Engine::DirectionalLight directionalLight(Engine::vec3(-0.3205475307f, -0.595605361f, -0.10348193f).normalized(), Engine::vec3(0.84f * 7.5f, 0.86264f * 7.5f, 0.89019f * 7.5f), 0.15f);
 	Engine::LightSystem::Init()->AddDirectionalLight(directionalLight);
 
 
@@ -634,7 +645,7 @@ void D3DApplication::InitCrateModel()
 
 	auto rotZ = Engine::mat4::rotateZ(3.14f * (-45.0f) / 360.0f);
 	changescale(inst, 0, 5);
-	changepos(inst, Engine::vec3(-10.0f, 4.0f, 2.0f));
+	changepos(inst, Engine::vec3(-10.0f, 4.0f, 1.2f));
 	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, crateMaterial, Engine::TransformSystem::transforms{ inst.modelToWold * rotZ });
 }
 

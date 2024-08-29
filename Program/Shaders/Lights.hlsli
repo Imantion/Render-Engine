@@ -7,13 +7,13 @@ static const int MAX_DL = 1;
 #if MAX_POINT_LIGHTS
 static const int MAX_PL = MAX_POINT_LIGHTS;
 #else
-static const int MAX_PL = 5;
+static const int MAX_PL = 10;
 #endif
 
 #if MAX_SPOT_LIGHTS
 static const int MAX_SL = MAX_SPOT_LIGHTS;
 #else
-static const int MAX_SL = 5;
+static const int MAX_SL = 10;
 #endif
 
 #if MAX_AREA_LIGHTS
@@ -35,14 +35,33 @@ static const int MAX_AREA_IND = 4;
 #endif
 
 #define PI 3.141
+#define SHADOW_DEPTH_OFFSET 0.02f
+
 static const float g_MIN_F0 = 0.01;
 
 Texture2D flashlighTexture : register(t1);
-SamplerState samplerstateFlash : register(s0);
+SamplerState samplerstateFlash : register(s4);
+
+Texture2D albed : register(t2);
+Texture2D rough : register(t3);
+Texture2D metal : register(t4);
+Texture2D normalTexture : register(t5);
+
+TextureCube diffuseIBL : register(t6);
+TextureCube specIrrIBL : register(t7);
+Texture2D reflectanceIBL : register(t8);
+Texture2D LTCmat : register(t9);
+Texture2D LTCamp : register(t10);
+
+TextureCubeArray pointLightsShadowMap : register(t11);
+Texture2DArray spotLightsShadowMap : register(t12);
+Texture2DArray directionalLightsShadowMap : register(t13);
+
+SamplerComparisonState compr : register(s5);
 
 struct DirectionalLight
 {
-    float3 color;
+    float3 radiance;
     float solidAngle;
     float3 direction;
     float padding; // Padding to align structure size
@@ -51,7 +70,7 @@ struct DirectionalLight
 // PointLight structure
 struct PointLight
 {
-    float3 color;
+    float3 radiance;
     float radius;
     float3 position;
     int bindedObjectId; // -1 means no object is bound
@@ -60,7 +79,7 @@ struct PointLight
 // SpotLight structure
 struct SpotLight
 {
-    float3 color;
+    float3 radiance;
     float radiusOfCone;
     float3 direction;
     float cutoffAngle; // in radians
@@ -76,7 +95,7 @@ struct edge
 
 struct AreaLight
 {
-    float3 color;
+    float3 radiance;
     uint verticesAmount;
     float3 vertices[MAX_AREA_VERT];
     edge boundedIndices[MAX_AREA_IND];
@@ -287,8 +306,7 @@ float3 PBRLight(PointLight lightSource, float3 worldPosition, float3 albedo, flo
         f_diff = (1 - metalness) / PI * solidAngle * NoL * albedo * (1 - fresnel(F0, NoL));
     
 
-    return lightSource.color * (f_diff + f_spec) * horizonFalloffFactor(microNormal, worldPosition, lightSource.position, lightSource.radius) *
-    horizonFalloffFactor(macroNormal, worldPosition, lightSource.position, lightSource.radius);
+    return lightSource.radiance * (f_diff + f_spec);
 }
 
 float3 FlashLight(SpotLight flashLight, float3 albedo, float metalness, float roughness, float3 normal, float3 position, float3 cameraPosition, bool specular, bool diffuse)
@@ -296,7 +314,7 @@ float3 FlashLight(SpotLight flashLight, float3 albedo, float metalness, float ro
     float3 directionToLight = flashLight.position - position;
     float3 view = normalize(cameraPosition - position);
     float solidAngle = SolidAngle(flashLight.radiusOfCone, dot(directionToLight, directionToLight));
-    float3 finalColor = SpotLightCuttOffFactor(flashLight, position, cameraPosition) * PBRLight(flashLight.color, solidAngle, normalize(directionToLight), albedo,
+    float3 finalColor = SpotLightCuttOffFactor(flashLight, position, cameraPosition) * PBRLight(flashLight.radiance, solidAngle, normalize(directionToLight), albedo,
                                                                                                 metalness, roughness, normal, view, specular, diffuse);
     float4 proj = mul(float4(position, 1.0f), lightViewProjection);
     float2 uv = (proj.xy) / proj.w;
@@ -370,4 +388,78 @@ float3 LTC_Evaluate(float3 N, float3 V, float3 P, float3x3 Minv, AreaLight areaL
     // Outgoing radiance (solid angle) for the entire polygon
     float3 Lo_i = float3(sum, sum, sum);
     return Lo_i;
+}
+
+uint selectCubeFace(float3 unitDir)
+{
+    float maxVal = max(abs(unitDir.x), max(abs(unitDir.y), abs(unitDir.z)));
+    uint maxIndex = abs(unitDir.x) == maxVal ? 0 : (abs(unitDir.y) == maxVal ? 2 : 4);
+    return maxIndex + (asuint(unitDir[maxIndex / 2]) >> 31); // same as:
+    // return maxIndex + (unitDir[maxIndex / 2] < 0.f ? 1u : 0u);
+}
+
+float3 offset(float shadowTexelSize, float3 normal, float3 lightDir)
+{
+    float denominator = sqrt(2) * 0.5f;
+    return shadowTexelSize * denominator * (normal - lightDir * (0.9f * dot(normal, lightDir)));
+}
+
+float3 LTC(AreaLight areaLight,float3 worldPos, float3 normal, float3 view, float3 albedo, float roughness, float metalness)
+{
+    float dotNV = clamp(dot(normal, view), 0.0f, 1.0f);
+
+    // use roughness and sqrt(1-cos_theta) to sample M_texture
+    float2 uv = float2(roughness, sqrt(1.0f - dotNV));
+    uv = uv * LUT_SCALE + LUT_BIAS;
+
+    float4 t1 = LTCmat.Sample(samplerstateFlash, uv);
+    float t2 = LTCamp.Sample(samplerstateFlash, uv);
+    
+    float3x3 Minv = float3x3(
+    float3(t1.x, 0, t1.y),
+    float3(0, 1, 0),
+    float3(t1.z, 0, t1.w)
+    );
+    
+    float3x3 Identity =
+    {
+        { 1, 0, 0, },
+        { 0, 1, 0, },
+        { 0, 0, 1 },
+    };
+    
+    float3 d = LTC_Evaluate(normal, view, worldPos, Identity, areaLight, true);
+    float3 s = LTC_Evaluate(normal, view, worldPos, Minv, areaLight, true);
+    return areaLight.radiance * (d * albedo * (1 - metalness) + s) * (t2.r * areaLight.intensity);
+}
+
+
+float PCF(Texture2DArray textureArray, SamplerComparisonState compSampler, int index, float3 projectedCoord, float texelSize)
+{
+    static const float2 offsets[9] =
+    {
+        float2(-1.0, -1.0), float2(0.0, -1.0), float2(1.0, -1.0),
+    float2(-1.0, 0.0), float2(0.0, 0.0), float2(1.0, 0.0),
+    float2(-1.0, 1.0), float2(0.0, 1.0), float2(1.0, 1.0)
+    };
+    
+    float shadowValue = 0.0f;
+    for (int i = 0; i < 9; i++)
+    {
+        shadowValue += textureArray.SampleCmpLevelZero(compSampler, float3(projectedCoord.xy + offsets[i] * texelSize * 0.5f, index), projectedCoord.z);
+    }
+    shadowValue = shadowValue / 9.0f;
+    return smoothstep(0.33, 1.0f, shadowValue);
+}
+
+float3 worldToUV(float3 lightPos, float3 worldPos, float3 normal, float4x4 viewProjectionMatrix)
+{
+    float3 directionToLight = lightPos - worldPos;
+    float4 projected = mul(float4(worldPos + offset(1.0f / g_shadowResolution, normal, directionToLight), 1.0f), viewProjectionMatrix);
+    float3 homogeneus = projected.xyz / projected.w;
+    homogeneus.xy = (homogeneus.xy + 1) * 0.5f;
+    homogeneus.y = 1 - homogeneus.y;
+    
+    return homogeneus;
+
 }

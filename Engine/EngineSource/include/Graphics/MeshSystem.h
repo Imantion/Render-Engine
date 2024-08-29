@@ -12,6 +12,10 @@
 
 namespace Engine
 {
+	class MeshSystem;
+	class SpotLight;
+	class DirectionalLight;
+	class Camera;
 
 	template<typename M>
 	struct MaterialDataType {
@@ -155,11 +159,8 @@ namespace Engine
 			return transformId;
 		}
 
-
-		uint32_t addModel(std::shared_ptr<Model> model, const M& material, const TransformSystem::transforms& modelTransforms, const I& instance = {}) // returns model transform ID
+		uint32_t addModel(std::shared_ptr<Model> model, const M& material, uint32_t modelTransformsId, const I& instance = {}) // returns model transform ID
 		{
-			auto TS = TransformSystem::Init();
-			uint32_t modelTransformsId = TS->AddModelTransform(modelTransforms, (uint32_t)model->m_meshes.size());
 
 			auto it = perModel.end();
 			for (auto i = perModel.begin(); i != perModel.end(); i++)
@@ -170,7 +171,7 @@ namespace Engine
 
 			if (it == perModel.end())
 			{
-				std::vector<PerInstance> inst(1, PerInstance{modelTransformsId, instance});
+				std::vector<PerInstance> inst(1, PerInstance{ modelTransformsId, instance });
 
 				PerMaterial perMat = { material,inst };
 
@@ -206,11 +207,9 @@ namespace Engine
 			}
 			return modelTransformsId;
 		}
-		
-		uint32_t addModel(std::shared_ptr<Model> model, const std::vector<M>& material, const TransformSystem::transforms& modelTransforms, const I& instance = {}) // returns model transform ID
+
+		uint32_t addModel(std::shared_ptr<Model> model, const std::vector<M>& material, uint32_t modelTransformsId, const I& instance = {}) // returns model transform ID
 		{
-			auto TS = TransformSystem::Init();
-			uint32_t modelTransformsId = TS->AddModelTransform(modelTransforms, (uint32_t)model->m_meshes.size());
 
 			auto it = perModel.end();
 			for (auto i = perModel.begin(); i != perModel.end(); i++)
@@ -228,9 +227,9 @@ namespace Engine
 				for (size_t i = 0; i < model->m_meshes.size(); i++)
 				{
 					std::vector<PerInstance> inst(1, PerInstance{ modelTransformsId, instance });
-					PerMaterial perMat = { material[i],inst};
+					PerMaterial perMat = { material[i],inst };
 					PerMesh perMes = { std::vector<PerMaterial>(1,perMat) };
-					
+
 					perMod.perMesh[i] = perMes;
 				}
 
@@ -256,12 +255,18 @@ namespace Engine
 					{
 						std::vector<PerInstance> inst;
 						inst.push_back(PerInstance{ modelTransformsId, instance });
-						pModel->perMesh[meshIndex].perMaterial.push_back(PerMaterial{ material[meshIndex], inst});
+						pModel->perMesh[meshIndex].perMaterial.push_back(PerMaterial{ material[meshIndex], inst });
 					}
 				}
 			}
 			return modelTransformsId;
 		}
+
+		uint32_t addModel(std::shared_ptr<Model> model, const M& material, const TransformSystem::transforms& modelTransforms, const I& instance = {}); // returns model transform ID
+		
+		uint32_t addModel(std::shared_ptr<Model> model, const std::vector<M>& material, const TransformSystem::transforms& modelTransforms, const I& instance = {}); // returns model transform ID
+
+		
 
 		void updateInstanceBuffers()
 		{
@@ -308,21 +313,26 @@ namespace Engine
 
 		void render()
 		{
-			if (instanceBuffer.getSize() == 0)
-				return;
-
-			D3D* d3d = D3D::GetInstance();
 			for (size_t i = 0; i < m_shaders.size(); i++)
 			{
-				if (!m_shaders[i]->isEnabled)
-					continue;
-				m_shaders[i]->BindShader();
+				if (m_shaders[i]->isEnabled)
+					renderUsingShader(m_shaders[i]);
+				
+			}
+		}
+
+			void renderUsingShader(std::shared_ptr<shader> shaderToRender)
+			{
+				if (instanceBuffer.getSize() == 0)
+					return;
+
+				D3D* d3d = D3D::GetInstance();
+
+				shaderToRender->BindShader();
 				instanceBuffer.bind(1u);
 				meshData.bind(2u, shaderTypes::VS);
 
 				materialData.bind(2u, shaderTypes::PS);
-				
-
 
 				uint32_t renderedInstances = 0;
 				for (const auto& perModel : perModel)
@@ -355,7 +365,6 @@ namespace Engine
 						}
 					}
 				}
-			}
 			}
 			
 	};
@@ -394,10 +403,16 @@ namespace Engine
 		OpaqueInstances<Instance, Materials::NormVisMaterial> normVisGroup;
 		OpaqueInstances<PBRInstance, Materials::OpaqueTextureMaterial> opaqueGroup;
 		OpaqueInstances<EmmisiveInstance, Materials::EmmisiveMaterial> emmisiveGroup;
+		OpaqueInstances<Instance, Materials::ShadowMaterial> shadowGroup;
 
 		int intersect(const ray& r, hitInfo& hInfo);
 
 		void updateInstanceBuffers();
+
+		void renderDepthCubemaps(const std::vector<vec3>& lightPositions);
+		void renderDepth2D(const std::vector<SpotLight>& spotlights);
+		void renderDepth2DDirectional(const std::vector<DirectionalLight>& directionalLights, const Camera* camera);
+
 		void render();
 
 
@@ -411,12 +426,34 @@ namespace Engine
 	protected:
 		static std::mutex mutex_;
 		static MeshSystem* pInstance;
+
+		
+
 	};
 
 	template <>
-	inline void OpaqueInstances<MeshSystem::PBRInstance, Materials::OpaqueTextureMaterial>::render();
+	inline void OpaqueInstances<MeshSystem::PBRInstance, Materials::OpaqueTextureMaterial>::renderUsingShader(std::shared_ptr<shader> shaderToRender);
 
 
 	
+	template<typename I, typename M>
+	inline uint32_t OpaqueInstances<I, M>::addModel(std::shared_ptr<Model> model, const M& material, const TransformSystem::transforms& modelTransforms, const I& instance)
+	{
+		auto TS = TransformSystem::Init();
+		uint32_t modelTransformsId = TS->AddModelTransform(modelTransforms, (uint32_t)model->m_meshes.size());
+
+		MeshSystem::Init()->shadowGroup.addModel(model, Materials::ShadowMaterial{}, modelTransformsId, MeshSystem::Instance{});
+		return addModel(model, material, modelTransformsId, instance);
+	}
+
+	template<typename I, typename M>
+	inline uint32_t OpaqueInstances<I, M>::addModel(std::shared_ptr<Model> model, const std::vector<M>& material, const TransformSystem::transforms& modelTransforms, const I& instance)
+	{
+		auto TS = TransformSystem::Init();
+		uint32_t modelTransformsId = TS->AddModelTransform(modelTransforms, (uint32_t)model->m_meshes.size());
+
+		MeshSystem::Init()->shadowGroup.addModel(model, Materials::ShadowMaterial{}, modelTransformsId, MeshSystem::Instance{});
+		return addModel(model, material, modelTransformsId, instance);
+	}
 }
 

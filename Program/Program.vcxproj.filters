@@ -43,6 +43,9 @@
     <Filter Include="Shaders\PostProcess">
       <UniqueIdentifier>{d8d8d29b-51dd-4dad-8355-18ce8d06f2fb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\Shadow">
+      <UniqueIdentifier>{fb91d4ff-eba0-4478-bbb1-dceaa45a9989}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Application\Input\Input.cpp">
@@ -134,12 +137,23 @@
     <None Include="Shaders\emissive\emissiveVS.hlsl">
       <Filter>Shaders\emmisive</Filter>
     </None>
-    <None Include="Shaders\opaqueShader\opaqueVS.hlsl">
-      <Filter>Shaders\opaque</Filter>
-    </None>
     <None Include="Shaders\Lights.hlsli">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="Shaders\Shadow\PointLightShadowGS.hlsl">
+      <Filter>Shaders\Shadow</Filter>
+    </None>
+    <None Include="Shaders\Shadow\PointLightShadowPS.hlsl">
+      <Filter>Shaders\Shadow</Filter>
+    </None>
+    <None Include="Shaders\opaqueShader\opaquePS.hlsl">
+      <Filter>Shaders\opaque</Filter>
+    </None>
+    <None Include="Shaders\opaqueShader\opaqueVS.hlsl">
+      <Filter>Shaders\opaque</Filter>
+    </None>
+    <None Include="Shaders\Shadow\ShadowPS.hlsl" />
+    <None Include="Shaders\Shadow\ShadowVS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\declarations.hlsli">
@@ -147,14 +161,14 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Shaders\opaqueShader\opaquePS.hlsl">
-      <Filter>Shaders\opaque</Filter>
-    </FxCompile>
     <FxCompile Include="Shaders\PostProcess\PostProcessPS.hlsl">
       <Filter>Shaders\PostProcess</Filter>
     </FxCompile>
     <FxCompile Include="Shaders\PostProcess\PostProcessVS.hlsl">
       <Filter>Shaders\PostProcess</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\Shadow\PointLightShadowVS.hlsl">
+      <Filter>Shaders\Shadow</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

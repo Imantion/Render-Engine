@@ -20,6 +20,8 @@ cbuffer perFrame : register(b1)
     int specularState;
     int IBLState;
     int LTCState;
+    float g_shadowResolution;
+    float g_PointLightFarPlane;
 }
 
 SamplerState g_pointWrap : register(s0); // No interpolation, Point Wrap
