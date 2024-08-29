@@ -221,7 +221,7 @@ Engine::Renderer::Renderer() :
 	D3D11_RASTERIZER_DESC rasterDesc;
 	ZeroMemory(&rasterDesc, sizeof(rasterDesc));
 	rasterDesc.FillMode = D3D11_FILL_SOLID;
-	rasterDesc.CullMode = D3D11_CULL_NONE;
+	rasterDesc.CullMode = D3D11_CULL_BACK;
 	rasterDesc.FrontCounterClockwise = false;
 	rasterDesc.DepthBias = -64;
 	rasterDesc.DepthBiasClamp = 0.0f;
