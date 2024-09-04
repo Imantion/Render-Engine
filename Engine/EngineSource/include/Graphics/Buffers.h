@@ -193,4 +193,153 @@ namespace Engine
 		Microsoft::WRL::ComPtr<ID3D11Buffer> m_indexBuffer;
 		UINT instances;
 	};
+
+
+	template<typename T>
+	class StructuredBuffer
+	{
+	public:
+
+		bool create(UINT amount, D3D11_USAGE usage = D3D11_USAGE_DYNAMIC)
+		{
+			auto d3d = D3D::GetInstance();
+
+			D3D11_BUFFER_DESC bufferDesc;
+			bufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+			bufferDesc.Usage = usage;
+			bufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+			bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+			bufferDesc.ByteWidth = sizeof(T) * amount;
+			bufferDesc.StructureByteStride = sizeof(T);
+
+			HRESULT hr = d3d->GetDevice()->CreateBuffer(&bufferDesc, nullptr, &m_structuredBuffer);
+			assert(SUCCEEDED(hr));
+
+			// Describe the Shader Resource View (SRV)
+			D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+			srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+			srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+			srvDesc.Buffer.ElementWidth = amount; // Number of elements
+
+			// Create the SRV
+			hr = d3d->GetDevice()->CreateShaderResourceView(m_structuredBuffer, &srvDesc, &m_structuredBufferSRV);
+			assert(SUCCEEDED(hr));
+		}
+
+		bool updateBuffer(const T* BufferSource, UINT amount = 1u)
+		{
+			D3D* d3d = D3D::GetInstance();
+			if (d3d && m_structuredBuffer.Get())
+			{
+				D3D11_MAPPED_SUBRESOURCE mappedResource;
+				HRESULT hr = d3d->GetContext()->Map(m_structuredBuffer.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &mappedResource);
+				assert(SUCCEEDED(hr));
+				T* data = (T*)mappedResource.pData;
+				memcpy(data, BufferSource, sizeof(T) * amount);
+				d3d->GetContext()->Unmap(m_structuredBuffer.Get(), 0u);
+
+				return true;
+			}
+			return false;
+		}
+
+		void bind(UINT slot, UINT typeOfShader)
+		{
+			auto context = D3D::GetInstance()->GetContext();
+			if (typeOfShader & shaderTypes::VS)
+				context->VSSetShaderResources(slot, 1, m_structuredBufferSRV.GetAddressOf());
+			if (typeOfShader & shaderTypes::PS)
+				context->PSSetShaderResources(slot, 1, m_structuredBufferSRV.GetAddressOf());
+			if (typeOfShader & shaderTypes::HS)
+				context->HSSetShaderResources(slot, 1, m_structuredBufferSRV.GetAddressOf());
+			if (typeOfShader & shaderTypes::DS)
+				context->DSSetShaderResources(slot, 1, m_structuredBufferSRV.GetAddressOf());
+			if (typeOfShader & shaderTypes::GS)
+				context->GSSetShaderResources(slot, 1, m_structuredBufferSRV.GetAddressOf());
+		}
+
+	private:
+		Microsoft::WRL::ComPtr<ID3D11Buffer> m_structuredBuffer;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_structuredBufferSRV;
+	};
+
+
+	template<typename T>
+	class RWStructuredBuffer
+	{
+	public:
+
+		bool create(UINT amount, D3D11_USAGE usage = D3D11_USAGE_DYNAMIC)
+		{
+			auto d3d = D3D::GetInstance();
+
+			D3D11_BUFFER_DESC bufferDesc = {};
+			bufferDesc.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE;;
+			bufferDesc.Usage = usage;
+			bufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+			bufferDesc.ByteWidth = sizeof(T) * amount;
+			bufferDesc.StructureByteStride = sizeof(T);
+
+			HRESULT hr = d3d->GetDevice()->CreateBuffer(&bufferDesc, nullptr, &m_RWstructuredBuffer);
+			assert(SUCCEEDED(hr));
+
+			// Describe the Shader Resource View (SRV)
+			D3D11_UNORDERED_ACCESS_VIEW_DESC srvDesc = {};
+			srvDesc.Format = DXGI_FORMAT_UNKNOWN;
+			srvDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
+			srvDesc.Buffer.NumElements = amount; // Number of elements
+
+			// Create the SRV
+			hr = d3d->GetDevice()->CreateUnorderedAccessView(m_RWstructuredBuffer.Get(), &srvDesc, m_UAV.GetAddressOf());
+			assert(SUCCEEDED(hr));
+		}
+
+		bool updateBuffer(const T* BufferSource, UINT amount = 1u)
+		{
+			D3D* d3d = D3D::GetInstance();
+			if (d3d && m_RWstructuredBuffer.Get())
+			{
+				D3D11_MAPPED_SUBRESOURCE mappedResource;
+				HRESULT hr = d3d->GetContext()->Map(m_RWstructuredBuffer.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &mappedResource);
+				assert(SUCCEEDED(hr));
+				T* data = (T*)mappedResource.pData;
+				memcpy(data, BufferSource, sizeof(T) * amount);
+				d3d->GetContext()->Unmap(m_RWstructuredBuffer.Get(), 0u);
+
+				return true;
+			}
+			return false;
+		}
+
+		void bind(UINT slot, UINT typeOfShader, UINT readWrite)
+		{
+			auto context = D3D::GetInstance()->GetContext();
+			
+			if (readWrite & UAVState::READ)
+			{
+				if (typeOfShader & shaderTypes::VS)
+					context->VSSetShaderResources(slot, 1, m_UAV.GetAddressOf());
+				if (typeOfShader & shaderTypes::PS)
+					context->PSSetShaderResources(slot, 1, m_UAV.GetAddressOf());
+				if (typeOfShader & shaderTypes::HS)
+					context->HSSetShaderResources(slot, 1, m_UAV.GetAddressOf());
+				if (typeOfShader & shaderTypes::DS)
+					context->DSSetShaderResources(slot, 1, m_UAV.GetAddressOf());
+				if (typeOfShader & shaderTypes::GS)
+					context->GSSetShaderResources(slot, 1, m_UAV.GetAddressOf());
+				if (typeOfShader & shaderTypes::CS)
+					context->CSSetShaderResources(slot, 1, m_UAV.GetAddressOf());
+			}
+
+			if (readWrite & UAVState::WRITE)
+			{
+				if (typeOfShader & shaderTypes::CS)
+					context->CSSetUnorderedAccessViews(slot, 1, m_UAV.GetAddressOf());
+			}
+		}
+
+	private:
+		Microsoft::WRL::ComPtr<ID3D11Buffer> m_RWstructuredBuffer;
+		Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> m_UAV;
+	};
 }

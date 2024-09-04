@@ -130,6 +130,30 @@ namespace Engine
 		uint32_t textureFrameCount;
 
 		std::shared_ptr<shader> m_shader;
+
+	private:
+		struct RingBuffer
+		{
+			uint32_t number;
+			uint32_t offset;
+			uint32_t expired;
+
+			UINT IndexCountPerInstance;
+			UINT InstanceCount;
+			UINT StartIndexLocation;
+			INT  BaseVertexLocation;
+			UINT StartInstanceLocation;
+		};
+
+		struct IncinerationParticle
+		{
+			vec3 position;
+			vec3 velocity;
+			vec3 irradiance;
+		};
+
+
+
 	private:
 
 		static std::mutex m_mutex;

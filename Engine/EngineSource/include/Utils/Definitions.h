@@ -14,6 +14,13 @@ namespace Engine
 		HS = 2,
 		DS = 4,
 		GS = 8,
-		PS = 16
+		PS = 16,
+		CS = 32
+	};
+
+	enum UAVState
+	{
+		READ = 1,
+		WRITE = 2,
 	};
 }
