@@ -123,6 +123,9 @@ std::shared_ptr<Engine::Model> Engine::ModelManager::loadModel(std::string path,
 
 	std::vector<Mesh::vertex> verticies; verticies.reserve(vertexAmount);
 	std::vector<Mesh::triangle> indicies; indicies.reserve(facesAmount);
+
+	vec3 min = vec3(std::numeric_limits<float>().max());
+	vec3 max = vec3(-std::numeric_limits<float>().max());
 	
 	for (uint32_t i = 0; i < numMeshes; ++i)
 	{
@@ -133,6 +136,14 @@ std::shared_ptr<Engine::Model> Engine::ModelManager::loadModel(std::string path,
 		dstMesh.name = srcMesh->mName.C_Str();
 		dstMesh.box.min = reinterpret_cast<vec3&>(srcMesh->mAABB.mMin);
 		dstMesh.box.max = reinterpret_cast<vec3&>(srcMesh->mAABB.mMax);
+
+		min.x = min.x > dstMesh.box.min.x ? dstMesh.box.min.x : min.x;
+		min.y = min.y > dstMesh.box.min.y ? dstMesh.box.min.y : min.y;
+		min.z = min.z > dstMesh.box.min.z ? dstMesh.box.min.z : min.z;
+
+		max.x = max.x < dstMesh.box.max.x ? dstMesh.box.max.x : max.x;
+		max.y = max.y < dstMesh.box.max.y ? dstMesh.box.max.y : max.y;
+		max.z = max.z < dstMesh.box.max.z ? dstMesh.box.max.z : max.z;
 
 		dstMesh.vertices.resize(srcMesh->mNumVertices);
 		dstMesh.triangles.resize(srcMesh->mNumFaces);
@@ -167,6 +178,8 @@ std::shared_ptr<Engine::Model> Engine::ModelManager::loadModel(std::string path,
 		indexOffset += dstMeshRange.indexNum;
 	}
 
+	model->box.min = min;
+	model->box.max = max;
 	// Recursively load mesh instances (meshToModel transformation matrices)
 
 	std::function<void(aiNode*)> loadInstances;

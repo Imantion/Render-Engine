@@ -5,6 +5,7 @@ static std::mt19937 eng;
 static std::uniform_real_distribution<> g_distribution_neg1_1(-1.0f, 1.0f);
 static std::uniform_real_distribution<> g_distribution_0_2PI(0.0f, 2.0f * 3.14159265359f);
 static std::uniform_real_distribution<> g_distribution_0_2(0.0f, 2.0f);
+static std::uniform_real_distribution<> g_distribution_0_1(0.0f, 1.0f);
 
 
 inline float get_random(std::uniform_real_distribution<>& distribution)

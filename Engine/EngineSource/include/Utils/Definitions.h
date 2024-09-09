@@ -21,6 +21,6 @@ namespace Engine
 	enum UAVState
 	{
 		READ = 1,
-		WRITE = 2,
+		WRITE = 2,	
 	};
 }

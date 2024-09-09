@@ -136,6 +136,31 @@ static void InitMeshSystem()
 		{"ALBEDO",0, DXGI_FORMAT_R32G32B32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
 	};
 
+	D3D11_INPUT_ELEMENT_DESC incinerationIED[] = {
+	{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	{"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	{"TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	{"BITANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	{"TC", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	{"TOWORLD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+	{"TOWORLD", 1, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+	{"TOWORLD", 2, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+	{"TOWORLD", 3, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+	{"SPHEREPOS", 0, DXGI_FORMAT_R32G32B32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+	{"PARTICLECOLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+	{"SPHERERADIUS", 0, DXGI_FORMAT_R32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+	{"SPHEREPREVRADIUS", 0, DXGI_FORMAT_R32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+	{"OBJECTID", 0, DXGI_FORMAT_R32_UINT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+	};
+
+	D3D11_INPUT_ELEMENT_DESC gpuSphereIED[] = {
+		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"BITANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"TC", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	};
+
 	auto decalShader = Engine::ShaderManager::CompileAndCreateShader("DecalShader", L"Shaders\\Decal\\DecalVS.hlsl", L"Shaders\\Decal\\DecalPS.hlsl", nullptr, nullptr);
 
 	auto emissiveShader = Engine::ShaderManager::CompileAndCreateShader("EmmisiveShader", L"Shaders\\emissive\\emissiveVS.hlsl",
@@ -159,8 +184,12 @@ static void InitMeshSystem()
 	auto textureMap = Engine::ShaderManager::CompileAndCreateShader("texture", L"Shaders\\crateTextMap\\CrateVS.hlsl",
 		L"Shaders\\crateTextMap\\CratePS.hlsl", nullptr, nullptr);
 
+	auto incenerationShader = Engine::ShaderManager::CompileAndCreateShader("Incineration", L"Shaders\\opaqueShader\\IncinerationVS.hlsl",
+		L"Shaders\\opaqueShader\\IncinerationPS.hlsl", L"Shaders\\opaqueShader\\IncinerationHS.hlsl", L"Shaders\\opaqueShader\\IncinerationDS.hlsl", L"Shaders\\opaqueShader\\IncinerationGS.hlsl", nullptr, nullptr,
+		D3D_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
 
-
+	auto gpuSphereShader = Engine::ShaderManager::CompileAndCreateShader("GPUSphere", L"Shaders\\GPUParticles\\SphereParticleVS.hlsl",
+				L"Shaders\\GPUParticles\\SphereParticlePS.hlsl", nullptr, nullptr);
 
 	D3D_SHADER_MACRO shaders[] = { "MAX_DIRECTIONAL_LIGHTS", "1",
 		"MAX_POINT_LIGHTS", "10",
@@ -191,6 +220,13 @@ static void InitMeshSystem()
 
 	auto shadowShader4 = Engine::ShaderManager::CompileAndCreateShader("DissShadow", L"Shaders\\Shadow\\Dissolution\\ShadowVS.hlsl", L"Shaders\\Shadow\\Dissolution\\ShadowPS.hlsl", nullptr, nullptr);
 
+	auto incerShadowSLDL = Engine::ShaderManager::CompileAndCreateShader("IncinerationShadow", L"Shaders\\Shadow\\Incineration\\ShadowVS.hlsl", L"Shaders\\Shadow\\Incineration\\ShadowPS.hlsl", nullptr, nullptr);
+	auto incerShadowPL = Engine::ShaderManager::CompileAndCreateShader("IncinerationPLShadow", L"Shaders\\Shadow\\Incineration\\PointLightShadowVS.hlsl", L"Shaders\\Shadow\\Incineration\\PointLightShadowPS.hlsl",
+		nullptr, nullptr, L"Shaders\\Shadow\\Incineration\\PointLightShadowGS.hlsl", nullptr, nullptr);
+	
+	auto GPUbillboardShader = Engine::ShaderManager::CompileAndCreateShader("GPUBillBoard", L"Shaders\\GPUParticles\\BillboardVS.hlsl",
+		L"Shaders\\GPUParticles\\BillboardPS.hlsl", nullptr, nullptr);
+
 	NormalVisLines->DisableShader();
 	if (!NormalVisColor)
 		throw std::runtime_error("Failed to compile and create shader!");
@@ -198,6 +234,9 @@ static void InitMeshSystem()
 	auto HologramGroup = Engine::ShaderManager::CompileAndCreateShader("HologramGroup", L"Shaders\\Hologram\\HologramGBuffer.shader",
 		L"Shaders\\Hologram\\HologramGBuffer.shader", nullptr, nullptr, L"Shaders\\Hologram\\GSHologram.hlsl",
 		nullptr, nullptr, D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST, "vsMain", "psMain");
+
+	auto cs1 = Engine::ShaderManager::CompileAndCreateComputeShader("cs1", L"Shaders\\GPUParticles\\ParticleUpdateCS.hlsl", nullptr);
+	auto cs2 = Engine::ShaderManager::CompileAndCreateComputeShader("cs2", L"Shaders\\GPUParticles\\ParticleIndirectDataUpdateCS.hlsl", nullptr);
 
 	if (!HologramGroup)
 		throw std::runtime_error("Failed to compile and create shader!");
@@ -207,6 +246,8 @@ static void InitMeshSystem()
 	auto secondInputLayout = Engine::ShaderManager::CreateInputLayout("Second", emissiveShader->vertexBlob.Get(), secondIed, sizeof(secondIed) / sizeof(D3D11_INPUT_ELEMENT_DESC));
 	auto thirdLayout = Engine::ShaderManager::CreateInputLayout("Third", NormalVisLines->vertexBlob.Get(), normalIED, sizeof(normalIED) / sizeof(D3D11_INPUT_ELEMENT_DESC));
 	auto fourthLayout = Engine::ShaderManager::CreateInputLayout("Fourth", dissolutionShader->vertexBlob.Get(), thirdIed, sizeof(thirdIed) / sizeof(D3D11_INPUT_ELEMENT_DESC));
+	auto incinerationLayout = Engine::ShaderManager::CreateInputLayout("incinerationLayout", incenerationShader->vertexBlob.Get(), incinerationIED, sizeof(incinerationIED) / sizeof(D3D11_INPUT_ELEMENT_DESC));
+	auto sphereLayout = Engine::ShaderManager::CreateInputLayout("sphereLayout", gpuSphereShader->vertexBlob.Get(), gpuSphereIED, sizeof(gpuSphereIED) / sizeof(D3D11_INPUT_ELEMENT_DESC));
 
 	decalShader->BindInputLyout(decalLayout);
 	NormalVisColor->BindInputLyout(thirdLayout);
@@ -223,7 +264,10 @@ static void InitMeshSystem()
 	shadowShader4->BindInputLyout(fourthLayout);
 	dissolutionShader->BindInputLyout(fourthLayout);
 	GdissolutionShader->BindInputLyout(fourthLayout);
-
+	incenerationShader->BindInputLyout(incinerationLayout);
+	incerShadowPL->BindInputLyout(incinerationLayout);
+	incerShadowSLDL->BindInputLyout(incinerationLayout);
+	gpuSphereShader->BindInputLyout(sphereLayout);
 	Engine::ShadowSystem::Init()->SetShadowShaders(shadowShader, shadowShader2, shadowShader2);
 	Engine::DecalSystem::Init()->SetShader(decalShader);
 	
@@ -249,11 +293,15 @@ static void InitMeshSystem()
 	ms->emmisiveGroup.addShader(emissiveShader);
 
 	ms->dissolutionGroup.addShader(dissolutionShader);
+	ms->incinerationGroup.setGBufferShader(incenerationShader);
+	ms->incinerationGroup.addShader(incenerationShader);
+
+	Engine::ParticleSystem::Init()->SetGPUParticlesShaders(GPUbillboardShader, gpuSphereShader, cs1, cs2);
 }
 
 D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc windowEvent) :
 	pWindow(new Engine::Window(windowWidth, windowHeight, windowEvent)) {
-
+	
 	InitCamera(windowWidth, windowHeight);
 	InitMeshSystem();
 	InitSamuraiModel();
@@ -264,6 +312,9 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 	InitPostProcess();
 	ImGui_ImplWin32_Init(pWindow->getHWND());	
 	Engine::MeshSystem::Init()->updateInstanceBuffers();
+
+	Engine::ParticleSystem::Init()->SetSparkTexture(Engine::TextureManager::Init()->LoadFromFile("spark", L"Textures\\spark.dds"));
+	Engine::ParticleSystem::Init()->InitGPUParticles();
 }
 
 
@@ -283,6 +334,7 @@ void D3DApplication::Update(float deltaTime)
 	}
 	
 	Engine::MeshSystem::Init()->dissolutionGroup.update(deltaTime);
+	Engine::MeshSystem::Init()->incinerationGroup.update(deltaTime);
 	ShadingGroupSwap();
 
 	Engine::TextureManager::Init()->BindSamplers();
@@ -425,9 +477,22 @@ void D3DApplication::UpdateInput(float deltaTime)
 
 	}
 
+	if (Input::keyPresseed(Input::KeyboardButtons::DEL))
+	{
+		Engine::vec2 screenCoord = Engine::screenSpaceToNormalizeScreenSpace(mousePosition, pWindow->getWindowWidth(), pWindow->getWindowHeight());
+		Engine::ray r;
+		r.origin = camera->getPosition();
+		r.direction = camera->calculateRayDirection(screenCoord).normalized();
+
+		Engine::hitInfo hInfo; hInfo.reset_parameter_t();
+		uint32_t hitId = Engine::MeshSystem::Init()->opaqueGroup.intersect(r, hInfo);
+
+		if (hitId != -1)
+			OpaqueToIncineration(hitId, hInfo.p);
+	}
+
 	if (Input::mouseWasPressed(Input::MouseButtons::RIGHT) && objectInteractions == Drag)
 	{
-		
 		Engine::ray r;
 		Engine::vec2 screenCoord = Engine::screenSpaceToNormalizeScreenSpace(mousePosition, pWindow->getWindowWidth(), pWindow->getWindowHeight());
 		r.origin = camera->getPosition();
@@ -747,6 +812,25 @@ void D3DApplication::ShadingGroupSwap()
 		Engine::MeshSystem::Init()->opaqueGroup.addModel(modelInstanceData.model, opaqueMaterial, endedAnimationInstancesId[i]);
 		Engine::MeshSystem::Init()->opaqueGroup.updateInstanceBuffers();
 	}
+}
+
+void D3DApplication::OpaqueToIncineration(uint32_t transformId, const Engine::vec3& spherePos)
+{
+	auto modelInstanceData = Engine::MeshSystem::Init()->opaqueGroup.removeByTransformId(transformId, false);
+	std::vector<Materials::DissolutionMaterial> opaqueMaterial;
+	opaqueMaterial.resize(modelInstanceData.material.size());
+
+	auto emptyTexture = std::make_shared<Engine::Texture>();
+
+	for (size_t j = 0; j < modelInstanceData.material.size(); j++)
+	{
+		opaqueMaterial[j].opaqueTextures = modelInstanceData.material[j];
+		opaqueMaterial[j].noiseTexture = samuraiDisolutionMaterial[0].noiseTexture;
+	}
+	Engine::vec3 randomColor = Engine::vec3(get_random(g_distribution_0_1), get_random(g_distribution_0_1), get_random(g_distribution_0_1));
+	Engine::MeshSystem::Init()->incinerationGroup.addModel(modelInstanceData.model, opaqueMaterial, transformId, Instances::IncinerationInstance{ spherePos, randomColor.normalized()});
+	Engine::MeshSystem::Init()->incinerationGroup.updateInstanceBuffers();
+
 }
 
 void D3DApplication::InitCamera(int windowWidth, int windowHeight)

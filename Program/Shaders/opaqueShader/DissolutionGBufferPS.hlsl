@@ -13,10 +13,10 @@ struct PSInput
 
 struct PSOutput
 {
-    float3 albedo : SV_Target0;
-    float2 roughMetal : SV_Target1;
+    float4 albedo : SV_Target0;
+    float4 roughMetal : SV_Target1;
     float4 normals : SV_Target2;
-    float3 emission : SV_Target3;
+    float4 emission : SV_Target3;
     uint objectId : SV_Target4;
 };
 
@@ -35,15 +35,16 @@ PSOutput main(PSInput input)
     if(alpha < 0.0f)
         discard;
     
-    output.albedo = CalculateAlbedo(input.tc);
+    output.albedo = float4(CalculateAlbedo(input.tc), alpha);
     CalculateMaterialProperties(input.tc, output.roughMetal.y, output.roughMetal.x);
+    output.roughMetal.zw = float2(0, 1);
     
     float3 microNormal = CalculateNormal(input.tc, input.tbn);
 
     output.normals.xy = packOctahedron(microNormal);
     output.normals.zw = packOctahedron(input.tbn._31_32_33);
     
-    output.emission = glow * float3(100, 100, 100);
+    output.emission = float4(glow * float3(100, 100, 100), 1);
     output.objectId = input.objectId;
     
     return output;

@@ -40,6 +40,7 @@ private:
 	void GUI();
 
 	void ShadingGroupSwap();
+	void OpaqueToIncineration(uint32_t transformId, const Engine::vec3& spherePos);
 private:
 	std::shared_ptr<Engine::Camera> camera;
 	std::unique_ptr<Engine::Window> pWindow;

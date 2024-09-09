@@ -300,7 +300,8 @@ namespace Engine
 
 			if (deleteTransform)
 				Engine::TransformSystem::Init()->RemoveModelTransform(transformId);
-
+		
+			updateInstanceBuffers();
 			return mData;
 		}
 
@@ -541,7 +542,7 @@ namespace Engine
 		OpaqueInstances<Instances::PBRInstance, Materials::OpaqueTextureMaterial> opaqueGroup;
 		OpaqueInstances<Instances::EmmisiveInstance, Materials::EmmisiveMaterial> emmisiveGroup;
 		OpaqueInstances<Instances::DissolutionInstance, Materials::DissolutionMaterial> dissolutionGroup;
-		OpaqueInstances<Instances::Instance, Materials::ShadowMaterial> shadowGroup;
+		OpaqueInstances<Instances::IncinerationInstance, Materials::DissolutionMaterial> incinerationGroup;
 
 		int intersect(const ray& r, hitInfo& hInfo);
 		int intersectMesh(const ray& r, hitInfo& hInfo);
@@ -571,6 +572,7 @@ namespace Engine
 			OPAQUEGROUP = 4,
 			EMMISIVE = 8,
 			DISSOLUTION = 16,
+			INCINERATION = 32
 		};
 
 

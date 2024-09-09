@@ -2,6 +2,7 @@
 #include "D3D.h"
 #include <unordered_map>
 #include <memory>
+#include "Utils/Definitions.h"
 
 namespace Engine
 {
@@ -14,7 +15,7 @@ namespace Engine
 
 		void CreateTexture(const wchar_t* name);
 
-		void BindTexture(UINT slot) const;
+		void BindTexture(UINT slot, UINT ShaderType = shaderTypes::PS) const;
 
 		UINT getTextureWidth();
 		UINT getTextureHeight();

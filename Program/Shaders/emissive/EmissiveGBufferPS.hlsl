@@ -10,10 +10,10 @@ struct PSIn
 
 struct PSOutput
 {
-    float3 albedo : SV_Target0;
-    float2 roughMetal : SV_Target1;
+    float4 albedo : SV_Target0;
+    float4 roughMetal : SV_Target1;
     float4 normals : SV_Target2;
-    float3 emission : SV_Target3;
+    float4 emission : SV_Target3;
     uint objectId : SV_Target4;
     
 };
@@ -22,8 +22,8 @@ PSOutput main(PSIn input)
 {
     PSOutput output;
     
-    output.albedo = float3(0, 0, 0);
-    output.roughMetal = float2(0, 0);
+    output.albedo = float4(0, 0, 0, 1);
+    output.roughMetal = float4(0, 0, 0, 1);
     
     float2 packedNormal = packOctahedron(input.normal);
     output.normals.xy = packedNormal;
@@ -34,7 +34,8 @@ PSOutput main(PSIn input)
 	max(input.emission.y, max(input.emission.z, 1.0)));
     float3 normal = normalize(input.normal);
     float NoV = dot(cameraDir, normal);
-    output.emission = lerp(normedEmission * 0.33, input.emission, pow(max(0.0, NoV), 8.0));
+    output.emission.xyz = lerp(normedEmission * 0.33, input.emission, pow(max(0.0, NoV), 8.0));
+    output.emission.w = 1;
     
     output.objectId = input.objectId;
     

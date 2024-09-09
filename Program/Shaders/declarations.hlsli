@@ -5,6 +5,8 @@
 
 #define MAX_MIP 10
 
+#define MAX_PARTICLES 10000
+
 cbuffer perView : register(b0)
 {
     matrix viewProjection;
@@ -31,6 +33,7 @@ cbuffer perFrame : register(b1)
     float g_nearClip;
     float g_texelWidth;
     float g_texelHeight;
+    float g_deltaTime;
 }
 
 inline float linearize_depth(float d, float zNear, float zFar)

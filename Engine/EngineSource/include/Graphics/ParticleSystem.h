@@ -11,6 +11,7 @@
 namespace Engine
 {
 	class Texture;
+	class Model;
 	struct shader;
 	struct IndexedDistance;
 
@@ -70,6 +71,8 @@ namespace Engine
 	class ParticleSystem
 	{
 	public:
+		struct RingBuffer;
+		struct IncinerationParticle;
 
 		ParticleSystem(const ParticleSystem& other) = delete;
 		ParticleSystem& operator=(const ParticleSystem& other) = delete;
@@ -77,14 +80,23 @@ namespace Engine
 		static ParticleSystem* Init();
 		static void Deinit();
 
+		void InitGPUParticles();
 		void addSmokeEmitter(const Emitter& emitter);
 		Emitter* getEmitterByTransformId(uint32_t id);
 		void Update(float deltaTime);
 		void UpdateBuffers(const vec3& cameraPosition);
 
+		void UpdateGPUParticles();
+
 		void SetSmokeTextures(std::shared_ptr<Texture> RLU, std::shared_ptr<Texture> DBF, std::shared_ptr<Texture> EMVA);
+		void SetSparkTexture(std::shared_ptr<Texture> spark);
+		void SetGPUParticlesShaders(std::shared_ptr<shader> GPUBillboardshader, std::shared_ptr<shader> GPULightParticles, std::shared_ptr<shader> GPUParticlesUpdateCS, std::shared_ptr<shader> GPUParticlesDrawCallUpdateCS);
 		void Render();
+		void RenderGPUParticles();
+		void RenderGPUParticlesBillBoard();
 		
+		RingBuffer& getRingBuffer() { return m_ringBuffer; }
+		StructuredBuffer<IncinerationParticle>& getIncinerationBuffer() { return m_incinerationBuffer; }
 
 	private:
 		ParticleSystem();
@@ -125,35 +137,67 @@ namespace Engine
 		std::shared_ptr<Texture> m_DBF;
 		std::shared_ptr<Texture> m_EMVA;
 
+		std::shared_ptr<Texture> m_spark;
+
 		uint32_t textureColumnCount = 8;
 		uint32_t textureRowCount = 8;
 		uint32_t textureFrameCount;
 
 		std::shared_ptr<shader> m_shader;
 
-	private:
+		std::shared_ptr<shader> m_GPUBillboardshader;
+		std::shared_ptr<shader> m_GPULightParticles;
+		std::shared_ptr<shader> m_GPUParticlesUpdateCS;
+		std::shared_ptr<shader> m_GPUParticlesDrawCallUpdateCS;
+
+	public:
 		struct RingBuffer
 		{
-			uint32_t number;
-			uint32_t offset;
-			uint32_t expired;
+			struct DataRange
+			{
+				UINT number;
+				UINT offset;
+				UINT expired;
+			};
+			Buffer<DataRange> m_dataRangebuffer;
 
-			UINT IndexCountPerInstance;
-			UINT InstanceCount;
-			UINT StartIndexLocation;
-			INT  BaseVertexLocation;
-			UINT StartInstanceLocation;
+			struct IndirectCall
+			{
+				UINT IndexCountPerInstance;
+				UINT InstanceCount;
+				UINT StartIndexLocation;
+				INT  BaseVertexLocation;
+				UINT StartInstanceLocation;
+
+				UINT bill_IndexCountPerInstance;
+				UINT bill_InstanceCount;
+				UINT bill_StartIndexLocation;
+				INT  bill_BaseVertexLocation;
+				UINT bill_StartInstanceLocation;
+
+				UINT ThreadGroupCountX;
+				UINT ThreadGroupCountY;
+				UINT ThreadGroupCount;
+			};
+			Buffer<IndirectCall> m_indirectDrawbuffer;
 		};
 
 		struct IncinerationParticle
 		{
 			vec3 position;
+			float lifetime;
 			vec3 velocity;
+			float passedTime;
 			vec3 irradiance;
 		};
+		
+		private:
 
-
-
+		RingBuffer m_ringBuffer;
+		StructuredBuffer<IncinerationParticle> m_incinerationBuffer;
+		
+		std::shared_ptr<Model> m_sphereModel;
+		std::shared_ptr<Model> m_quadModel;
 	private:
 
 		static std::mutex m_mutex;

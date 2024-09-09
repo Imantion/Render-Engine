@@ -22,16 +22,27 @@ Engine::D3D::D3D(UINT flags)
     flags |= D3D11_CREATE_DEVICE_DEBUG;
     #endif
 
+    D3D_FEATURE_LEVEL featureLevels[] = 
+    {
+    D3D_FEATURE_LEVEL_11_1,
+    D3D_FEATURE_LEVEL_11_0,
+    D3D_FEATURE_LEVEL_10_1,
+    D3D_FEATURE_LEVEL_10_0,
+    D3D_FEATURE_LEVEL_9_3,
+    D3D_FEATURE_LEVEL_9_2,
+    D3D_FEATURE_LEVEL_9_1,
+};
+	D3D_FEATURE_LEVEL featureLevel;
     HRESULT hr = D3D11CreateDevice(
         nullptr, 
         D3D_DRIVER_TYPE_HARDWARE,
         nullptr, 
         flags, 
-        nullptr, 
-        0, 
+        featureLevels,
+        ARRAYSIZE(featureLevels),
         D3D11_SDK_VERSION, 
         &pDevice, 
-        nullptr, 
+        &featureLevel,
         &pContext);
     assert(SUCCEEDED(hr));
     hr = CreateDXGIFactory2(0, __uuidof(IDXGIFactory5), &pFactory);
