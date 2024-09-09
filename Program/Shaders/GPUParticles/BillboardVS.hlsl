@@ -17,7 +17,7 @@ struct ParticleInstance
 struct VSOut
 {
     float4 position : SV_Position;
-    float3 emission : EMISSION;
+    float4 emission : EMISSION;
     float2 tc : TEXTCOORD;
 };
 
@@ -55,7 +55,7 @@ VSOut main(ParticleInstance input)
     float interpolation = particles[index].passedTime / particles[index].lifetime;
     
     output.position = mul(float4(worldPos, 1.0f), viewProjection);
-    output.emission = particle.irradiance * lerp(1.0f, 0.2f, interpolation);
+    output.emission = float4(particle.irradiance, lerp(1.0f, 0.05f, interpolation));
     output .tc = offsets[input.vertexID] + 0.5f;
     
     return output;

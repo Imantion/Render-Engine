@@ -817,18 +817,25 @@ void D3DApplication::ShadingGroupSwap()
 void D3DApplication::OpaqueToIncineration(uint32_t transformId, const Engine::vec3& spherePos)
 {
 	auto modelInstanceData = Engine::MeshSystem::Init()->opaqueGroup.removeByTransformId(transformId, false);
-	std::vector<Materials::DissolutionMaterial> opaqueMaterial;
-	opaqueMaterial.resize(modelInstanceData.material.size());
+	Engine::OpaqueInstances<Instances::IncinerationInstance, Materials::DissolutionMaterial>::ModelInstanceData data;
+	data.instance.resize(modelInstanceData.instance.size());
+	data.material.resize(modelInstanceData.material.size());
+	data.model = modelInstanceData.model;
 
-	auto emptyTexture = std::make_shared<Engine::Texture>();
-
-	for (size_t j = 0; j < modelInstanceData.material.size(); j++)
-	{
-		opaqueMaterial[j].opaqueTextures = modelInstanceData.material[j];
-		opaqueMaterial[j].noiseTexture = samuraiDisolutionMaterial[0].noiseTexture;
-	}
 	Engine::vec3 randomColor = Engine::vec3(get_random(g_distribution_0_1), get_random(g_distribution_0_1), get_random(g_distribution_0_1));
-	Engine::MeshSystem::Init()->incinerationGroup.addModel(modelInstanceData.model, opaqueMaterial, transformId, Instances::IncinerationInstance{ spherePos, randomColor.normalized()});
+
+	for (size_t j = 0; j < modelInstanceData.instance.size(); j++)
+	{
+		data.material[j].opaqueTextures = modelInstanceData.material[j];
+		data.material[j].noiseTexture = samuraiDisolutionMaterial[0].noiseTexture;
+		data.instance[j].instanceMeshId = modelInstanceData.instance[j].instanceMeshId;
+		data.instance[j].transformsId = modelInstanceData.instance[j].transformsId;
+
+
+		data.instance[j].instanceData = Instances::IncinerationInstance{ spherePos, randomColor.normalized() };
+	}
+
+	Engine::MeshSystem::Init()->incinerationGroup.addModel(data);
 	Engine::MeshSystem::Init()->incinerationGroup.updateInstanceBuffers();
 
 }

@@ -35,6 +35,7 @@ PSOutput main(PSInput input)
     if(alpha < 0.0f)
         discard;
     
+    alpha = saturate((alpha / (abs(ddx(noise)) + abs(ddy(noise)))) / 0.05f);
     output.albedo = float4(CalculateAlbedo(input.tc), alpha);
     CalculateMaterialProperties(input.tc, output.roughMetal.y, output.roughMetal.x);
     output.roughMetal.zw = float2(0, 1);

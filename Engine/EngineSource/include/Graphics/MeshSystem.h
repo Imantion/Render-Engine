@@ -9,6 +9,7 @@
 #include "Graphics/ShaderManager.h"
 #include "Graphics/TextureManager.h"
 #include "Graphics/TransformSystem.h"
+#include "Graphics/Model.h"
 #include "Graphics/Instances.h"
 
 namespace Engine
@@ -303,6 +304,54 @@ namespace Engine
 		
 			updateInstanceBuffers();
 			return mData;
+		}
+
+		void addModel(const ModelInstanceData& data)
+		{
+			auto it = perModel.end();
+			for (auto i = perModel.begin(); i != perModel.end(); i++)
+			{
+				if (i->model.get() == data.model.get())
+					it = i;
+			}
+
+			if (it == perModel.end())
+			{
+				PerModel perMod;
+				for (size_t i = 0; i < data.model->m_meshes.size(); i++)
+				{
+					std::vector<PerInstance> inst(1, data.instance[i]);
+					PerMaterial perMat = { data.material[i],inst};
+					PerMesh perMes = { std::vector<PerMaterial>(1,perMat) };
+					perMod = { data.model, std::vector<PerMesh>(1,perMes) };
+				}
+				
+				perModel.push_back(perMod);
+			}
+			else
+			{
+				auto pModel = it;
+				for (uint32_t meshIndex = 0; meshIndex < pModel->perMesh.size(); ++meshIndex)
+				{
+
+					bool inserted = false;
+					for (auto& perMaterial : pModel->perMesh[meshIndex].perMaterial)
+					{
+						if (data.material[meshIndex] == perMaterial.material)
+						{
+							perMaterial.instances.push_back(data.instance[meshIndex]);
+							inserted = true;
+						}
+					}
+
+					if (!inserted)
+					{
+						std::vector<PerInstance> inst;
+						inst.push_back(data.instance[meshIndex]);
+						pModel->perMesh[meshIndex].perMaterial.push_back(PerMaterial{ data.material[meshIndex], inst });
+					}
+				}
+			}
 		}
 
 		uint32_t addModel(std::shared_ptr<Model> model, const M& material, uint32_t modelTransformsId, const I& instance = {}) // returns model transform ID

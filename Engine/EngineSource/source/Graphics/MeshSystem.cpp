@@ -73,14 +73,15 @@ void Engine::MeshSystem::render()
 void Engine::MeshSystem::renderGBuffer(ID3D11DepthStencilState* depthStencilState)
 {
 	auto context = D3D::GetInstance()->GetContext();
-	context->OMSetDepthStencilState(depthStencilState, 1u);
-	opaqueGroup.renderUsingShader(opaqueGroup.GBufferShader);
-	dissolutionGroup.renderUsingShader(dissolutionGroup.GBufferShader);
-	incinerationGroup.renderUsingShader(incinerationGroup.GBufferShader);
 
 	context->OMSetDepthStencilState(depthStencilState, 2u);
 	emmisiveGroup.renderUsingShader(emmisiveGroup.GBufferShader);
 	hologramGroup.renderUsingShader(hologramGroup.GBufferShader);
+
+	context->OMSetDepthStencilState(depthStencilState, 1u);
+	opaqueGroup.renderUsingShader(opaqueGroup.GBufferShader);
+	dissolutionGroup.renderUsingShader(dissolutionGroup.GBufferShader);
+	incinerationGroup.renderUsingShader(incinerationGroup.GBufferShader);
 }
 
 void Engine::MeshSystem::defferedRender(ID3D11DepthStencilState* dsStencilOnlyState)

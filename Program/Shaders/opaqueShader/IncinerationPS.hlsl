@@ -36,17 +36,19 @@ PSOutput main(PSInput input) : SV_TARGET
     {
         float normedDistance = distance / input.spherePreviousRadius;
         
-        float alpha = noiseTexture.Sample(g_linearWrap, input.tc).r;
+        float noise = noiseTexture.Sample(g_linearWrap, input.tc).r;
         
         float dissolveThreshold = saturate(1.5f - normedDistance);
         
-        if (alpha < dissolveThreshold)
+        if (noise < dissolveThreshold)
         {
             discard;
         }
         
         glowFactor = smoothstep(0.0f, 0.1f * input.sphereRadius, normedDistance);
         alpha = 1 - glowFactor;
+        
+        alpha = saturate((alpha / (abs(ddx(noise)) + abs(ddy(noise)))) / 0.05f);
     }
     
     output.albedo = float4(CalculateAlbedo(input.tc), alpha);

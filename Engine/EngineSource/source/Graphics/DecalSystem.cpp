@@ -95,6 +95,22 @@ void Engine::DecalSystem::SetShader(std::shared_ptr<shader> shader)
     m_shader = shader;
 }
 
+void Engine::DecalSystem::DeleteDecalByTransformId(uint32_t id)
+{
+
+    for (size_t i = 0; i < m_perTexture.size(); i++)
+    {
+        for (size_t j = 0; j < m_perTexture[i].instances.size(); j++)
+        {
+           if(m_perTexture[i].instances[j].objectTransformID == id)
+           {
+               m_perTexture[i].instances.erase(m_perTexture[i].instances.begin() + j);
+               --j;
+           }
+        }
+    }
+}
+
 Engine::DecalSystem* Engine::DecalSystem::Init()
 {
     std::lock_guard lock(m_mutex);

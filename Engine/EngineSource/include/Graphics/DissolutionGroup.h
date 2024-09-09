@@ -10,6 +10,7 @@
 #include "Graphics/TextureManager.h"
 #include "Graphics/TransformSystem.h"
 #include "Graphics/Instances.h"
+#include "Graphics/DecalSystem.h"
 
 namespace Engine
 {
@@ -31,6 +32,7 @@ namespace Engine
 		{
 			TransformSystem::transforms transformData;
 			I instanceData;
+			uint32_t instanceID;
 		};
 
 		struct PerInstance
@@ -277,6 +279,55 @@ namespace Engine
 			return mData;
 		}
 
+		void addModel(const ModelInstanceData& data)
+		{
+			auto it = perModel.end();
+			for (auto i = perModel.begin(); i != perModel.end(); i++)
+			{
+				if (i->model.get() == data.model.get())
+					it = i;
+			}
+
+			if (it == perModel.end())
+			{
+				PerModel perMod;
+				perMod.model = data.model;
+				for (size_t i = 0; i < data.model->m_meshes.size(); i++)
+				{
+					std::vector<PerInstance> inst(1, data.instance[i]);
+					PerMaterial perMat = { data.material[i],inst };
+					PerMesh perMes = { std::vector<PerMaterial>(1,perMat) };
+					perMod.perMesh.push_back(perMes);
+				}
+
+				perModel.push_back(perMod);
+			}
+			else
+			{
+				auto pModel = it;
+				for (uint32_t meshIndex = 0; meshIndex < pModel->perMesh.size(); ++meshIndex)
+				{
+
+					bool inserted = false;
+					for (auto& perMaterial : pModel->perMesh[meshIndex].perMaterial)
+					{
+						if (data.material[meshIndex] == perMaterial.material)
+						{
+							perMaterial.instances.push_back(data.instance[meshIndex]);
+							inserted = true;
+						}
+					}
+
+					if (!inserted)
+					{
+						std::vector<PerInstance> inst;
+						inst.push_back(data.instance[meshIndex]);
+						pModel->perMesh[meshIndex].perMaterial.push_back(PerMaterial{ data.material[meshIndex], inst });
+					}
+				}
+			}
+		}
+
 		uint32_t addModel(std::shared_ptr<Model> model, const Materials::DissolutionMaterial& material, uint32_t modelTransformsId, const I& instance) // returns model transform ID
 		{
 
@@ -431,7 +482,7 @@ namespace Engine
 						uint32_t numModelInstances = (uint32_t)instances.size();
 						for (uint32_t index = 0; index < numModelInstances; ++index)
 						{
-							dst[copiedNum++] = instanceBufferData{ TS->GetModelTransforms(instances[index].transformsId)[meshIndex],  instances[index].instanceData };
+							dst[copiedNum++] = instanceBufferData{ TS->GetModelTransforms(instances[index].transformsId)[meshIndex],  instances[index].instanceData, instances[index].instanceMeshId};
 						}
 					}
 				}
@@ -586,7 +637,10 @@ namespace Engine
 		}
 
 		for (auto id : ids)
+		{
 			removeByTransformId(id, true);
+			DecalSystem::Init()->DeleteDecalByTransformId(id);
+		}
 
 		updateInstanceBuffers();
 	}
