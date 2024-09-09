@@ -188,6 +188,7 @@ void Engine::Renderer::CreateNoMSDepth()
 	auto context = D3D::GetInstance()->GetContext();
 	context->ClearDepthStencilView(pNoMSDepthStencil.Get(), D3D11_CLEAR_DEPTH, 0.0f, 0u);
 	context->OMSetRenderTargets(0, nullptr, pNoMSDepthStencil.Get());
+	context->OMSetDepthStencilState(pDSState.Get(), 0u);
 	depthShader->BindShader();
 	context->PSSetShaderResources(19u, 1u, pDepthSRV.GetAddressOf());
 	context->Draw(3u, 0);
