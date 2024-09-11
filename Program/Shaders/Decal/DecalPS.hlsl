@@ -73,13 +73,14 @@ PSOut main(PSIn input)
     float3 normal = unpackOctahedron(normals.Load(int3(input.pos.xy, 0)).xy);
     decalPos.xy += 0.5f;
     float4 DecalNormal = decalNormals.SampleLevel(g_linearWrap, decalPos.xy, 0);
+    DecalNormal.xyz = (DecalNormal.xyz - 0.5f) * 2.0f;
     
     if (DecalNormal.a < 0.025f)
     {
         discard;
     }
     float3x3 TBN = basisFromDir(normal);
-    float3 transformedDecalNormal = mul((float3) DecalNormal, TBN);
+    float3 transformedDecalNormal = mul(DecalNormal.xyz, TBN);
     
     float3 albedo = input.albedo;
     float2 roughMetal = float2(input.roughness, input.metalness);

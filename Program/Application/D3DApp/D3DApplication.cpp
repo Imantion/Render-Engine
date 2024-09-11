@@ -349,7 +349,7 @@ void D3DApplication::UpdateInput(float deltaTime)
 		{
 			Engine::mat4 transfrom = camera->getInverseViewMatrix();
 			Engine::quaternion rotaton = Engine::quaternion::angleAxis(get_random(g_distribution_0_2PI), camera->getForward());
-			Engine::vec3 rotatatedRight = Engine::quaternion::rotate(rotaton, camera->getRight());
+			Engine::vec3 rotatatedRight = Engine::quaternion::rotate(rotaton, camera->getRight()).normalized();
 			Engine::vec3 up = Engine::cross(camera->getForward(), rotatatedRight);
 			transfrom = Engine::transformMatrix(hInfo.p, camera->getForward(), rotatatedRight, up);
 
@@ -835,9 +835,9 @@ void D3DApplication::InitLights()
 	Engine::ModelManager::GetInstance()->initUnitSphere();
 	auto model = Engine::ModelManager::GetInstance()->GetModel("UNIT_SPHERE");
 
-	Engine::LightSystem::Init()->AddPointLight(Engine::vec3(1.5f, 0.0f, 0.9f), 1.0f, 3.0f, Engine::vec3(-5.0f, 0.0f, 2.0f), model);
-	Engine::LightSystem::Init()->AddPointLight(Engine::vec3(2.35f), 0.5f, 1.84f, Engine::vec3(2.0f, -1.0f, 0.0f), model);
-	Engine::LightSystem::Init()->AddPointLight(Engine::vec3(0.0f, 4.0f, 0.0f), 0.5f, 2.25f, Engine::vec3(2.0f, 2.0f, 0.0f), model);
+	//Engine::LightSystem::Init()->AddPointLight(Engine::vec3(1.5f, 0.0f, 0.9f), 1.0f, 3.0f, Engine::vec3(-5.0f, 0.0f, 2.0f), model);
+	//Engine::LightSystem::Init()->AddPointLight(Engine::vec3(2.35f), 0.5f, 1.84f, Engine::vec3(2.0f, -1.0f, 0.0f), model);
+	//Engine::LightSystem::Init()->AddPointLight(Engine::vec3(0.0f, 4.0f, 0.0f), 0.5f, 2.25f, Engine::vec3(2.0f, 2.0f, 0.0f), model);
 	Engine::LightSystem::Init()->AddPointLight(Engine::vec3(0.1f), 0.05f, 1.4f, Engine::vec3(0.0f, 0.0f, -0.5f), model);
 
 	Engine::SpotLight spotLight(Engine::vec3(1.0f), 1.0f, 11.18f, Engine::vec3(0.0f, 0.0f, 0.0f), Engine::vec3(.0f, .0f, 1.0f), 0.5 / 2.0f);
