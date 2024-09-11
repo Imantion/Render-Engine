@@ -83,14 +83,15 @@ void Engine::Emitter::Update(float deltaTime)
 	{
 		m_particles[i].accumulatedTime += deltaTime;
 		m_particles[i].position += m_particles[i].speed * deltaTime;
+		float dissappearFactor = m_particles[i].lifetime * 0.8f;
 
 		if (m_particles[i].accumulatedTime <= m_particles[i].lifetime * 0.1f)
 		{
 			m_particles[i].rgba.w = std::lerp(0.0f, 1.0f, m_particles[i].accumulatedTime / (m_particles[i].lifetime * 0.1f));
 		}
-		else if (m_particles[i].accumulatedTime >= m_particles[i].lifetime * 0.8f)
+		else if (m_particles[i].accumulatedTime >= dissappearFactor)
 		{
-			m_particles[i].rgba.w = std::lerp(1.0f, 0.0f, m_particles[i].accumulatedTime / m_particles[i].lifetime);
+			m_particles[i].rgba.w = std::lerp(1.0f, 0.0f, (m_particles[i].accumulatedTime - dissappearFactor) / m_particles[i].lifetime);
 		}
 		else
 			m_particles[i].rgba.w = 1.0f;
