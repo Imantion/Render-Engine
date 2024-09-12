@@ -56,7 +56,7 @@ void main( uint3 DTid : SV_DispatchThreadID )
             particle.velocity.xyz = reflect(particle.velocity.xyz, normal) * 0.5f;
             if(distance < -0.015f)
             {
-                particle.position -= (distance - 0.1f) * normal;
+                particle.position = worldSpace + normal * 0.025f;
             }
 
             particle.position += particle.velocity * g_deltaTime;
