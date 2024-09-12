@@ -20,6 +20,8 @@
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
+
+
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	
@@ -40,6 +42,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		Engine::Window* window = (Engine::Window*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
 		window->onResize();
 	}break;
+	case WM_ENTERSIZEMOVE:
+	{
+		Engine::Timer::Stop();
+		break;
+	}
 	case WM_SYSKEYDOWN:
 	case WM_KEYDOWN:
 	{
@@ -93,18 +100,10 @@ int main(int argc, char* argv[])
 {
 	MSG msg = { 0 };
 
-	Engine::Timer timer;
 	
 	Engine::Engine::Init();
-
-	//auto skyboxTexture = Engine::TextureManager::Init()->LoadFromFile("IBL", L"Textures\\night_street.dds");
-	//Engine::ReflectionCapture::IBLdiffuse(L"Textures\\PreCalculatedIBL\\Nightdiffuse.dds", skyboxTexture, 3600);
-	/*Engine::ReflectionCapture::IBLspecularIrradiance(L"Textures\\PreCalculatedIBL\\NightspecIrrad.dds", skyboxTexture, 5000, 10);*/
-	//Engine::ReflectionCapture::IBLreflectance(L"Textures\\PreCalculatedIBL\\reflectance.dds", skyboxTexture, 1024, 1024);
-	
-
-
 	D3DApplication app(800, 400, WindowProc);
+	Engine::Timer timer;
 
 	while (!app.isClosed())
 	{
@@ -118,6 +117,8 @@ int main(int argc, char* argv[])
 				break;
 
 		}
+
+		Engine::Timer::Resume();
 
 		if (timer.timeElapsed(FRAME_RATE))
 		{

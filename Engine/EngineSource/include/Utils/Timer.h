@@ -26,6 +26,21 @@ namespace Engine
         float getDeltatime() {
             return deltatime;
         }
+
+        static void Stop()
+        {
+            m_pauseTime = clock::now();
+            isPaused = true;
+        }
+
+        static void Resume()
+        {
+            if (isPaused)
+            {
+                m_startTime += clock::now() - m_pauseTime;
+            }
+            isPaused = false;
+        }
     private:
         void calculateDeltatime()
         {
@@ -38,9 +53,15 @@ namespace Engine
         using clock = std::chrono::high_resolution_clock;
         using time_point = std::chrono::time_point<clock>;
 
-        time_point m_startTime;
+        static time_point m_startTime;
+        static time_point m_pauseTime;
+        static bool isPaused;
         float deltatime;
     
     };
+
+    Timer::time_point Timer::m_startTime;
+    Timer::time_point Timer::m_pauseTime;
+    bool Timer::isPaused = false;
 
 }

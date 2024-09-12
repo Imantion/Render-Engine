@@ -91,7 +91,7 @@ void Engine::Emitter::Update(float deltaTime)
 		}
 		else if (m_particles[i].accumulatedTime >= dissappearFactor)
 		{
-			m_particles[i].rgba.w = std::lerp(1.0f, 0.0f, (m_particles[i].accumulatedTime - dissappearFactor) / m_particles[i].lifetime);
+			m_particles[i].rgba.w = std::lerp(1.0f, 0.0f, (m_particles[i].accumulatedTime - dissappearFactor) / (m_particles[i].lifetime - dissappearFactor));
 		}
 		else
 			m_particles[i].rgba.w = 1.0f;
