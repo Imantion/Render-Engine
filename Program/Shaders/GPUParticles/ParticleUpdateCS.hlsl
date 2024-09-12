@@ -50,9 +50,15 @@ void main( uint3 DTid : SV_DispatchThreadID )
         float3 worldSpace = inverseProjected.xyz / inverseProjected.w;
         float3 normal = unpackOctahedron(normalTexture.SampleLevel(g_pointWrap, NDC.xy, 0).zw);
         
-        if(NDC.z < depthValue)
+        float distance = normal.x * (particle.position.x - worldSpace.x) + normal.y * (particle.position.y - worldSpace.y) + normal.z * (particle.position.z - worldSpace.z);
+        if(distance < 0.0f && distance > -0.6f)
         {
             particle.velocity.xyz = reflect(particle.velocity.xyz, normal) * 0.5f;
+            if(distance < -0.015f)
+            {
+                particle.position -= distance * normal;
+            }
+
             particle.position += particle.velocity * g_deltaTime;
         }
      
