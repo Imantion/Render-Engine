@@ -8,6 +8,7 @@
 cbuffer perView : register(b0)
 {
     matrix viewProjection;
+    float4x4 g_viewMatrix;
     float3 bottomLeft;
     float3 topVector;
     float3 rightVector;
@@ -28,7 +29,7 @@ cbuffer perFrame : register(b1)
     float g_farClip;
     float g_nearClip;
     uint g_viewportWidth;
-    uint g_viewportHeight;
+    uint g_viewportHeight; 
 }
 
 inline float linearize_depth(float d, float zNear, float zFar)

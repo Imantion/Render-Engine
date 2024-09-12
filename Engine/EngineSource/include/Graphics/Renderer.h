@@ -30,9 +30,11 @@ namespace Engine
 	struct PerViewCB
 	{
 		mat4 ProjectedView;
+		mat4 viewMatrix;
 		vec4 BL, Top, Right;
 		vec3 camerPosition;
 		float padding;
+		
 	};
 	class Renderer
 	{
@@ -85,6 +87,7 @@ namespace Engine
 
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> pDepthStencil;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> pDSState;
+		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> pDSReadOnlyState;
 
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pNoMSDepthSRV;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> pNoMSDepthStencil;

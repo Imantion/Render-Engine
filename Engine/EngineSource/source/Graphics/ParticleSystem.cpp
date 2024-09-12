@@ -62,6 +62,7 @@ void Engine::Emitter::Emmit(float deltaTime)
 			m_particles[i].speed.x = get_random(g_distribution_neg1_1) * m_maxSpeed.x;
 			m_particles[i].speed.y = m_maxSpeed.y;
 			m_particles[i].speed.z = get_random(g_distribution_neg1_1) * m_maxSpeed.z;
+			m_particles[i].speed = m_particles[i].speed.normalized() * m_maxSpeed;
 
 			m_particles[i].rgba = vec4(m_particleColor, 0.0f);
 			m_particles[i].lifetime = m_particleMaxLifeTime - get_random(g_distribution_neg1_1);

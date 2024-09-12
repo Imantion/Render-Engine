@@ -84,6 +84,11 @@ void Engine::Renderer::InitDepth(UINT wWidth, UINT wHeight)
 	HRESULT hr = d3d->GetDevice()->CreateDepthStencilState(&dsDesc, &pDSState);
 	assert(SUCCEEDED(hr));
 
+	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+	hr = d3d->GetDevice()->CreateDepthStencilState(&dsDesc, &pDSReadOnlyState);
+	assert(SUCCEEDED(hr));
+
+
 	d3d->GetContext()->OMSetDepthStencilState(pDSState.Get(), 1u);
 
 	D3D11_TEXTURE2D_DESC descDepth;
@@ -202,7 +207,7 @@ void Engine::Renderer::RenderParticles(Camera* camera)
 	auto context = D3D::GetInstance()->GetContext();
 
 	CreateNoMSDepth();
-	context->OMSetDepthStencilState(pDSState.Get(), 1u);
+	context->OMSetDepthStencilState(pDSReadOnlyState.Get(), 1u);
 	context->OMSetBlendState(pBlendState.Get(), nullptr, 0xFFFFFFFF);
 
 	context->PSSetShaderResources(23u, 1u, pNoMSDepthSRV.GetAddressOf());
@@ -232,7 +237,7 @@ void Engine::Renderer::Render(Camera* camera)
 	context->ClearDepthStencilView(pViewDepth.Get(), D3D11_CLEAR_DEPTH, 0.0f, 0u);
 
 
-	PerViewCB perView = PerViewCB{ camera->getViewMatrix() * camera->getProjectionMatrix(), vec4(camera->getCameraFrustrum(Camera::LeftDown),.0f),
+	PerViewCB perView = PerViewCB{ camera->getViewMatrix() * camera->getProjectionMatrix(), camera->getInverseViewMatrix(), vec4(camera->getCameraFrustrum(Camera::LeftDown),.0f),
 		vec4(camera->getCameraFrustrum(Camera::LeftUp) - camera->getCameraFrustrum(Camera::LeftDown),.0f),
 		vec4(camera->getCameraFrustrum(Camera::RightDown) - camera->getCameraFrustrum(Camera::LeftDown),.0f),
 		camera->getPosition()};
@@ -356,7 +361,6 @@ Engine::Renderer::Renderer() :
 	blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
 	hr = D3D::GetInstance()->GetDevice()->CreateBlendState(&blendDesc, &pBlendState);
-
 
 	depthShader = ShaderManager::CompileAndCreateShader("Depth", L"Shaders\\Depth\\DepthVS.hlsl", L"Shaders\\Depth\\DepthPS.hlsl", nullptr, nullptr);
 }
