@@ -741,7 +741,7 @@ void D3DApplication::InitLights()
 	changepos(bombo, Engine::vec3(8.0f, -2.0f, 0.0f));
 	id = Engine::MeshSystem::Init()->emmisiveGroup.addModel(model, Materials::EmmisiveMaterial{}, bombo, Instances::EmmisiveInstance{ Engine::vec3(1.0f,0.0f,1.0f) });
 	Engine::Emitter emitter2(Engine::vec3(0.0f), id, 50, 0.1f, Engine::vec3(1.0f,0.0f,1.0f));
-	emitter2.adjustParameters(Engine::vec3(0.15f, 0.4f, 0.15f), Engine::vec2(0.5f), 50, 10.0f);
+	emitter2.adjustParameters(Engine::vec3(0.1f, 0.4f, 0.1f), Engine::vec2(0.5f), 50, 10.0f);
 	Engine::ParticleSystem::Init()->addSmokeEmitter(emitter2);
 	auto EMVA = TM->LoadFromFile("EMVA", L"Textures\\Smoke\\smoke_MVEA.dds");
 	auto RLU = TM->LoadFromFile("RLU", L"Textures\\Smoke\\smoke_RLU.dds");

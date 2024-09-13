@@ -59,9 +59,9 @@ void Engine::Emitter::Emmit(float deltaTime)
 			m_particles[i].position.z = get_random(g_distribution_neg1_1) * m_radius;
 			m_particles[i].position += transform;
 
-			m_particles[i].speed.x = get_random(g_distribution_neg1_1) * m_maxSpeed.x;
-			m_particles[i].speed.y = m_maxSpeed.y;
-			m_particles[i].speed.z = get_random(g_distribution_neg1_1) * m_maxSpeed.z;
+			m_particles[i].speed.x = get_random(g_distribution_neg1_1);
+			m_particles[i].speed.y = 1;
+			m_particles[i].speed.z = get_random(g_distribution_neg1_1);
 			m_particles[i].speed = m_particles[i].speed.normalized() * m_maxSpeed;
 
 			m_particles[i].rgba = vec4(m_particleColor, 0.0f);

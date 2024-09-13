@@ -53,13 +53,13 @@ VSOut main(ParticleInstance input)
 {
     VSOut output;
 
-    float3 cameraDir = normalize(g_cameraPosition - input.position);
-    float3 right = normalize(cross(float3(0.0f, 1.0f, 0.0f), cameraDir));
-    float3 up = cross(cameraDir, right);
+    //float3 cameraDir = normalize(g_cameraPosition - input.position);
+    //float3 right = normalize(cross(float3(0.0f, 1.0f, 0.0f), cameraDir));
+    //float3 up = cross(cameraDir, right);
     
-    //float3 cameraDir = -g_viewMatrix._31_32_33;
-    //float3 right = -g_viewMatrix._11_12_13;
-    //float3 up = g_viewMatrix._21_22_23;
+    float3 cameraDir = -g_viewMatrix._31_32_33;
+    float3 right = -g_viewMatrix._11_12_13;
+    float3 up = g_viewMatrix._21_22_23;
     
     float2 cornerOffset = offsets[input.vertexID];
     
