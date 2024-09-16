@@ -116,10 +116,6 @@ void Engine::Renderer::InitDepth(UINT wWidth, UINT wHeight)
 	HRESULT hr = d3d->GetDevice()->CreateDepthStencilState(&dsDesc, &pDSState);
 	assert(SUCCEEDED(hr));
 
-	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
-	hr = d3d->GetDevice()->CreateDepthStencilState(&dsDesc, &pDSReadOnlyState);
-	assert(SUCCEEDED(hr));
-
 
 	d3d->GetContext()->OMSetDepthStencilState(pDSState.Get(), 1u);
 
@@ -371,7 +367,7 @@ void Engine::Renderer::Render(Camera* camera)
 
 	Shadows(camera);
 
-	PerViewCB perView = PerViewCB{ camera->getViewMatrix() * camera->getProjectionMatrix(), camera->getInverseViewMatrix(),
+	PerViewCB perView = PerViewCB{ camera->getViewMatrix() * camera->getProjectionMatrix(),
 		camera->getInverseProjectionMatrix() * camera->getInverseViewMatrix(), camera->getInverseViewMatrix(),
 		vec4(camera->getCameraFrustrum(Camera::LeftDown),.0f),
 		vec4(camera->getCameraFrustrum(Camera::LeftUp) - camera->getCameraFrustrum(Camera::LeftDown),.0f),
@@ -588,6 +584,7 @@ void Engine::Renderer::Shadows(const Camera* camera)
 	auto context = D3D::GetInstance()->GetContext();
 
 	context->RSSetState(pRasterizerState.Get());
+	context->OMSetDepthStencilState(pDSState.Get(), 1u);
 	std::vector<Engine::vec3> positions;
 	Engine::LightSystem::Init()->GetPointLightsPositions(positions);
 	Engine::MeshSystem::Init()->renderDepthCubemaps(positions);

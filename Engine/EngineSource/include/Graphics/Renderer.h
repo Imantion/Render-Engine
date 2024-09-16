@@ -132,7 +132,6 @@ namespace Engine
 
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> pDepthStencilTexture;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> pDSState;
-		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> pDSReadOnlyState;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> pDSStencilOnlyState;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> pDSReadOnlyState;
 
