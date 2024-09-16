@@ -12,6 +12,7 @@
 #include "Graphics/PostProcess.h"
 #include "Graphics/SkyBox.h"
 #include "Graphics/LightSystem.h"
+#include "Graphics/ParticleSystem.h"
 #include "imgui.h"
 #include "backends/imgui_impl_dx11.h"
 #include "backends/imgui_impl_win32.h"
@@ -26,6 +27,17 @@ typedef std::ostringstream tstringstream;
 #endif
 
 Engine::vec2 previousMousePosition;
+static std::vector<Materials::DissolutionMaterial> samuraiDisolutionMaterial;
+static Materials::DissolutionMaterial cubeDisolutionMaterial;
+static float animationDuration = 4.0f;
+Engine::Emitter* pEmitter;
+
+static enum objectToSpawn
+{
+	SAMURAI,
+	CRATE
+} modelToSpawn;
+
 static float cameraSpeed = 2.0f;
 
 static auto changepos = [](Engine::TransformSystem::transforms& inst, const Engine::vec3& pos) {
@@ -37,6 +49,7 @@ static auto changepos = [](Engine::TransformSystem::transforms& inst, const Engi
 static auto changescale = [](Engine::TransformSystem::transforms& inst, int axis, const float scale) {
 	for (size_t i = 0; i < 3; i++) {
 		inst.modelToWold[axis][i] *= scale;
+		
 	}
 	};
 
@@ -83,13 +96,28 @@ static void InitMeshSystem()
 	{"EMISSION", 0, DXGI_FORMAT_R32G32B32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1}
 	};
 
+	D3D11_INPUT_ELEMENT_DESC thirdIed[] = {
+	{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	{"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	{"TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	{"BITANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	{"TC", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	{"TOWORLD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+	{"TOWORLD", 1, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+	{"TOWORLD", 2, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+	{"TOWORLD", 3, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+	{"DURATION", 0, DXGI_FORMAT_R32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+	{"TIMER", 0, DXGI_FORMAT_R32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+	};
+
 	auto emissiveShader = Engine::ShaderManager::CompileAndCreateShader("EmmisiveShader", L"Shaders\\emissive\\emissiveVS.hlsl",
 		L"Shaders\\emissive\\emissivePS.hlsl", nullptr, nullptr);
 
 	auto NormalVisColor = Engine::ShaderManager::CompileAndCreateShader("NormalVisColor", L"Shaders\\normalColor\\VertexShader.hlsl",
 		L"Shaders\\normalColor\\PixelShader.hlsl", nullptr, nullptr);
 
-
+	auto dissolutionShader = Engine::ShaderManager::CompileAndCreateShader("DissolutionShader", L"Shaders\\opaqueShader\\dissolutionVS.hlsl", L"Shaders\\opaqueShader\\dissolutionPS.hlsl",
+		nullptr, nullptr);
 
 	auto textureMap = Engine::ShaderManager::CompileAndCreateShader("texture", L"Shaders\\crateTextMap\\CrateVS.hlsl",
 		L"Shaders\\crateTextMap\\CratePS.hlsl", nullptr, nullptr);
@@ -108,10 +136,15 @@ static void InitMeshSystem()
 		L"Shaders\\normalLines\\GSnormal.hlsl", nullptr, nullptr, D3D_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST);
 
 
-	auto shadowShader = Engine::ShaderManager::CompileAndCreateShader("shadowShader", L"Shaders\\Shadow\\PointLightShadowVS.hlsl", L"Shaders\\Shadow\\PointLightShadowPS.hlsl",
+	auto shadowShader = Engine::ShaderManager::CompileAndCreateShader("PLshadow", L"Shaders\\Shadow\\PointLightShadowVS.hlsl", L"Shaders\\Shadow\\PointLightShadowPS.hlsl",
 		nullptr, nullptr, L"Shaders\\Shadow\\PointLightShadowGS.hlsl", nullptr, nullptr);
 
-	auto shadowShader2 = Engine::ShaderManager::CompileAndCreateShader("shadowShader2", L"Shaders\\Shadow\\ShadowVS.hlsl", L"Shaders\\Shadow\\ShadowPS.hlsl", nullptr, nullptr);
+	auto shadowShader2 = Engine::ShaderManager::CompileAndCreateShader("shadow", L"Shaders\\Shadow\\ShadowVS.hlsl", L"Shaders\\Shadow\\ShadowPS.hlsl", nullptr, nullptr);
+
+	auto shadowShader3 = Engine::ShaderManager::CompileAndCreateShader("DissPLshadow", L"Shaders\\Shadow\\Dissolution\\PointLightShadowVS.hlsl", L"Shaders\\Shadow\\Dissolution\\PointLightShadowPS.hlsl",
+		nullptr, nullptr, L"Shaders\\Shadow\\Dissolution\\PointLightShadowGS.hlsl", nullptr, nullptr);
+
+	auto shadowShader4 = Engine::ShaderManager::CompileAndCreateShader("DissShadow", L"Shaders\\Shadow\\Dissolution\\ShadowVS.hlsl", L"Shaders\\Shadow\\Dissolution\\ShadowPS.hlsl", nullptr, nullptr);
 
 	NormalVisLines->DisableShader();
 	if (!NormalVisColor)
@@ -127,6 +160,7 @@ static void InitMeshSystem()
 	auto inputLayout = Engine::ShaderManager::CreateInputLayout("Default", opaqueShader->vertexBlob.Get(), ied, sizeof(ied) / sizeof(D3D11_INPUT_ELEMENT_DESC));
 	auto secondInputLayout = Engine::ShaderManager::CreateInputLayout("Second", emissiveShader->vertexBlob.Get(), secondIed, sizeof(secondIed) / sizeof(D3D11_INPUT_ELEMENT_DESC));
 	auto thirdLayout = Engine::ShaderManager::CreateInputLayout("Third", NormalVisLines->vertexBlob.Get(), secondIed, sizeof(normalIED) / sizeof(D3D11_INPUT_ELEMENT_DESC));
+	auto fourthLayout = Engine::ShaderManager::CreateInputLayout("Fourth", dissolutionShader->vertexBlob.Get(), thirdIed, sizeof(thirdIed) / sizeof(D3D11_INPUT_ELEMENT_DESC));
 
 	NormalVisColor->BindInputLyout(thirdLayout);
 	NormalVisLines->BindInputLyout(thirdLayout);
@@ -136,6 +170,9 @@ static void InitMeshSystem()
 	emissiveShader->BindInputLyout(secondInputLayout);
 	shadowShader->BindInputLyout(thirdLayout);
 	shadowShader2->BindInputLyout(thirdLayout);
+	shadowShader3->BindInputLyout(fourthLayout);
+	shadowShader4->BindInputLyout(fourthLayout);
+	dissolutionShader->BindInputLyout(fourthLayout);
 
 	Engine::ShadowSystem::Init()->SetShadowShaders(shadowShader, shadowShader2, shadowShader2);
 
@@ -150,10 +187,13 @@ static void InitMeshSystem()
 	ms->opaqueGroup.addShader(NormalVisLines);
 
 	ms->emmisiveGroup.addShader(emissiveShader);
+
+	ms->dissolutionGroup.addShader(dissolutionShader);
 }
 
 D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc windowEvent) :
 	pWindow(new Engine::Window(windowWidth, windowHeight, windowEvent)) {
+
 	InitCamera(windowWidth, windowHeight);
 	InitMeshSystem();
 	InitSamuraiModel();
@@ -162,7 +202,8 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 	InitFloor();
 	InitSkybox();
 	InitPostProcess();
-	ImGui_ImplWin32_Init(pWindow->getHWND());	Engine::MeshSystem::Init()->updateInstanceBuffers();
+	ImGui_ImplWin32_Init(pWindow->getHWND());	
+	Engine::MeshSystem::Init()->updateInstanceBuffers();
 }
 
 
@@ -181,15 +222,15 @@ void D3DApplication::Update(float deltaTime)
 		camera->calculateProjectionMatrix(pWindow->getWindowWidth(), pWindow->getWindowHeight());
 	}
 	
+	Engine::MeshSystem::Init()->dissolutionGroup.update(deltaTime);
+	ShadingGroupSwap();
 
 	Engine::TextureManager::Init()->BindSamplers();
+	Engine::ParticleSystem::Init()->Update(deltaTime);
 
 	Engine::Renderer* renderer = Engine::Renderer::GetInstance();
-	renderer->updatePerFrameCB(deltaTime, (FLOAT)pWindow->getWindowWidth(), (FLOAT)pWindow->getWindowHeight());
+	renderer->updatePerFrameCB(deltaTime, (FLOAT)pWindow->getWindowWidth(), (FLOAT)pWindow->getWindowHeight(), camera->getNearClip(), camera->getFarClip());
 	renderer->Render(camera.get());
-
-	skybox.BindSkyBox(2u);
-	skybox.Draw();
 		
 	renderer->PostProcess();
 
@@ -240,12 +281,33 @@ void D3DApplication::UpdateInput(float deltaTime)
 	else if (Input::keyPresseed(Input::KeyboardButtons::THREE))
 		Engine::TextureManager::Init()->BindSampleByFilter(D3D11_FILTER_ANISOTROPIC, 3u);
 
-	if (Input::keyPresseed(Input::KeyboardButtons::N))
+	if (Input::keyPresseed(Input::KeyboardButtons::M))
 	{
-		auto visShader = Engine::ShaderManager::GetShader("NormalVisLines");
+		auto MS = Engine::MeshSystem::Init();
+		
+		Engine::TransformSystem::transforms transform = { camera->getInverseViewMatrix() };
+		(Engine::vec3&)*transform.modelToWold[3] += camera->getForward() * 3;
+		switch (modelToSpawn)
+		{
+		case SAMURAI:
+		{
+			(Engine::vec3&)*transform.modelToWold[3] += -camera->getUp();
+			auto model = Engine::ModelManager::Init()->GetModel("Models\\Samurai.fbx");
+			MS->dissolutionGroup.addModel(model, samuraiDisolutionMaterial, transform, Instances::DissolutionInstance{ animationDuration });
+			
+		}
+			break;
+		case CRATE:
+		{
+			auto model = Engine::ModelManager::Init()->GetModel("Models\\cube.obj");
+			MS->dissolutionGroup.addModel(model, cubeDisolutionMaterial, transform, Instances::DissolutionInstance{ animationDuration });
+		}
+			break;
+		default:
+			break;
+		}
 
-		if (visShader)
-			visShader->isEnabled = !visShader->isEnabled;
+		MS->dissolutionGroup.updateInstanceBuffers();
 	}
 
 
@@ -315,29 +377,36 @@ void D3DApplication::UpdateInput(float deltaTime)
 
 		if (selected && opaqueHit != selected->getTransformId() && selectedObject == Opaque)
 		{
-			Engine::MeshSystem::PBRInstance data = { false };
+			Instances::PBRInstance data = { false };
 			selected->update(&data);
 		}
 
-		if (emmisiveHit != -1 && Engine::LightSystem::Init()->GetPointLightByTransformId(emmisiveHit))
+		auto emitter = Engine::ParticleSystem::Init()->getEmitterByTransformId(emmisiveHit);
+		if (emitter)
+		{
+			pEmitter = emitter;
+			selectedObject = Emitter;
+		}
+		else if(emmisiveHit != -1 && Engine::LightSystem::Init()->GetPointLightByTransformId(emmisiveHit))
 		{
 			selectedObject = Emmisive;
-			selected = std::make_unique<Engine::IInstanceSelected<Engine::MeshSystem::EmmisiveInstance>>(emmisiveHit, std::move(emmisiveGroup.getInstanceByTransformId(emmisiveHit)));
+			selected = std::make_unique<Engine::IInstanceSelected<Instances::EmmisiveInstance>>(emmisiveHit, std::move(emmisiveGroup.getInstanceByTransformId(emmisiveHit)));
 		}
 		else if (opaqueHit != -1)
 		{
 			selectedObject = Opaque;
-			selected = std::make_unique<Engine::IInstanceSelected<Engine::MeshSystem::PBRInstance>>(opaqueHit, std::move(opaqueGroup.getInstanceByTransformId(opaqueHit)));
+			selected = std::make_unique<Engine::IInstanceSelected<Instances::PBRInstance>>(opaqueHit, std::move(opaqueGroup.getInstanceByTransformId(opaqueHit)));
 		}
 	}
 	else if (selected && objectInteractions != Select)
 	{
 		if (selectedObject == Opaque)
 		{
-			Engine::MeshSystem::PBRInstance data = { false };
+			Instances::PBRInstance data = { false };
 			selected->update(&data);
 		}
 		selected.release();
+		pEmitter = nullptr;
 	}
 
 	if (cameraMoveDirection != Engine::vec3(0.0f) || cameraRotated)
@@ -358,6 +427,7 @@ void D3DApplication::UpdateInput(float deltaTime)
 
 		dragger->drag(r);
 	}
+
 }
 
 D3DApplication::~D3DApplication()
@@ -429,7 +499,7 @@ void D3DApplication::GUI()
 			case D3DApplication::Select:
 				ImGui::Text("Select Mode");
 				
-				if (selected)
+				if (selected || pEmitter)
 				{
 					switch (selectedObject)
 					{
@@ -456,7 +526,7 @@ void D3DApplication::GUI()
 							overwrite = false;
 						}
 
-						auto instance = Engine::MeshSystem::PBRInstance{ true, overwrite, roughness, metalness };
+						auto instance = Instances::PBRInstance{ true, overwrite, roughness, metalness };
 						selected->update((void*)&instance);
 						break;
 					}
@@ -483,6 +553,34 @@ void D3DApplication::GUI()
 					
 						break;
 					}
+					case D3DApplication::Emitter:
+					{
+						static float particleMaxLifeTime = pEmitter->getParticleLifeTime();
+						static float spawnRate = pEmitter->getParticleSpawnRate();
+						static Engine::vec2 size = pEmitter->getParticleSize();
+						static Engine::vec3 maxSpeed = pEmitter->getParticleMaxSpeed();
+						static Engine::vec3 color = pEmitter->getParticleColor();
+
+						ImGui::SliderFloat("Life time", &particleMaxLifeTime, 0.05f, 10.0f);
+						ImGui::InputFloat("Spawn rate", &spawnRate);
+						ImGui::InputFloat2("Particle size", (float*)&size);
+						ImGui::InputFloat3("Max speed", (float*)&maxSpeed);
+						ImGui::InputFloat3("Color",(float*)&color);
+
+						Engine::clamp(size);
+						Engine::clamp(maxSpeed);
+						Engine::clamp(color);
+						maxSpeed = Engine::clampVec(maxSpeed, 3.0f);
+
+						spawnRate = spawnRate < 0.1f ? 0.1f : spawnRate;
+
+						pEmitter->adjustParameters(maxSpeed, size, spawnRate, particleMaxLifeTime);
+						pEmitter->setColor(color);
+
+						Engine::MeshSystem::Init()->emmisiveGroup.getInstanceByTransformId(pEmitter->getBindedTransformId())[0]->emmisiveColor = color;
+						Engine::MeshSystem::Init()->emmisiveGroup.updateInstanceBuffers();
+						break;
+					}
 					default:
 						break;
 					}
@@ -494,10 +592,49 @@ void D3DApplication::GUI()
 			ImGui::EndTabItem();
 		}
 
+		if (ImGui::BeginTabItem("Model Spawning"))
+		{
+			// New section for mode selection and conditional rendering
+			ImGui::Separator();
+			ImGui::Text("Model to spawn");
+
+			static const char* items[] = { "Samurai", "Crate" };
+			static int currentItem = 0; // 0 for Drag, 1 for Select
+
+			if (ImGui::Combo("Mode", &currentItem, items, IM_ARRAYSIZE(items)))
+			{
+				// Update the current mode based on selection
+				modelToSpawn = (objectToSpawn)currentItem;
+			}
+
+			ImGui::SliderFloat("Spawn duration", &animationDuration, 0.05f, 10.0f);
+
+			ImGui::EndTabItem();
+		}
 		ImGui::EndTabBar();
 	}
 
 	ImGui::End();
+}
+
+void D3DApplication::ShadingGroupSwap()
+{
+	auto endedAnimationInstancesId = Engine::MeshSystem::Init()->dissolutionGroup.checkTimer();
+
+	for (size_t i = 0; i < endedAnimationInstancesId.size(); i++)
+	{
+		auto modelInstanceData = Engine::MeshSystem::Init()->dissolutionGroup.removeByTransformId(endedAnimationInstancesId[i], false);
+		std::vector<Materials::OpaqueTextureMaterial> opaqueMaterial;
+		opaqueMaterial.reserve(modelInstanceData.material.size());
+
+		for (size_t j = 0; j < modelInstanceData.material.size(); j++)
+		{
+			opaqueMaterial.push_back(modelInstanceData.material[j].opaqueTextures);
+		}
+
+		Engine::MeshSystem::Init()->opaqueGroup.addModel(modelInstanceData.model, opaqueMaterial, endedAnimationInstancesId[i]);
+		Engine::MeshSystem::Init()->opaqueGroup.updateInstanceBuffers();
+	}
 }
 
 void D3DApplication::InitCamera(int windowWidth, int windowHeight)
@@ -510,6 +647,8 @@ void D3DApplication::InitCamera(int windowWidth, int windowHeight)
 void D3DApplication::InitSamuraiModel()
 {
 	auto TM = Engine::TextureManager::Init();
+
+	auto noiseTexture = Engine::TextureManager::Init()->LoadFromFile("noise", L"Textures\\Noise_19.dds");
 
 	std::shared_ptr<Engine::Texture> emptyTexture = std::make_shared<Engine::Texture>();
 	std::vector<Materials::OpaqueTextureMaterial> samuraiTextures = {
@@ -545,6 +684,12 @@ void D3DApplication::InitSamuraiModel()
 		  TM->LoadFromFile("samurai_torso_metallic", L"Textures\\Samurai\\Torso_Metallic.dds"),
 		  TM->LoadFromFile("samurai_torso_normal", L"Textures\\Samurai\\Torso_Normal.dds") }
 	};
+
+	samuraiDisolutionMaterial.reserve(samuraiTextures.size());
+	for (size_t i = 0; i < samuraiTextures.size(); i++)
+	{
+		samuraiDisolutionMaterial.push_back({ samuraiTextures[i], noiseTexture });
+	}
 
 	auto model = Engine::ModelManager::GetInstance()->loadModel("Models\\Samurai.fbx");
 	Engine::TransformSystem::transforms inst = {
@@ -587,6 +732,21 @@ void D3DApplication::InitLights()
 	Engine::DirectionalLight directionalLight(Engine::vec3(-0.3205475307f, -0.595605361f, -0.10348193f).normalized(), Engine::vec3(0.84f * 7.5f, 0.86264f * 7.5f, 0.89019f * 7.5f), 0.15f);
 	Engine::LightSystem::Init()->AddDirectionalLight(directionalLight);
 
+	Engine::TransformSystem::transforms bombo = {
+		Engine::transformMatrix(Engine::vec3(0.0f, 8.0f, 0.0f), Engine::vec3(0.0f, 0.0f, 0.1f), Engine::vec3(0.1f, 0.0f, 0.0f), Engine::vec3(0.0f, 0.1f, 0.0f)) };
+
+	auto id = Engine::MeshSystem::Init()->emmisiveGroup.addModel(model, Materials::EmmisiveMaterial{}, bombo, Instances::EmmisiveInstance{ Engine::vec3(1.0f) });
+	Engine::Emitter emitter(Engine::vec3(0.0f), id, 50, 0.1f, Engine::vec3(1.0f));
+	Engine::ParticleSystem::Init()->addSmokeEmitter(emitter);
+	changepos(bombo, Engine::vec3(8.0f, -2.0f, 0.0f));
+	id = Engine::MeshSystem::Init()->emmisiveGroup.addModel(model, Materials::EmmisiveMaterial{}, bombo, Instances::EmmisiveInstance{ Engine::vec3(1.0f,0.0f,1.0f) });
+	Engine::Emitter emitter2(Engine::vec3(0.0f), id, 50, 0.1f, Engine::vec3(1.0f,0.0f,1.0f));
+	emitter2.adjustParameters(Engine::vec3(0.1f, 0.4f, 0.1f), Engine::vec2(0.5f), 50, 10.0f);
+	Engine::ParticleSystem::Init()->addSmokeEmitter(emitter2);
+	auto EMVA = TM->LoadFromFile("EMVA", L"Textures\\Smoke\\smoke_MVEA.dds");
+	auto RLU = TM->LoadFromFile("RLU", L"Textures\\Smoke\\smoke_RLU.dds");
+	auto DBF = TM->LoadFromFile("DBF", L"Textures\\Smoke\\smoke_DBF.dds");
+	Engine::ParticleSystem::Init()->SetSmokeTextures(RLU, DBF, EMVA);
 
 	Engine::vec3 vert[4] = { Engine::vec3(-1.0f, 1.0f, 0.0f),  Engine::vec3(1.0f, 1.0f, 0.0f), Engine::vec3(1.0f, -1.0f, 0.0f), Engine::vec3(-1.0f, -1.0f, 0.0f) };
 	Engine::AreaLight areaLight(Engine::vec3(0.0f, .3f, 0.7f), vert, 4, 10.0f);
@@ -595,7 +755,7 @@ void D3DApplication::InitLights()
 	Engine::TransformSystem::transforms inst = {
 	   Engine::transformMatrix(Engine::vec3(-2.0f, 3.0f, 7.0f), Engine::vec3(0.0f, 0.0f, 1.0f), Engine::vec3(1.0f, 0.0f, 0.0f), Engine::vec3(0.0f, 1.0f, 0.0f))};
 
-	areaLight.bindedTransform = Engine::MeshSystem::Init()->emmisiveGroup.addModel(model, Materials::EmmisiveMaterial{}, inst, Engine::MeshSystem::EmmisiveInstance{ areaLight.radiance * 10 });
+	areaLight.bindedTransform = Engine::MeshSystem::Init()->emmisiveGroup.addModel(model, Materials::EmmisiveMaterial{}, inst, Instances::EmmisiveInstance{ areaLight.radiance });
 	Engine::LightSystem::Init()->AddAreaLight(areaLight);
 
 	Engine::LightSystem::Init()->UpdateLightsBuffer();
@@ -633,10 +793,13 @@ void D3DApplication::InitCrateModel()
 	auto crateRoughness = TM->LoadFromFile("crateRoughness", L"Textures\\RedCore\\roughness.dds");
 	auto crateNormal = TM->LoadFromFile("crateNormal", L"Textures\\RedCore\\normal.dds");
 
+	auto noiseTexture = TM->GetTexture("noise");
 	Materials::OpaqueTextureMaterial crateMaterial = { crateFirst, crateRoughness, crateMetallic, crateNormal };
 
+	cubeDisolutionMaterial = { crateMaterial, noiseTexture };
+
 	changepos(inst, Engine::vec3(1.0f, -1.0f, 4.0f));
-	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, crateMaterial, inst);
+	auto issd = Engine::MeshSystem::Init()->opaqueGroup.addModel(model, crateMaterial, inst);
 
 	auto goldenCube = goldenSphereTextures;
 	goldenCube.usedTextures = Materials::METALNESS;
@@ -681,6 +844,7 @@ void D3DApplication::InitSkybox()
 	skybox.SetShader(skyboxShader);
 	skybox.SetTexture(skyboxTexture);
 	skybox.BindCamera(camera.get());
+	Engine::Renderer::Init()->setSkyBox(std::make_shared<Engine::SkyBox>(skybox));
 }
 
 void D3DApplication::InitPostProcess()

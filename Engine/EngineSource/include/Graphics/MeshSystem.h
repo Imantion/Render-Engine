@@ -9,6 +9,7 @@
 #include "Graphics/ShaderManager.h"
 #include "Graphics/TextureManager.h"
 #include "Graphics/TransformSystem.h"
+#include "Graphics/Instances.h"
 
 namespace Engine
 {
@@ -24,6 +25,11 @@ namespace Engine
 
 	template<>
 	struct MaterialDataType<Materials::OpaqueTextureMaterial> {
+		using type = vec4;
+	};
+
+	template<>
+	struct MaterialDataType<Materials::DissolutionMaterial> {
 		using type = vec4;
 	};
 
@@ -86,6 +92,14 @@ namespace Engine
 		ConstBuffer<MeshData> meshData;
 		ConstBuffer<MaterialData> materialData;
 	public:
+		struct ModelInstanceData
+		{
+			std::shared_ptr<Model> model;
+			std::vector<M> material;
+			std::vector<PerInstance> instance;
+		};
+
+	public:
 
 		void addShader(std::shared_ptr<shader> shdr)
 		{
@@ -143,12 +157,12 @@ namespace Engine
 							auto& meshInstanceTransform = TS->GetModelTransforms(currentId)[meshIndex].modelToWold;
 
 							transformedRay.origin = vec4(r.origin, 1.0f) * mat4::Inverse(meshInstanceTransform) * mesh.invInstances[0];
-							transformedRay.direction = vec4(r.direction, 0.0f) * mat4::Inverse(meshInstanceTransform)  * mesh.invInstances[0];
-							
+							transformedRay.direction = vec4(r.direction, 0.0f) * mat4::Inverse(meshInstanceTransform) * mesh.invInstances[0];
+
 							if (mesh.intersect(transformedRay, hInfo))
 							{
 								transformId = currentId;
-								hInfo.p = vec4(transformedRay.point_at_parameter(hInfo.t),1.0f) * mesh.instances[0] * meshInstanceTransform;
+								hInfo.p = vec4(transformedRay.point_at_parameter(hInfo.t), 1.0f) * mesh.instances[0] * meshInstanceTransform;
 								/*hInfo.p = r.point_at_parameter(hInfo.t);*/
 							}
 						}
@@ -157,6 +171,60 @@ namespace Engine
 			}
 
 			return transformId;
+		}
+
+		ModelInstanceData removeByTransformId(uint32_t transformId, bool deleteTransform = true)
+		{
+			ModelInstanceData mData;
+
+			for (int i = 0; i < perModel.size(); i++)
+			{
+				for (int meshIndex = 0; meshIndex < perModel[i].perMesh.size(); ++meshIndex)
+				{
+					const Mesh& mesh = perModel[i].model->m_meshes[meshIndex];
+
+					for (int j = 0; j < perModel[i].perMesh[meshIndex].perMaterial.size(); j++)
+					{
+						auto& instances = perModel[i].perMesh[meshIndex].perMaterial[j].instances;
+
+						for (int index = 0; index < (uint32_t)instances.size(); ++index)
+						{
+							if (transformId == instances[index].transformsId)
+							{
+								mData.model = perModel[i].model;
+								mData.material.push_back(perModel[i].perMesh[meshIndex].perMaterial[j].material);
+								mData.instance.push_back(instances[index]);
+
+								instances.erase(instances.begin() + index);
+								--index;
+							}
+						}
+
+						if (instances.size() == 0)
+						{
+							perModel[i].perMesh[meshIndex].perMaterial.erase(perModel[i].perMesh[meshIndex].perMaterial.begin() + j);
+							--j;
+						}
+					}
+
+					if (perModel[i].perMesh[meshIndex].perMaterial.size() == 0)
+					{
+						perModel[i].perMesh.erase(perModel[i].perMesh.begin() + meshIndex);
+						--meshIndex;
+					}
+				}
+
+				if (perModel.size() == 0)
+				{
+					perModel.erase(perModel.begin() + i);
+					--i;
+				}
+			}
+
+			if (deleteTransform)
+				Engine::TransformSystem::Init()->RemoveModelTransform(transformId);
+
+			return mData;
 		}
 
 		uint32_t addModel(std::shared_ptr<Model> model, const M& material, uint32_t modelTransformsId, const I& instance = {}) // returns model transform ID
@@ -262,11 +330,24 @@ namespace Engine
 			return modelTransformsId;
 		}
 
-		uint32_t addModel(std::shared_ptr<Model> model, const M& material, const TransformSystem::transforms& modelTransforms, const I& instance = {}); // returns model transform ID
-		
-		uint32_t addModel(std::shared_ptr<Model> model, const std::vector<M>& material, const TransformSystem::transforms& modelTransforms, const I& instance = {}); // returns model transform ID
+		uint32_t addModel(std::shared_ptr<Model> model, const M& material, const TransformSystem::transforms& modelTransforms, const I& instance = {})
+		{
+			auto TS = TransformSystem::Init();
+			uint32_t modelTransformsId = TS->AddModelTransform(modelTransforms, (uint32_t)model->m_meshes.size());
 
-		
+			return addModel(model, material, modelTransformsId, instance);
+		}
+
+
+		uint32_t addModel(std::shared_ptr<Model> model, const std::vector<M>& material, const TransformSystem::transforms& modelTransforms, const I& instance = {})
+		{
+			auto TS = TransformSystem::Init();
+			uint32_t modelTransformsId = TS->AddModelTransform(modelTransforms, (uint32_t)model->m_meshes.size());
+
+			return addModel(model, material, modelTransformsId, instance);
+		}
+
+
 
 		void updateInstanceBuffers()
 		{
@@ -300,7 +381,7 @@ namespace Engine
 						uint32_t numModelInstances = (uint32_t)instances.size();
 						for (uint32_t index = 0; index < numModelInstances; ++index)
 						{
-							dst[copiedNum++] = instanceBufferData{ TS->GetModelTransforms(instances[index].transformsId)[meshIndex],  instances[index].instanceData};
+							dst[copiedNum++] = instanceBufferData{ TS->GetModelTransforms(instances[index].transformsId)[meshIndex],  instances[index].instanceData };
 						}
 					}
 				}
@@ -317,93 +398,73 @@ namespace Engine
 			{
 				if (m_shaders[i]->isEnabled)
 					renderUsingShader(m_shaders[i]);
-				
+
 			}
 		}
 
-			void renderUsingShader(std::shared_ptr<shader> shaderToRender)
+		void renderUsingShader(std::shared_ptr<shader> shaderToRender)
+		{
+			if (instanceBuffer.getSize() == 0)
+				return;
+
+			D3D* d3d = D3D::GetInstance();
+
+			shaderToRender->BindShader();
+			instanceBuffer.bind(1u);
+			meshData.bind(2u, shaderTypes::VS);
+
+			materialData.bind(2u, shaderTypes::PS);
+
+			uint32_t renderedInstances = 0;
+			for (const auto& perModel : perModel)
 			{
-				if (instanceBuffer.getSize() == 0)
-					return;
+				if (perModel.model.get() == nullptr) continue;
 
-				D3D* d3d = D3D::GetInstance();
+				perModel.model->m_vertices.bind();
+				perModel.model->m_indices.bind();
 
-				shaderToRender->BindShader();
-				instanceBuffer.bind(1u);
-				meshData.bind(2u, shaderTypes::VS);
-
-				materialData.bind(2u, shaderTypes::PS);
-
-				uint32_t renderedInstances = 0;
-				for (const auto& perModel : perModel)
+				for (uint32_t meshIndex = 0; meshIndex < perModel.perMesh.size(); ++meshIndex)
 				{
-					if (perModel.model.get() == nullptr) continue;
+					const Mesh& mesh = perModel.model->m_meshes[meshIndex];
+					const auto& meshRange = perModel.model->m_ranges[meshIndex];
 
-					perModel.model->m_vertices.bind();
-					perModel.model->m_indices.bind();
+					meshData.updateBuffer(reinterpret_cast<const MeshData*>(mesh.instances.data())); // ... update shader local per-mesh uniform buffer
 
-					for (uint32_t meshIndex = 0; meshIndex < perModel.perMesh.size(); ++meshIndex)
+					for (const auto& perMaterial : perModel.perMesh[meshIndex].perMaterial)
 					{
-						const Mesh& mesh = perModel.model->m_meshes[meshIndex];
-						const auto& meshRange = perModel.model->m_ranges[meshIndex];
+						if (perMaterial.instances.empty()) continue;
 
-						meshData.updateBuffer(reinterpret_cast<const MeshData*>(mesh.instances.data())); // ... update shader local per-mesh uniform buffer
-
-						for (const auto& perMaterial : perModel.perMesh[meshIndex].perMaterial)
-						{
-							if (perMaterial.instances.empty()) continue;
-
-							const auto& material = perMaterial.material;
-							MaterialData data = { material };
-							// ... update shader local per-draw uniform buffer
-							materialData.updateBuffer(&data);
+						const auto& material = perMaterial.material;
+						MaterialData data = { material };
+						// ... update shader local per-draw uniform buffer
+						materialData.updateBuffer(&data);
 
 
-							uint32_t numInstances = uint32_t(perMaterial.instances.size());
-							d3d->GetContext()->DrawIndexedInstanced(meshRange.indexNum, numInstances, meshRange.indexOffset, meshRange.vertexOffset, renderedInstances);
-							renderedInstances += numInstances;
-						}
+						uint32_t numInstances = uint32_t(perMaterial.instances.size());
+						d3d->GetContext()->DrawIndexedInstanced(meshRange.indexNum, numInstances, meshRange.indexOffset, meshRange.vertexOffset, renderedInstances);
+						renderedInstances += numInstances;
 					}
 				}
 			}
-			
+		}
+
 	};
+}
 
+#include "Graphics/DissolutionGroup.h"
 
+namespace Engine
+{ 
 	class MeshSystem
 	{
 	public:
-
-		struct Instance 
-		{
-		};
-
-		struct EmmisiveInstance
-		{
-			vec3 emmisiveColor;
-		};
-
-		struct PBRInstance
-		{
-			int isSelected = 0;
-			int shouldOverWriteMaterial = 0;
-			float roughness = 0.0f;
-			float metalness = 0.0f;
-		};
-
-		struct EmmisiveMaterial
-		{
-			vec4 padding;
-			bool operator==(const EmmisiveMaterial& other) const
-			{
-				return true;
-			}
-		};
-		OpaqueInstances<Instance, Materials::HologramMaterial> hologramGroup;
-		OpaqueInstances<Instance, Materials::NormVisMaterial> normVisGroup;
-		OpaqueInstances<PBRInstance, Materials::OpaqueTextureMaterial> opaqueGroup;
-		OpaqueInstances<EmmisiveInstance, Materials::EmmisiveMaterial> emmisiveGroup;
-		OpaqueInstances<Instance, Materials::ShadowMaterial> shadowGroup;
+		
+		OpaqueInstances<Instances::Instance, Materials::HologramMaterial> hologramGroup;
+		OpaqueInstances<Instances::Instance, Materials::NormVisMaterial> normVisGroup;
+		OpaqueInstances<Instances::PBRInstance, Materials::OpaqueTextureMaterial> opaqueGroup;
+		OpaqueInstances<Instances::EmmisiveInstance, Materials::EmmisiveMaterial> emmisiveGroup;
+		OpaqueInstances<Instances::DissolutionInstance, Materials::DissolutionMaterial> dissolutionGroup;
+		OpaqueInstances<Instances::Instance, Materials::ShadowMaterial> shadowGroup;
 
 		int intersect(const ray& r, hitInfo& hInfo);
 
@@ -414,9 +475,19 @@ namespace Engine
 		void renderDepth2DDirectional(const std::vector<DirectionalLight>& directionalLights, const Camera* camera);
 
 		void render();
+		void renderTranslucent();
 
 
 		static MeshSystem* Init();
+
+		enum RenderGroups
+		{
+			HOLOGRAM = 1,
+			NORMALVIS = 2,
+			OPAQUEGROUP = 4,
+			EMMISIVE = 8,
+			DISSOLUTION = 16,
+		};
 
 
 		static void Deinit();
@@ -426,34 +497,9 @@ namespace Engine
 	protected:
 		static std::mutex mutex_;
 		static MeshSystem* pInstance;
-
-		
-
 	};
 
 	template <>
-	inline void OpaqueInstances<MeshSystem::PBRInstance, Materials::OpaqueTextureMaterial>::renderUsingShader(std::shared_ptr<shader> shaderToRender);
-
-
-	
-	template<typename I, typename M>
-	inline uint32_t OpaqueInstances<I, M>::addModel(std::shared_ptr<Model> model, const M& material, const TransformSystem::transforms& modelTransforms, const I& instance)
-	{
-		auto TS = TransformSystem::Init();
-		uint32_t modelTransformsId = TS->AddModelTransform(modelTransforms, (uint32_t)model->m_meshes.size());
-
-		MeshSystem::Init()->shadowGroup.addModel(model, Materials::ShadowMaterial{}, modelTransformsId, MeshSystem::Instance{});
-		return addModel(model, material, modelTransformsId, instance);
-	}
-
-	template<typename I, typename M>
-	inline uint32_t OpaqueInstances<I, M>::addModel(std::shared_ptr<Model> model, const std::vector<M>& material, const TransformSystem::transforms& modelTransforms, const I& instance)
-	{
-		auto TS = TransformSystem::Init();
-		uint32_t modelTransformsId = TS->AddModelTransform(modelTransforms, (uint32_t)model->m_meshes.size());
-
-		MeshSystem::Init()->shadowGroup.addModel(model, Materials::ShadowMaterial{}, modelTransformsId, MeshSystem::Instance{});
-		return addModel(model, material, modelTransformsId, instance);
-	}
+	void OpaqueInstances<Instances::PBRInstance, Materials::OpaqueTextureMaterial>::renderUsingShader(std::shared_ptr<shader> shaderToRender);
 }
 

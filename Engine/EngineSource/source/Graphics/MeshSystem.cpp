@@ -13,8 +13,10 @@ int Engine::MeshSystem::intersect(const ray& r, hitInfo& hInfo)
 	int second = normVisGroup.intersect(r, hInfo);
 	int third = opaqueGroup.intersect(r, hInfo);
 	int fourth = emmisiveGroup.intersect(r, hInfo);
+	int fifth = dissolutionGroup.intersect(r, hInfo);
 
-
+	if (fifth != -1)
+		return fifth;
 	if (fourth != -1)
 		return fourth;
 	return third != -1? third: (second != -1? second: first);
@@ -27,6 +29,7 @@ void Engine::MeshSystem::updateInstanceBuffers()
 	opaqueGroup.updateInstanceBuffers();
 	emmisiveGroup.updateInstanceBuffers();
 	shadowGroup.updateInstanceBuffers();
+	dissolutionGroup.updateInstanceBuffers();
 }
 
 void Engine::MeshSystem::render()
@@ -54,24 +57,43 @@ void Engine::MeshSystem::Deinit()
 	pInstance = nullptr;
 }
 
+void Engine::MeshSystem::renderTranslucent()
+{
+	dissolutionGroup.render();
+}
+
 void Engine::MeshSystem::renderDepthCubemaps(const std::vector<vec3>& lightPositions)
 {
-	ShadowSystem::Init()->RenderPointLightShadowMaps(lightPositions, opaqueGroup);
+	auto opaqueShadowShader = ShaderManager::GetShader("PLshadow");
+	auto dissShadowShader = ShaderManager::GetShader("DissPLshadow");
+
+	ShadowSystem::Init()->RenderPointLightShadowMaps(lightPositions, { ShadowSystem::ShadowRenderGroupInfo{RenderGroups::OPAQUEGROUP,opaqueShadowShader},
+		ShadowSystem::ShadowRenderGroupInfo{RenderGroups::DISSOLUTION,dissShadowShader} });
 }
 
 void Engine::MeshSystem::renderDepth2D(const std::vector<Engine::SpotLight>& spotlights)
 {
-	ShadowSystem::Init()->RenderSpotLightShadowMaps(spotlights, opaqueGroup);
+	ShadowSystem::Init()->PrecomputeSpotProjections(spotlights);
+
+	auto opaqueShadowShader = ShaderManager::GetShader("shadow");
+	auto dissShadowShader = ShaderManager::GetShader("DissShadow");
+	ShadowSystem::Init()->RenderSpotLightShadowMaps({ ShadowSystem::ShadowRenderGroupInfo{RenderGroups::OPAQUEGROUP,opaqueShadowShader},
+		ShadowSystem::ShadowRenderGroupInfo{RenderGroups::DISSOLUTION,dissShadowShader} });
 }
 
 void Engine::MeshSystem::renderDepth2DDirectional(const std::vector<DirectionalLight>& directionalLights, const Camera* camera)
 {
-	ShadowSystem::Init()->RenderDirectLightShadowMaps(directionalLights, camera, opaqueGroup);
+	ShadowSystem::Init()->PrecomputeDirectionalProjections(directionalLights, camera);
+
+	auto opaqueShadowShader = ShaderManager::GetShader("shadow");
+	auto dissShadowShader = ShaderManager::GetShader("DissShadow");
+	ShadowSystem::Init()->RenderDirectLightShadowMaps({ ShadowSystem::ShadowRenderGroupInfo{RenderGroups::OPAQUEGROUP,opaqueShadowShader},
+		ShadowSystem::ShadowRenderGroupInfo{RenderGroups::DISSOLUTION,dissShadowShader} });
 }
 
 
 template <>
-inline void Engine::OpaqueInstances<Engine::MeshSystem::PBRInstance, Materials::OpaqueTextureMaterial>::renderUsingShader(std::shared_ptr<shader> shaderToRender)
+inline void Engine::OpaqueInstances<Instances::PBRInstance, Materials::OpaqueTextureMaterial>::renderUsingShader(std::shared_ptr<shader> shaderToRender)
 {
 
 	// Custom render implementation for TextureMaterial

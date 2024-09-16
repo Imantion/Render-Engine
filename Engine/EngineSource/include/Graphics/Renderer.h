@@ -7,6 +7,8 @@ namespace Engine
 {
 	class Camera;
 	class Texture;
+	class SkyBox;
+	struct shader;
 
 	struct PerFrameCB
 	{
@@ -18,15 +20,21 @@ namespace Engine
 		int LTC = 1;
 		float shadowResolution;
 		float pointLightFarPlan;
-		float padding;
+		uint32_t samplesAmount;
+		float farClip;
+		float nearClip;
+		uint32_t viewportWidth;
+		uint32_t viewportHeight;
 	};
 
 	struct PerViewCB
 	{
 		mat4 ProjectedView;
+		mat4 viewMatrix;
 		vec4 BL, Top, Right;
 		vec3 camerPosition;
 		float padding;
+		
 	};
 	class Renderer
 	{
@@ -39,11 +47,14 @@ namespace Engine
 		void InitDepthWithRTV(ID3D11Resource* RenderBuffer, UINT wWidth, UINT wHeight);
 		void InitDepth(UINT wWidth, UINT wHeight);
 		void ReleaseRenderTarget() { pRenderTarget.ReleaseAndGetAddressOf(); }
-		void updatePerFrameCB(float deltaTime,float wWidth,float wHeight);
+		void updatePerFrameCB(float deltaTime,float wWidth,float wHeight, float farCLip, float nearClip);
+		void CreateNoMSDepth();
 
+		void RenderParticles(Camera* camera);
 		void Render(Camera* camera);
 		void PostProcess();
 
+		void setSkyBox(std::shared_ptr<SkyBox> skybox);
 		void setIBLLight(std::shared_ptr<Texture> diffuse, std::shared_ptr<Texture> specular, std::shared_ptr<Texture> reflectance);
 		void setLTCLight(std::shared_ptr<Texture> invMatrix, std::shared_ptr<Texture> amplitude);
 
@@ -72,10 +83,18 @@ namespace Engine
 
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pRenderTarget;
 		Microsoft::WRL::ComPtr <ID3D11DepthStencilView> pViewDepth;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pDepthSRV;
+
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> pDepthStencil;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> pDSState;
+		Microsoft::WRL::ComPtr<ID3D11DepthStencilState> pDSReadOnlyState;
+
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> pNoMSDepthSRV;
+		Microsoft::WRL::ComPtr<ID3D11DepthStencilView> pNoMSDepthStencil;
 
 		Microsoft::WRL::ComPtr<ID3D11RasterizerState> pRasterizerState;
+		Microsoft::WRL::ComPtr<ID3D11RasterizerState> MSAARasterizerState;
+		Microsoft::WRL::ComPtr<ID3D11BlendState> pBlendState;
 
 		std::shared_ptr<Texture> diffuseIBL;
 		std::shared_ptr<Texture> specularIBL;
@@ -84,6 +103,11 @@ namespace Engine
 		std::shared_ptr<Texture> LTCmat;
 		std::shared_ptr<Texture> LTCamp;
 
+		std::shared_ptr<SkyBox> pSkyBox;
+
+		uint32_t samplesAmount = 4;
+
+		std::shared_ptr<shader> depthShader;
 	private:
 		static std::mutex mutex_;
 		static Renderer* pInstance;

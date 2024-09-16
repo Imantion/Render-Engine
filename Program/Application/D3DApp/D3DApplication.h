@@ -38,6 +38,8 @@ private:
 	void InitSkybox();
 	void InitPostProcess();
 	void GUI();
+
+	void ShadingGroupSwap();
 private:
 	std::shared_ptr<Engine::Camera> camera;
 	std::unique_ptr<Engine::Window> pWindow;
@@ -61,7 +63,8 @@ private:
 	enum SelectedObject
 	{
 		Opaque,
-		Emmisive
+		Emmisive,
+		Emitter
 	} selectedObject;
 };
 

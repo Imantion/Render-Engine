@@ -21,7 +21,7 @@ namespace Engine
 
 		vec3 getRayDirection(const vec2&);
 		vec3 calculateRayDirection(const vec2&) const;
-		vec3 getPosition() { return position; }
+		vec3 getPosition();
 
 		void calculateProjectionMatrix(int viewportWidth, int viewportHeight);
 		void calculateViewMatrix();
@@ -37,6 +37,8 @@ namespace Engine
 		const mat4& getProjectionMatrix() const { return projection; }
 		const mat4& getInverseProjectionMatrix() const { return inverseProjection; }
 		vec3 getCameraFrustrum(frustrumCorners fc);
+		float getFarClip() { return farClip; }
+		float getNearClip() { return nearClip; }
 
 		void setForward(vec3 f);
 		void setUp(vec3 u);

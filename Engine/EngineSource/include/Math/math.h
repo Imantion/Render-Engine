@@ -345,6 +345,19 @@ namespace Engine
 		return matrix;
 	}
 
+	inline void clamp(vec3& v)
+	{
+		v.x = v.x < 0.0f ? 0.0f : v.x;
+		v.y = v.y < 0.0f ? 0.0f : v.y;
+		v.z = v.z < 0.0f ? 0.0f : v.z;
+	}
+
+	inline void clamp(vec2& v)
+	{
+		v.x = v.x < 0.0f ? 0.0f : v.x;
+		v.y = v.y < 0.0f ? 0.0f : v.y;
+	}
+
 	inline void setTransformPosition(mat4* transform, const vec3& position)
 	{
 		vec3 transformedPosition = vec4(position, 0.0f) * (*transform);

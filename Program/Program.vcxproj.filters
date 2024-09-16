@@ -137,7 +137,7 @@
     <None Include="Shaders\emissive\emissiveVS.hlsl">
       <Filter>Shaders\emmisive</Filter>
     </None>
-    <None Include="Shaders\Lights.hlsli">
+    <None Include="Shaders\opaqueShader\Lights.hlsli">
       <Filter>Shaders</Filter>
     </None>
     <None Include="Shaders\Shadow\PointLightShadowGS.hlsl">
@@ -146,14 +146,26 @@
     <None Include="Shaders\Shadow\PointLightShadowPS.hlsl">
       <Filter>Shaders\Shadow</Filter>
     </None>
-    <None Include="Shaders\opaqueShader\opaquePS.hlsl">
-      <Filter>Shaders\opaque</Filter>
-    </None>
     <None Include="Shaders\opaqueShader\opaqueVS.hlsl">
       <Filter>Shaders\opaque</Filter>
     </None>
     <None Include="Shaders\Shadow\ShadowPS.hlsl" />
     <None Include="Shaders\Shadow\ShadowVS.hlsl" />
+    <None Include="Shaders\opaqueShader\opaque.hlsli" />
+    <None Include="Shaders\opaqueShader\dissolutionVS.hlsl" />
+    <None Include="Shaders\opaqueShader\dissolutionPS.hlsl" />
+    <None Include="Shaders\Shadow\PointLightShadowVS.hlsl">
+      <Filter>Shaders\Shadow</Filter>
+    </None>
+    <None Include="Shaders\Shadow\Dissolution\PointLightShadowGS.hlsl" />
+    <None Include="Shaders\Shadow\Dissolution\PointLightShadowPS.hlsl" />
+    <None Include="Shaders\Shadow\Dissolution\PointLightShadowVS.hlsl" />
+    <None Include="Shaders\Shadow\Dissolution\ShadowPS.hlsl" />
+    <None Include="Shaders\Shadow\Dissolution\ShadowVS.hlsl" />
+    <None Include="Shaders\Particles\PixelShader.hlsl" />
+    <None Include="Shaders\Particles\VertexShader.hlsl" />
+    <None Include="Shaders\Depth\DepthPS.hlsl" />
+    <None Include="Shaders\Depth\DepthVS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\declarations.hlsli">
@@ -167,8 +179,8 @@
     <FxCompile Include="Shaders\PostProcess\PostProcessVS.hlsl">
       <Filter>Shaders\PostProcess</Filter>
     </FxCompile>
-    <FxCompile Include="Shaders\Shadow\PointLightShadowVS.hlsl">
-      <Filter>Shaders\Shadow</Filter>
+    <FxCompile Include="Shaders\opaqueShader\opaquePS.hlsl">
+      <Filter>Shaders\opaque</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

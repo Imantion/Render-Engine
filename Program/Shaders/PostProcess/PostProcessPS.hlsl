@@ -6,7 +6,7 @@ cbuffer postProcessData : register(b2)
     float c_gamma;
 };
 
-Texture2D text : register(t0);
+Texture2DMS<float4> text : register(t0);
 
 float3 acesHdr2Ldr(float3 hdr)
 {
@@ -50,8 +50,14 @@ struct PSINPUT
 
 float4 main(PSINPUT input) : SV_TARGET
 {
-    float3 color = (float3)text.Sample(g_pointWrap, input.textcord);
-    color = adjustExposure(color, c_EV100);
+    float3 color = float3(0, 0, 0);
+    for (int i = 0; i < g_samplesAmount; i++)
+    {
+        float3 sampleColor = (float3) text.Load(input.pos.xy, i);
+        sampleColor = adjustExposure(sampleColor, c_EV100);
+        color += sampleColor;
+    }
+    color *= 0.25f;
     color = acesHdr2Ldr(color);
     color = correctGamma(color, c_gamma);
 
