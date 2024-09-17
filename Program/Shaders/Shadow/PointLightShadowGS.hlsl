@@ -1,6 +1,6 @@
 #pragma pack_matrix(row_major)
 
-cbuffer lightViewProjections : register(b0)
+cbuffer lightViewProjections : register(b2)
 {
     float4x4 lightViewProjection[6];
 };

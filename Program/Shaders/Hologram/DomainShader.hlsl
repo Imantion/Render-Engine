@@ -4,12 +4,14 @@ struct DS_OUTPUT
 {
     float3 worldPos : WORLDPOS;
     float3 normal : NORMAL;
+    uint objectID : OBJECTID;
 };
 
 struct HS_CONTROL_POINT_OUTPUT
 {
     float3 vPosition : WORLDPOS;
     float3 normal : NORMAL;
+    uint objectID : OBJECTID;
 };
 
 struct HS_CONSTANT_DATA_OUTPUT
@@ -29,5 +31,6 @@ DS_OUTPUT main(
     DS_OUTPUT Output;
     Output.worldPos = patch[0].vPosition * domain.x + patch[1].vPosition * domain.y + patch[2].vPosition * domain.z;
     Output.normal = patch[0].normal * domain.x + patch[1].normal * domain.y + patch[2].normal * domain.z;
+    Output.objectID = patch[0].objectID;
     return Output;
 }

@@ -501,7 +501,7 @@ float3 CalculatePointLightContribution(float3 worldPos, float3 albedo, float met
 {
     float3 finalColor = float3(0, 0, 0);
 
-    [unroll(MAX_PL)]
+
     for (int i = 0; i < plSize; ++i)
     {
         float3 lightDirection = worldPos - pointLights[i].position;

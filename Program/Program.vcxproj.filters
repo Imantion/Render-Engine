@@ -166,6 +166,16 @@
     <None Include="Shaders\Particles\VertexShader.hlsl" />
     <None Include="Shaders\Depth\DepthPS.hlsl" />
     <None Include="Shaders\Depth\DepthVS.hlsl" />
+    <None Include="Shaders\opaqueShader\OpaqueGBufferPS.hlsl" />
+    <None Include="Shaders\emissive\EmissiveGBufferPS.hlsl" />
+    <None Include="Shaders\fullScreenVS.hlsl" />
+    <None Include="Shaders\emissive\DefferedEmissivePS.hlsl" />
+    <None Include="Shaders\opaqueShader\DefferedOpaquePS.hlsl" />
+    <None Include="Shaders\opaqueShader\DissolutionGBufferPS.hlsl" />
+    <None Include="Shaders\Hologram\HologramGBuffer.shader" />
+    <None Include="Shaders\Decal\DecalVS.hlsl" />
+    <None Include="Shaders\PostProcess\Fxaa3_11.hlsl" />
+    <None Include="Shaders\PostProcess\fxaa.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\declarations.hlsli">
@@ -182,5 +192,6 @@
     <FxCompile Include="Shaders\opaqueShader\opaquePS.hlsl">
       <Filter>Shaders\opaque</Filter>
     </FxCompile>
+    <FxCompile Include="Shaders\Decal\DecalPS.hlsl" />
   </ItemGroup>
 </Project>

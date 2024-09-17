@@ -6,6 +6,9 @@ namespace Engine
 {
 	template<typename I, typename M>
 	class OpaqueInstances;
+	class Texture;
+	struct mat4;
+	struct vec3;
 }
 
 namespace Instances
@@ -26,6 +29,17 @@ namespace Instances
 		int shouldOverWriteMaterial = 0;
 		float roughness = 0.0f;
 		float metalness = 0.0f;
+	};
+
+	struct DecalInstance
+	{
+		Engine::mat4 decalToWorld;
+		Engine::mat4 worldToDecal;
+		uint32_t bindedObject;
+		uint32_t usedTextures = Materials::NORMAL;
+		float roughness = 0.05f;
+		float metalness = 0.05f;
+		Engine::vec3 decalColor;
 	};
 
 	struct DissolutionInstance

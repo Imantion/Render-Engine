@@ -2,12 +2,14 @@ struct VS_CONTROL_POINT_OUTPUT
 {
     float3 vPosition : WORLDPOS;
     float3 normal : NORMAL;
+    uint objectID : OBJECTID;
 };
 
 struct HS_CONTROL_POINT_OUTPUT
 {
     float3 vPosition : WORLDPOS;
     float3 normal : NORMAL;
+    uint objectID : OBJECTID;
 };
 
 struct HS_CONSTANT_DATA_OUTPUT
@@ -49,6 +51,7 @@ HS_CONTROL_POINT_OUTPUT main(
 
     Output.vPosition = ip[i].vPosition;
     Output.normal = ip[i].normal;
+    Output.objectID = ip[i].objectID;
 
     return Output;
 }

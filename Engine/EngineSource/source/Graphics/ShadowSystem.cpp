@@ -214,7 +214,7 @@ void Engine::ShadowSystem::RenderPointLightShadowMaps(const std::vector<vec3>& l
 		vec4 psData(lightPositions[i], m_ProjectionInfo.farPlane);
 
 		cbProjections.updateBuffer(&constantBufferData);
-		cbProjections.bind(0u, GS);
+		cbProjections.bind(2u, GS);
 
 		psConstBuffer.updateBuffer(&psData);
 		psConstBuffer.bind(10u, PS);

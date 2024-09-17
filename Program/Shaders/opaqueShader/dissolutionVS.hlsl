@@ -10,6 +10,7 @@ struct VIn
     float4 modelToWorld[4] : TOWORLD;
     float duration : DURATION;
     float passedTime : TIMER;
+    uint objectId : OBJECTID;
 };
 
 struct VOut
@@ -18,9 +19,9 @@ struct VOut
     float3 worldPos : WorldPos;
     float3x3 tbn : TBN;
     float2 tc : TC;
-    float duration : DURATION;
-    float passedTime : TIMER;
-    
+    nointerpolation float duration : DURATION;
+    nointerpolation float passedTime : TIMER;
+    nointerpolation uint objectId : OBJECTID;
 };
 
 cbuffer meshData : register(b2)
@@ -47,6 +48,7 @@ VOut main(VIn input)
     
     output.duration = input.duration;
     output.passedTime = input.passedTime;
+    output.objectId = input.objectId;
     
     return output;
 }

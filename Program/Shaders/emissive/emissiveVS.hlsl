@@ -9,6 +9,7 @@ struct VIn
     float2 tc : TC;
     float4 modelToWorld[4] : TOWORLD;
     float3 emission : EMISSION;
+    uint objectId : OBJECTID;
 };
 
 struct VOut
@@ -17,6 +18,7 @@ struct VOut
     float3 worldPos : WorldPos;
     float3 normal : NORMAL;
     nointerpolation float3 emission : EMISSION;
+    nointerpolation uint objectId : OBJECTID;
 };
 
 cbuffer meshData : register(b2)
@@ -34,6 +36,7 @@ VOut main(VIn input)
     output.normal = mul(float4(input.normal, 1.0f), meshToModel);
     output.normal = normalize(mul(output.normal, (float3x3)toWorld));
     output.emission = input.emission;
+    output.objectId = input.objectId;
     
     return output;
 }

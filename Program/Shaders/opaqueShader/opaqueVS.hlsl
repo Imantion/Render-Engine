@@ -12,6 +12,7 @@ struct VIn
     int shouldOverWriteMaterial : SHOULDOVERWRITE;
     float roughness : ROUGHNESS;
     float metalness : METALNESS;
+    uint objectId : OBJECTID;
 };
 
 struct VOut
@@ -20,10 +21,11 @@ struct VOut
     float3 worldPos : WorldPos;
     float3x3 tbn : TBN;
     float2 tc : TC;
-    int isSelected : ISSELECTED;
-    int shouldOverWriteMaterial : SHOULDOVERWRITE;
-    float roughness : ROUGHNESS;
-    float metalness : METALNESS;
+    nointerpolation int isSelected : ISSELECTED;
+    nointerpolation int shouldOverWriteMaterial : SHOULDOVERWRITE;
+    nointerpolation float roughness : ROUGHNESS;
+    nointerpolation float metalness : METALNESS;
+    nointerpolation uint objectId : OBJECTID;
     
 };
 
@@ -53,6 +55,7 @@ VOut main(VIn input)
     output.shouldOverWriteMaterial = input.shouldOverWriteMaterial;
     output.roughness = input.roughness;
     output.metalness = input.metalness;
+    output.objectId = input.objectId;
     
     return output;
 }

@@ -125,7 +125,7 @@ void ReflectionCapture::GenerateCubeMap(const wchar_t* psShaderPath, ID3D11Textu
 		gsCBdata.frustrums[3 * i + 2] = vec4(3.0f * invProj.x, -1.0f * invProj.y, 1.0f, 0.0f) * inverseView[i];
 	}
 	gsCB.updateBuffer(&gsCBdata);
-	gsCB.bind(0u, Engine::shaderTypes::GS);
+	gsCB.bind(2u, Engine::shaderTypes::GS);
 
 
 	struct textureProcessInfo

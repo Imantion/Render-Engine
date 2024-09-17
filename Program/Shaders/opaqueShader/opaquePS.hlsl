@@ -6,10 +6,10 @@ struct PSInput
     float3 worldPos : WorldPos;
     float3x3 tbn : TBN;
     float2 tc : TC;
-    int isSelected : ISSELECTED;
-    int shouldOverWriteMaterial : SHOULDOVERWRITE;
-    float roughness : ROUGHNESS;
-    float metalness : METALNESS;
+    nointerpolation int isSelected : ISSELECTED;
+    nointerpolation int shouldOverWriteMaterial : SHOULDOVERWRITE;
+    nointerpolation float roughness : ROUGHNESS;
+    nointerpolation float metalness : METALNESS;
 };
 
 

@@ -18,6 +18,8 @@ namespace Engine
 	{
 	protected:
 
+		friend class MeshSystem;
+
 		struct instanceOfModel
 		{
 			int modelIndex;
@@ -35,6 +37,7 @@ namespace Engine
 		{
 			uint32_t transformsId;
 			Instances::DissolutionInstance instanceData;
+			uint32_t instanceMeshId = g_meshIdGenerator++;
 		};
 
 		struct MeshData
@@ -65,6 +68,7 @@ namespace Engine
 		};
 
 		std::vector<std::shared_ptr<shader>> m_shaders;
+		std::shared_ptr<shader> GBufferShader;
 		std::vector<PerModel> perModel;
 		VertexBuffer<instanceBufferData> instanceBuffer;
 		ConstBuffer<MeshData> meshData;
@@ -82,6 +86,11 @@ namespace Engine
 		void addShader(std::shared_ptr<shader> shdr)
 		{
 			m_shaders.push_back(shdr);
+		}
+
+		void setGBufferShader(std::shared_ptr<shader> shdr)
+		{
+			GBufferShader = shdr;
 		}
 
 		OpaqueInstances() { meshData.create(); materialData.create(); }
@@ -113,9 +122,34 @@ namespace Engine
 			return modelInstanes;
 		}
 
-		uint32_t intersect(const ray& r, hitInfo& hInfo)
+		int getTrasnformIdByInstanceMeshId(uint32_t meshId)
 		{
-			uint32_t transformId = -1;
+			for (size_t i = 0; i < perModel.size(); i++)
+			{
+				for (uint32_t meshIndex = 0; meshIndex < perModel[i].perMesh.size(); ++meshIndex)
+				{
+					const Mesh& mesh = perModel[i].model->m_meshes[meshIndex];
+
+					for (size_t j = 0; j < perModel[i].perMesh[meshIndex].perMaterial.size(); j++)
+					{
+						auto& instances = perModel[i].perMesh[meshIndex].perMaterial[j].instances;
+
+						uint32_t numModelInstances = (uint32_t)instances.size();
+						for (uint32_t index = 0; index < numModelInstances; ++index)
+						{
+							if (meshId == instances[index].instanceMeshId)
+								return instances[index].transformsId;
+						}
+					}
+				}
+			}
+
+			return -1;
+		}
+
+		int intersect(const ray& r, hitInfo& hInfo)
+		{
+			int transformId = -1;
 			auto TS = TransformSystem::Init();
 			ray transformedRay = r;
 			for (size_t i = 0; i < perModel.size(); i++)
@@ -149,6 +183,44 @@ namespace Engine
 			}
 
 			return transformId;
+		}
+
+		int intersectMesh(const ray& r, hitInfo& hInfo)
+		{
+			int meshIsntanceId = -1;
+			auto TS = TransformSystem::Init();
+			ray transformedRay = r;
+			for (size_t i = 0; i < perModel.size(); i++)
+			{
+				for (uint32_t meshIndex = 0; meshIndex < perModel[i].perMesh.size(); ++meshIndex)
+				{
+					const Mesh& mesh = perModel[i].model->m_meshes[meshIndex];
+
+					for (size_t j = 0; j < perModel[i].perMesh[meshIndex].perMaterial.size(); j++)
+					{
+						auto& instances = perModel[i].perMesh[meshIndex].perMaterial[j].instances;
+
+						uint32_t numModelInstances = (uint32_t)instances.size();
+						for (uint32_t index = 0; index < numModelInstances; ++index)
+						{
+							uint32_t currentId = instances[index].transformsId;
+							uint32_t meshId = instances[index].instanceMeshId;
+							auto& meshInstanceTransform = TS->GetModelTransforms(currentId)[meshIndex].modelToWold;
+
+							transformedRay.origin = vec4(r.origin, 1.0f) * mat4::Inverse(meshInstanceTransform) * mesh.invInstances[0];
+							transformedRay.direction = vec4(r.direction, 0.0f) * mat4::Inverse(meshInstanceTransform) * mesh.invInstances[0];
+
+							if (mesh.intersect(transformedRay, hInfo))
+							{
+								meshIsntanceId = meshId;
+								hInfo.p = vec4(transformedRay.point_at_parameter(hInfo.t), 1.0f) * mesh.instances[0] * meshInstanceTransform;
+							}
+						}
+					}
+				}
+			}
+
+			return meshIsntanceId;
 		}
 
 		ModelInstanceData removeByTransformId(uint32_t transformId, bool deleteTransform = true)
@@ -217,7 +289,7 @@ namespace Engine
 
 			if (it == perModel.end())
 			{
-				std::vector<PerInstance> inst(1, PerInstance{ modelTransformsId, instance });
+				std::vector<PerInstance> inst(1, PerInstance{ modelTransformsId, instance, g_meshIdGenerator++ });
 
 				PerMaterial perMat = { material,inst };
 
@@ -238,7 +310,7 @@ namespace Engine
 					{
 						if (material == perMaterial.material)
 						{
-							perMaterial.instances.push_back(PerInstance{ modelTransformsId, instance });
+							perMaterial.instances.push_back(PerInstance{ modelTransformsId, instance, g_meshIdGenerator++ });
 							inserted = true;
 						}
 					}
@@ -246,7 +318,7 @@ namespace Engine
 					if (!inserted)
 					{
 						std::vector<PerInstance> inst;
-						inst.push_back(PerInstance{ modelTransformsId, instance });
+						inst.push_back(PerInstance{ modelTransformsId, instance, g_meshIdGenerator++ });
 						pModel->perMesh[meshIndex].perMaterial.push_back(PerMaterial{ material, inst });
 					}
 				}
@@ -272,7 +344,7 @@ namespace Engine
 
 				for (size_t i = 0; i < model->m_meshes.size(); i++)
 				{
-					std::vector<PerInstance> inst(1, PerInstance{ modelTransformsId, instance });
+					std::vector<PerInstance> inst(1, PerInstance{ modelTransformsId, instance, g_meshIdGenerator++ });
 					PerMaterial perMat = { material[i],inst };
 					PerMesh perMes = { std::vector<PerMaterial>(1,perMat) };
 
@@ -292,7 +364,7 @@ namespace Engine
 					{
 						if (material[meshIndex] == perMaterial.material)
 						{
-							perMaterial.instances.push_back(PerInstance{ modelTransformsId, instance });
+							perMaterial.instances.push_back(PerInstance{ modelTransformsId, instance, g_meshIdGenerator++ });
 							inserted = true;
 						}
 					}
@@ -300,7 +372,7 @@ namespace Engine
 					if (!inserted)
 					{
 						std::vector<PerInstance> inst;
-						inst.push_back(PerInstance{ modelTransformsId, instance });
+						inst.push_back(PerInstance{ modelTransformsId, instance, g_meshIdGenerator++ });
 						pModel->perMesh[meshIndex].perMaterial.push_back(PerMaterial{ material[meshIndex], inst });
 					}
 				}

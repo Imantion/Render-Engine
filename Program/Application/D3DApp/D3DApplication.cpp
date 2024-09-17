@@ -9,15 +9,17 @@
 #include "Math/quaternion.h"
 #include "Graphics/MeshSystem.h"
 #include "Graphics/TextureManager.h"
-#include "Graphics/PostProcess.h"
+#include "Graphics/PostProcess.h"	
 #include "Graphics/SkyBox.h"
 #include "Graphics/LightSystem.h"
 #include "Graphics/ParticleSystem.h"
+#include "Graphics/DecalSystem.h"
 #include "imgui.h"
 #include "backends/imgui_impl_dx11.h"
 #include "backends/imgui_impl_win32.h"
 #include "Graphics/ShadowSystem.h"
 #include "Utils/ISelected.h"
+#include "Utils/Random.h"
 #include <assert.h>
 
 #ifdef UNICODE
@@ -29,6 +31,9 @@ typedef std::ostringstream tstringstream;
 Engine::vec2 previousMousePosition;
 static std::vector<Materials::DissolutionMaterial> samuraiDisolutionMaterial;
 static Materials::DissolutionMaterial cubeDisolutionMaterial;
+static Materials::DecalMaterial decalMaterial;
+static Engine::vec2 decalRoughMetal = Engine::vec2(0.05f,0.05f);
+static Engine::vec3 decalAlbedo = Engine::vec3(0.0f,0.2f,1.0f);
 static float animationDuration = 4.0f;
 Engine::Emitter* pEmitter;
 
@@ -69,6 +74,7 @@ static void InitMeshSystem()
 	{"SHOULDOVERWRITE", 0, DXGI_FORMAT_R32_SINT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
 	{"ROUGHNESS", 0, DXGI_FORMAT_R32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
 	{"METALNESS", 0, DXGI_FORMAT_R32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+	{"OBJECTID", 0, DXGI_FORMAT_R32_UINT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
 	};
 
 	D3D11_INPUT_ELEMENT_DESC normalIED[] = {
@@ -81,6 +87,7 @@ static void InitMeshSystem()
 	{"TOWORLD", 1, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
 	{"TOWORLD", 2, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
 	{"TOWORLD", 3, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+	{"OBJECTID", 0, DXGI_FORMAT_R32_UINT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
 	};
 
 	D3D11_INPUT_ELEMENT_DESC secondIed[] = {
@@ -93,7 +100,8 @@ static void InitMeshSystem()
 	{"TOWORLD", 1, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
 	{"TOWORLD", 2, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
 	{"TOWORLD", 3, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
-	{"EMISSION", 0, DXGI_FORMAT_R32G32B32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1}
+	{"EMISSION", 0, DXGI_FORMAT_R32G32B32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+	{"OBJECTID", 0, DXGI_FORMAT_R32_UINT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
 	};
 
 	D3D11_INPUT_ELEMENT_DESC thirdIed[] = {
@@ -108,10 +116,36 @@ static void InitMeshSystem()
 	{"TOWORLD", 3, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
 	{"DURATION", 0, DXGI_FORMAT_R32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
 	{"TIMER", 0, DXGI_FORMAT_R32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+	{"OBJECTID", 0, DXGI_FORMAT_R32_UINT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
 	};
+
+	D3D11_INPUT_ELEMENT_DESC decalIED[] = {
+		{"VERTEX", 0, DXGI_FORMAT_R32G32B32_FLOAT , 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"TOWORLD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+		{"TOWORLD", 1, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+		{"TOWORLD", 2, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+		{"TOWORLD", 3, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+		{"TODECAL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+		{"TODECAL", 1, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+		{"TODECAL", 2, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+		{"TODECAL", 3, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+		{"OBJECTID",0, DXGI_FORMAT_R32_UINT, 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+		{"USEDTEXTURES",0, DXGI_FORMAT_R32_UINT, 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+		{"ROUGHNESS",0, DXGI_FORMAT_R32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+		{"METALNESS",0, DXGI_FORMAT_R32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+		{"ALBEDO",0, DXGI_FORMAT_R32G32B32_FLOAT, 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+	};
+
+	auto decalShader = Engine::ShaderManager::CompileAndCreateShader("DecalShader", L"Shaders\\Decal\\DecalVS.hlsl", L"Shaders\\Decal\\DecalPS.hlsl", nullptr, nullptr);
 
 	auto emissiveShader = Engine::ShaderManager::CompileAndCreateShader("EmmisiveShader", L"Shaders\\emissive\\emissiveVS.hlsl",
 		L"Shaders\\emissive\\emissivePS.hlsl", nullptr, nullptr);
+
+	auto DefferedEmissiveShader = Engine::ShaderManager::CompileAndCreateShader("DefferedEmissiveShader", L"Shaders\\fullScreenVS.hlsl",
+		L"Shaders\\emissive\\DefferedEmissivePS.hlsl", nullptr, nullptr);
+
+	auto GemissiveShader = Engine::ShaderManager::CompileAndCreateShader("GEmmisiveShader", L"Shaders\\emissive\\emissiveVS.hlsl",
+		L"Shaders\\emissive\\EmissiveGBufferPS.hlsl", nullptr, nullptr);
 
 	auto NormalVisColor = Engine::ShaderManager::CompileAndCreateShader("NormalVisColor", L"Shaders\\normalColor\\VertexShader.hlsl",
 		L"Shaders\\normalColor\\PixelShader.hlsl", nullptr, nullptr);
@@ -119,8 +153,13 @@ static void InitMeshSystem()
 	auto dissolutionShader = Engine::ShaderManager::CompileAndCreateShader("DissolutionShader", L"Shaders\\opaqueShader\\dissolutionVS.hlsl", L"Shaders\\opaqueShader\\dissolutionPS.hlsl",
 		nullptr, nullptr);
 
+	auto GdissolutionShader = Engine::ShaderManager::CompileAndCreateShader("GDissolutionShader", L"Shaders\\opaqueShader\\dissolutionVS.hlsl", L"Shaders\\opaqueShader\\DissolutionGBufferPS.hlsl",
+		nullptr, nullptr);
+
 	auto textureMap = Engine::ShaderManager::CompileAndCreateShader("texture", L"Shaders\\crateTextMap\\CrateVS.hlsl",
 		L"Shaders\\crateTextMap\\CratePS.hlsl", nullptr, nullptr);
+
+
 
 
 	D3D_SHADER_MACRO shaders[] = { "MAX_DIRECTIONAL_LIGHTS", "1",
@@ -130,6 +169,12 @@ static void InitMeshSystem()
 
 	auto opaqueShader = Engine::ShaderManager::CompileAndCreateShader("opaque", L"Shaders\\opaqueShader\\opaqueVS.hlsl",
 		L"Shaders\\opaqueShader\\opaquePS.hlsl", nullptr, shaders);
+
+	auto GopaqueShader = Engine::ShaderManager::CompileAndCreateShader("Gopaque", L"Shaders\\opaqueShader\\opaqueVS.hlsl",
+		L"Shaders\\opaqueShader\\OpaqueGBufferPS.hlsl", nullptr, shaders);
+
+	auto DefferedOpaqueShader = Engine::ShaderManager::CompileAndCreateShader("deferredopaque", L"Shaders\\fullScreenVS.hlsl",
+		L"Shaders\\opaqueShader\\DefferedOpaquePS.hlsl", nullptr, shaders);
 
 	auto NormalVisLines = Engine::ShaderManager::CompileAndCreateShader("NormalVisLines", L"Shaders\\normalLines\\VertexShader.hlsl",
 		L"Shaders\\normalLines\\PixelShader.hlsl", L"Shaders\\normalLines\\HullShader.hlsl", L"Shaders\\normalLines\\DomainShader.hlsl",
@@ -150,33 +195,48 @@ static void InitMeshSystem()
 	if (!NormalVisColor)
 		throw std::runtime_error("Failed to compile and create shader!");
 
-	auto HologramGroup = Engine::ShaderManager::CompileAndCreateShader("HologramGroup", L"Shaders\\Hologram\\Hologram.shader",
-		L"Shaders\\Hologram\\Hologram.shader", L"Shaders\\Hologram\\HullShader.hlsl", L"Shaders\\Hologram\\DomainShader.hlsl", L"Shaders\\Hologram\\GSHologram.hlsl",
-		nullptr, nullptr, D3D_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST, "vsMain", "psMain");
+	auto HologramGroup = Engine::ShaderManager::CompileAndCreateShader("HologramGroup", L"Shaders\\Hologram\\HologramGBuffer.shader",
+		L"Shaders\\Hologram\\HologramGBuffer.shader", nullptr, nullptr, L"Shaders\\Hologram\\GSHologram.hlsl",
+		nullptr, nullptr, D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST, "vsMain", "psMain");
 
 	if (!HologramGroup)
 		throw std::runtime_error("Failed to compile and create shader!");
 
+	auto decalLayout = Engine::ShaderManager::CreateInputLayout("Decal", decalShader->vertexBlob.Get(), decalIED, sizeof(decalIED) / sizeof(D3D11_INPUT_ELEMENT_DESC));
 	auto inputLayout = Engine::ShaderManager::CreateInputLayout("Default", opaqueShader->vertexBlob.Get(), ied, sizeof(ied) / sizeof(D3D11_INPUT_ELEMENT_DESC));
 	auto secondInputLayout = Engine::ShaderManager::CreateInputLayout("Second", emissiveShader->vertexBlob.Get(), secondIed, sizeof(secondIed) / sizeof(D3D11_INPUT_ELEMENT_DESC));
-	auto thirdLayout = Engine::ShaderManager::CreateInputLayout("Third", NormalVisLines->vertexBlob.Get(), secondIed, sizeof(normalIED) / sizeof(D3D11_INPUT_ELEMENT_DESC));
+	auto thirdLayout = Engine::ShaderManager::CreateInputLayout("Third", NormalVisLines->vertexBlob.Get(), normalIED, sizeof(normalIED) / sizeof(D3D11_INPUT_ELEMENT_DESC));
 	auto fourthLayout = Engine::ShaderManager::CreateInputLayout("Fourth", dissolutionShader->vertexBlob.Get(), thirdIed, sizeof(thirdIed) / sizeof(D3D11_INPUT_ELEMENT_DESC));
 
+	decalShader->BindInputLyout(decalLayout);
 	NormalVisColor->BindInputLyout(thirdLayout);
 	NormalVisLines->BindInputLyout(thirdLayout);
 	HologramGroup->BindInputLyout(thirdLayout);
 	textureMap->BindInputLyout(thirdLayout);
 	opaqueShader->BindInputLyout(inputLayout);
+	GopaqueShader->BindInputLyout(inputLayout);
 	emissiveShader->BindInputLyout(secondInputLayout);
+	GemissiveShader->BindInputLyout(secondInputLayout);
 	shadowShader->BindInputLyout(thirdLayout);
 	shadowShader2->BindInputLyout(thirdLayout);
 	shadowShader3->BindInputLyout(fourthLayout);
 	shadowShader4->BindInputLyout(fourthLayout);
 	dissolutionShader->BindInputLyout(fourthLayout);
+	GdissolutionShader->BindInputLyout(fourthLayout);
 
 	Engine::ShadowSystem::Init()->SetShadowShaders(shadowShader, shadowShader2, shadowShader2);
+	Engine::DecalSystem::Init()->SetShader(decalShader);
+	
 
 	auto ms = Engine::MeshSystem::Init();
+
+
+	ms->opaqueGroup.setGBufferShader(GopaqueShader);
+	ms->emmisiveGroup.setGBufferShader(GemissiveShader);
+	ms->dissolutionGroup.setGBufferShader(GdissolutionShader);
+	ms->hologramGroup.setGBufferShader(HologramGroup);
+	ms->setLitDefferedShader(DefferedOpaqueShader);
+	ms->setEmissiveDefferedShader(DefferedEmissiveShader);
 
 	ms->normVisGroup.addShader(NormalVisLines);
 	ms->normVisGroup.addShader(NormalVisColor);
@@ -233,6 +293,7 @@ void D3DApplication::Update(float deltaTime)
 	renderer->Render(camera.get());
 		
 	renderer->PostProcess();
+	renderer->FXAA();
 
 	ImGui::Render();
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
@@ -272,6 +333,33 @@ void D3DApplication::UpdateInput(float deltaTime)
 	{
 		auto ls = Engine::LightSystem::Init();
 		ls->SetFlashLightAttachedState(!ls->IsFlashLightAttached());
+	}
+
+	if (Input::keyPresseed(Input::KeyboardButtons::G))
+	{
+		Engine::ray r;
+		Engine::vec2 screenCoord = Engine::screenSpaceToNormalizeScreenSpace(mousePosition, pWindow->getWindowWidth(), pWindow->getWindowHeight());
+		r.origin = camera->getPosition();
+		r.direction = camera->calculateRayDirection(screenCoord).normalized();
+
+		Engine::hitInfo hInfo; hInfo.reset_parameter_t();
+		uint32_t hitId = Engine::MeshSystem::Init()->opaqueGroup.intersectMesh(r, hInfo);
+		
+		if (hitId != -1)
+		{
+			Engine::mat4 transfrom = camera->getInverseViewMatrix();
+			Engine::quaternion rotaton = Engine::quaternion::angleAxis(get_random(g_distribution_0_2PI), camera->getForward());
+			Engine::vec3 rotatatedRight = Engine::quaternion::rotate(rotaton, camera->getRight()).normalized();
+			Engine::vec3 up = Engine::cross(camera->getForward(), rotatatedRight);
+			transfrom = Engine::transformMatrix(hInfo.p, camera->getForward(), rotatatedRight, up);
+
+
+			Engine::vec3 albedo = Engine::vec3(get_random(g_distribution_0_2), get_random(g_distribution_0_2), get_random(g_distribution_0_2)) * 0.5f;
+			
+
+			Engine::DecalSystem::Init()->AddDecal(transfrom, hitId, decalMaterial,
+				albedo, decalRoughMetal.x, decalRoughMetal.y);
+		}
 	}
 
 	if (Input::keyPresseed(Input::KeyboardButtons::ONE))
@@ -339,10 +427,9 @@ void D3DApplication::UpdateInput(float deltaTime)
 
 	if (Input::mouseWasPressed(Input::MouseButtons::RIGHT) && objectInteractions == Drag)
 	{
-		Engine::vec2 screenCoord(mousePosition.x, pWindow->getWindowHeight() - mousePosition.y);
+		
 		Engine::ray r;
-		screenCoord.x = (screenCoord.x / pWindow->getWindowWidth() - 0.5f) * 2.0f;
-		screenCoord.y = (screenCoord.y / pWindow->getWindowHeight() - 0.5f) * 2.0f;
+		Engine::vec2 screenCoord = Engine::screenSpaceToNormalizeScreenSpace(mousePosition, pWindow->getWindowWidth(), pWindow->getWindowHeight());
 		r.origin = camera->getPosition();
 		r.direction = camera->calculateRayDirection(screenCoord).normalized();
 
@@ -361,10 +448,8 @@ void D3DApplication::UpdateInput(float deltaTime)
 	if (Input::mouseWasPressed(Input::MouseButtons::RIGHT) && objectInteractions == Select)
 	{
 	
-		Engine::vec2 screenCoord(mousePosition.x, pWindow->getWindowHeight() - mousePosition.y);
 		Engine::ray r;
-		screenCoord.x = (screenCoord.x / pWindow->getWindowWidth() - 0.5f) * 2.0f;
-		screenCoord.y = (screenCoord.y / pWindow->getWindowHeight() - 0.5f) * 2.0f;
+		Engine::vec2 screenCoord = Engine::screenSpaceToNormalizeScreenSpace(mousePosition, pWindow->getWindowWidth(), pWindow->getWindowHeight());
 		r.origin = camera->getPosition();
 		r.direction = camera->calculateRayDirection(screenCoord);
 
@@ -611,6 +696,33 @@ void D3DApplication::GUI()
 
 			ImGui::EndTabItem();
 		}
+
+
+		if (ImGui::BeginTabItem("Decal"))
+		{
+			ImGui::SliderFloat("Roughness", &decalRoughMetal.x, 0.05f, 1.0f);
+			ImGui::SliderFloat("Metalness", &decalRoughMetal.y, 0.05f, 1.0f);
+
+			/*ImGui::InputFloat3("Color", (float*)&decalAlbedo);*/
+
+			ImGui::EndTabItem();
+		}
+
+		static float qualitySubpix = 0.75f;
+		static float qualityEdgeThreshold = 0.166f;
+		static float qualityEdgeThresholdMin = 0.0833f;
+		if (ImGui::BeginTabItem("FXAA"))
+		{
+			ImGui::SliderFloat("Sub Pixel quality", &qualitySubpix, 0.f, 1.0f);
+			ImGui::SliderFloat("Edge Threshold", &qualityEdgeThreshold, 0.063f, 0.333f);
+
+			ImGui::SliderFloat("Minimal Edge Threshold", &qualityEdgeThresholdMin, 0.0f, 0.0833f);
+
+			Engine::PostProcess::Init()->UpdateFXAABuffer(qualitySubpix, qualityEdgeThreshold, qualityEdgeThresholdMin);
+
+			ImGui::EndTabItem();
+		}
+
 		ImGui::EndTabBar();
 	}
 
@@ -696,7 +808,10 @@ void D3DApplication::InitSamuraiModel()
 		Engine::transformMatrix(Engine::vec3(0.0f, -1.0f, 0.0f), Engine::vec3(0.0f, 0.0f, 1.0f), Engine::vec3(1.0f, 0.0f, 0.0f), Engine::vec3(0.0f, 1.0f, 0.0f)) };
 	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, samuraiTextures, inst);
 
+	changepos(inst, Engine::vec3(4.0f, -3.0f, 0.0f));
+	Engine::MeshSystem::Init()->hologramGroup.addModel(model, Materials::HologramMaterial{ Engine::vec3(0,0,1), 0, Engine::vec3(1,0,0) }, inst);
 	auto samuraiInstance = inst;
+
 
 	changescale(samuraiInstance, 0, 1.5f); changescale(samuraiInstance, 1, 1.0f); changescale(samuraiInstance, 2, 0.5f);
 	changepos(samuraiInstance, Engine::vec3(4.0f, -1.0f, 0.0f));
@@ -801,10 +916,14 @@ void D3DApplication::InitCrateModel()
 	changepos(inst, Engine::vec3(1.0f, -1.0f, 4.0f));
 	auto issd = Engine::MeshSystem::Init()->opaqueGroup.addModel(model, crateMaterial, inst);
 
+
 	auto goldenCube = goldenSphereTextures;
 	goldenCube.usedTextures = Materials::METALNESS;
+	auto emptyTexture = std::make_shared<Engine::Texture>();
 	changepos(inst, Engine::vec3(-3.0f, -1.0f, 2.0f));
 	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, goldenCube, inst);
+
+	decalMaterial = Materials::DecalMaterial{ emptyTexture , TM->LoadFromFile("Decal_Normal", L"Textures\\DecalNormal.dds"), emptyTexture , emptyTexture , Materials::NORMAL };
 
 	auto rotZ = Engine::mat4::rotateZ(3.14f * (-45.0f) / 360.0f);
 	changescale(inst, 0, 5);
@@ -852,5 +971,9 @@ void D3DApplication::InitPostProcess()
 	auto postshader = Engine::ShaderManager::CompileAndCreateShader("PostProcess", L"shaders/PostProcess/PostProcessVS.hlsl", L"shaders/PostProcess/PostProcessPS.hlsl",
 		nullptr, nullptr, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+	auto FXAA = Engine::ShaderManager::CompileAndCreateShader("FXAA", L"Shaders\\fullScreenVS.hlsl",
+		L"Shaders\\PostProcess\\fxaa.hlsl", nullptr, nullptr);
+
 	Engine::PostProcess::Init()->SetLightToColorShader(postshader);
+	Engine::PostProcess::Init()->SetFXAAShader(FXAA);
 }

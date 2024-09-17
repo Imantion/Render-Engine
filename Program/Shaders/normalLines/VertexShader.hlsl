@@ -13,6 +13,7 @@ struct VIn
     float3 bitangent : BITANGENT;
     float2 tc : TC;
     float4 modelToWorld[4] : TOWORLD;
+    uint objectId : OBJECTID;
 };
 
 

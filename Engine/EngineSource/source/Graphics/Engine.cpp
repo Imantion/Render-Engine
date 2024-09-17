@@ -9,6 +9,7 @@
 #include "Graphics/LightSystem.h"
 #include "Graphics/ShadowSystem.h"
 #include "Graphics/ParticleSystem.h"
+#include "Graphics/DecalSystem.h"
 #include "Window/Window.h"
 #include "imgui.h"
 #include "backends/imgui_impl_win32.h"
@@ -30,6 +31,7 @@ void Engine::Engine::Init()
 	LightSystem::Init();
 	ShadowSystem::Init();
 	ParticleSystem::Init();
+	DecalSystem::Init();
 
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -58,4 +60,5 @@ void Engine::Engine::Deinit()
 	LightSystem::Deinit();
 	ShadowSystem::Deinit();
 	ParticleSystem::Deinit();
+	DecalSystem::Deinit();
 }

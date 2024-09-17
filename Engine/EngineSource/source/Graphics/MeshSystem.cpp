@@ -22,6 +22,36 @@ int Engine::MeshSystem::intersect(const ray& r, hitInfo& hInfo)
 	return third != -1? third: (second != -1? second: first);
 }
 
+int Engine::MeshSystem::intersectMesh(const ray& r, hitInfo& hInfo)
+{
+	int first = hologramGroup.intersectMesh(r, hInfo);
+	int second = normVisGroup.intersectMesh(r, hInfo);
+	int third = opaqueGroup.intersectMesh(r, hInfo);
+	int fourth = emmisiveGroup.intersectMesh(r, hInfo);
+	int fifth = dissolutionGroup.intersectMesh(r, hInfo);
+
+	if (fifth != -1)
+		return fifth;
+	if (fourth != -1)
+		return fourth;
+	return third != -1 ? third : (second != -1 ? second : first);
+}
+
+int Engine::MeshSystem::getTransformIdByMeshInstanceId(uint32_t meshInstanceId)
+{
+	int first = hologramGroup.getTrasnformIdByInstanceMeshId(meshInstanceId);
+	int second = normVisGroup.getTrasnformIdByInstanceMeshId(meshInstanceId);
+	int third = opaqueGroup.getTrasnformIdByInstanceMeshId(meshInstanceId);
+	int fourth = emmisiveGroup.getTrasnformIdByInstanceMeshId(meshInstanceId);
+	int fifth = dissolutionGroup.getTrasnformIdByInstanceMeshId(meshInstanceId);
+
+	if (fifth != -1)
+		return fifth;
+	if (fourth != -1)
+		return fourth;
+	return third != -1 ? third : (second != -1 ? second : first);
+}
+
 void Engine::MeshSystem::updateInstanceBuffers()
 {
 	normVisGroup.updateInstanceBuffers();
@@ -34,10 +64,34 @@ void Engine::MeshSystem::updateInstanceBuffers()
 
 void Engine::MeshSystem::render()
 {
+	opaqueGroup.render();
 	normVisGroup.render();
 	hologramGroup.render();
-	opaqueGroup.render();
 	emmisiveGroup.render();
+}
+
+void Engine::MeshSystem::renderGBuffer(ID3D11DepthStencilState* depthStencilState)
+{
+	auto context = D3D::GetInstance()->GetContext();
+	context->OMSetDepthStencilState(depthStencilState, 1u);
+	opaqueGroup.renderUsingShader(opaqueGroup.GBufferShader);
+	dissolutionGroup.renderUsingShader(dissolutionGroup.GBufferShader);
+
+	context->OMSetDepthStencilState(depthStencilState, 2u);
+	emmisiveGroup.renderUsingShader(emmisiveGroup.GBufferShader);
+	hologramGroup.renderUsingShader(hologramGroup.GBufferShader);
+}
+
+void Engine::MeshSystem::defferedRender(ID3D11DepthStencilState* dsStencilOnlyState)
+{
+	auto context = D3D::GetInstance()->GetContext();
+
+	context->OMSetDepthStencilState(dsStencilOnlyState, 1u);
+	litDefferedShader->BindShader();
+	context->Draw(3u, 0);
+	context->OMSetDepthStencilState(dsStencilOnlyState, 2u);
+	emissiveDefferedShader->BindShader();
+	context->Draw(3u, 0);
 }
 
 Engine::MeshSystem* Engine::MeshSystem::Init()
@@ -136,4 +190,14 @@ inline void Engine::OpaqueInstances<Instances::PBRInstance, Materials::OpaqueTex
 			}
 		}
 	}
+}
+
+void Engine::MeshSystem::setLitDefferedShader(std::shared_ptr<shader> lit)
+{
+	litDefferedShader = lit;
+}
+
+void Engine::MeshSystem::setEmissiveDefferedShader(std::shared_ptr<shader> emissive)
+{
+	emissiveDefferedShader = emissive;
 }
