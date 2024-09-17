@@ -292,7 +292,7 @@ namespace Engine
 					}
 				}
 
-				if (perModel.size() == 0)
+				if (perModel[i].perMesh.size() == 0)
 				{
 					perModel.erase(perModel.begin() + i);
 					--i;
