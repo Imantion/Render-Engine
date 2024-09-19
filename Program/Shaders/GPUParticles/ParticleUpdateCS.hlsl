@@ -26,6 +26,9 @@ void main( uint3 DTid : SV_DispatchThreadID )
 
     uint particleIndex = (index + particleDataRange[1]) % MAX_PARTICLES;
     IncinerationParticle particle = particles[particleIndex];
+    
+    float3 previousPosition = particle.position;
+    
     particle.velocity.y -= 0.5f * 9.81f * g_deltaTime ;
     particle.position += particle.velocity * g_deltaTime;
     particle.velocity.y -= 0.5f * 9.81f * g_deltaTime;
@@ -50,11 +53,13 @@ void main( uint3 DTid : SV_DispatchThreadID )
         float3 worldSpace = inverseProjected.xyz / inverseProjected.w;
         float3 normal = unpackOctahedron(normalTexture.SampleLevel(g_pointWrap, NDC.xy, 0).zw);
         
-        float distance = normal.x * (particle.position.x - worldSpace.x) + normal.y * (particle.position.y - worldSpace.y) + normal.z * (particle.position.z - worldSpace.z);
-        if(distance < 0.0f && distance > -0.05f)
+        float distance = length(worldSpace - particle.position);
+        
+        if(depthValue > NDC.z && distance < 0.25f)
         {
             particle.velocity.xyz = reflect(particle.velocity.xyz, normal) * 0.5f;
-            if(distance < -0.015f)
+            
+            if(distance > 0.025f)
             {
                 particle.position = worldSpace + normal * 0.025f;
             }
