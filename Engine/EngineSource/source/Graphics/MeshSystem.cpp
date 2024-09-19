@@ -14,7 +14,10 @@ int Engine::MeshSystem::intersect(const ray& r, hitInfo& hInfo)
 	int third = opaqueGroup.intersect(r, hInfo);
 	int fourth = emmisiveGroup.intersect(r, hInfo);
 	int fifth = dissolutionGroup.intersect(r, hInfo);
+	int sixth = incinerationGroup.intersect(r, hInfo);
 
+	if (sixth != -1)
+		return sixth;
 	if (fifth != -1)
 		return fifth;
 	if (fourth != -1)

@@ -47,7 +47,7 @@ VOut main(VIn input)
     output.tc = input.tc;
     output.sphereRadius = input.sphereRadius;
     output.spherePreviousRadius = input.spherePreviousRadius;
-    output.spherePosition = input.spherePosition;
+    output.spherePosition = input.spherePosition + toWorld._41_42_43;
 
     return output;
 }

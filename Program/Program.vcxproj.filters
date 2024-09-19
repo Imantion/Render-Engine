@@ -185,13 +185,13 @@
     <None Include="Shaders\GPUParticles\BillboardPS.hlsl" />
     <None Include="Shaders\GPUParticles\BillboardVS.hlsl" />
     <None Include="Shaders\GPUParticles\ParticleIndirectDataUpdateCS.hlsl" />
-    <None Include="Shaders\GPUParticles\ParticleUpdateCS.hlsl" />
     <None Include="Shaders\GPUParticles\SphereParticlePS.hlsl" />
     <None Include="Shaders\opaqueShader\IncinerationVS.hlsl" />
     <None Include="Shaders\opaqueShader\IncinerationDS.hlsl" />
     <None Include="Shaders\opaqueShader\IncinerationGS.hlsl" />
     <None Include="Shaders\opaqueShader\IncinerationHS.hlsl" />
     <None Include="Shaders\opaqueShader\IncinerationPS.hlsl" />
+    <None Include="Shaders\GPUParticles\ParticleUpdateCS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\declarations.hlsli">

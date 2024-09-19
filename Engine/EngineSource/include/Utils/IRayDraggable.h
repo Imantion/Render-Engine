@@ -12,6 +12,11 @@ namespace Engine
 		virtual void drag(const ray& r) = 0;
 		uint32_t getObjectID() { return hittedObjectID; }
 
+		bool isValid()
+		{
+			return TransformSystem::Init()->CheckForExistance(hittedObjectID);
+		}
+
 	protected:
 		uint32_t hittedObjectID;
 	};

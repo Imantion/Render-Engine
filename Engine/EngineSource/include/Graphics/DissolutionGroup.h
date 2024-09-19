@@ -630,7 +630,7 @@ namespace Engine
 						}
 
 						instances[index].instanceData.previousRadius = instances[index].instanceData.sphereRadius;
-						instances[index].instanceData.sphereRadius += modelBoxSize * time;
+						instances[index].instanceData.sphereRadius += modelBoxSize * time * 0.3f;
 					}
 				}
 			}
@@ -673,7 +673,7 @@ namespace Engine
 					if (perMaterial.instances.empty()) continue;
 					const auto& material = perMaterial.material;
 
-					MaterialData data = { vec4((float)material.opaqueTextures.usedTextures, material.opaqueTextures.roughness, material.opaqueTextures.metalness, (UINT)perModel.model->m_indices.getSize()) };
+					MaterialData data = { vec4((float)material.opaqueTextures.usedTextures, material.opaqueTextures.roughness, material.opaqueTextures.metalness, (float)perModel.model->m_indices.getSize()) };
 
 					materialData.updateBuffer(&data);
 					uint32_t numInstances = uint32_t(perMaterial.instances.size());

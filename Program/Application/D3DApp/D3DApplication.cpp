@@ -568,14 +568,21 @@ void D3DApplication::UpdateInput(float deltaTime)
 
 	if (dragger)
 	{
-		Engine::vec2 screenCoord(mousePosition.x, pWindow->getWindowHeight() - mousePosition.y);
-		Engine::ray r;
-		screenCoord.x = (screenCoord.x / pWindow->getWindowWidth() - 0.5f) * 2.0f;
-		screenCoord.y = (screenCoord.y / pWindow->getWindowHeight() - 0.5f) * 2.0f;
-		r.origin = camera->getPosition();
-		r.direction = camera->calculateRayDirection(screenCoord).normalized();
+		if (dragger->isValid())
+		{
+			Engine::vec2 screenCoord(mousePosition.x, pWindow->getWindowHeight() - mousePosition.y);
+			Engine::ray r;
+			screenCoord.x = (screenCoord.x / pWindow->getWindowWidth() - 0.5f) * 2.0f;
+			screenCoord.y = (screenCoord.y / pWindow->getWindowHeight() - 0.5f) * 2.0f;
+			r.origin = camera->getPosition();
+			r.direction = camera->calculateRayDirection(screenCoord).normalized();
 
-		dragger->drag(r);
+			dragger->drag(r);
+		}
+		else
+		{
+			dragger.release();
+		}
 	}
 
 }
@@ -823,16 +830,16 @@ void D3DApplication::OpaqueToIncineration(uint32_t transformId, const Engine::ve
 	data.model = modelInstanceData.model;
 
 	Engine::vec3 randomColor = Engine::vec3(get_random(g_distribution_0_1), get_random(g_distribution_0_1), get_random(g_distribution_0_1));
-
+	auto TS = Engine::TransformSystem::Init();
 	for (size_t j = 0; j < modelInstanceData.instance.size(); j++)
 	{
 		data.material[j].opaqueTextures = modelInstanceData.material[j];
 		data.material[j].noiseTexture = samuraiDisolutionMaterial[0].noiseTexture;
 		data.instance[j].instanceMeshId = modelInstanceData.instance[j].instanceMeshId;
 		data.instance[j].transformsId = modelInstanceData.instance[j].transformsId;
+		
 
-
-		data.instance[j].instanceData = Instances::IncinerationInstance{ spherePos, randomColor.normalized() };
+		data.instance[j].instanceData = Instances::IncinerationInstance{ spherePos - (Engine::vec3&)*TS->GetModelTransforms(data.instance[j].transformsId)[j].modelToWold[3] , randomColor.normalized()};
 	}
 
 	Engine::MeshSystem::Init()->incinerationGroup.addModel(data);

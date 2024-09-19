@@ -37,7 +37,7 @@ VOut main(VIn input)
     VOut output;
     output.worldPos = (float3)mul(mul(float4(input.pos, 1.0f), meshToModel), toWorld);
     output.tc = input.tc;
-    output.spherePosition = input.spherePosition;
+    output.spherePosition = input.spherePosition + toWorld._41_42_43;
     output.sphereRadius = input.sphereRadius;
     output.spherePreviousRadius = input.spherePreviousRadius;
     

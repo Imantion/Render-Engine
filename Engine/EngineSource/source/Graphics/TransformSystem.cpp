@@ -42,6 +42,11 @@ std::vector<Engine::TransformSystem::transforms>& Engine::TransformSystem::GetMo
 	return m_transforms[ID];
 }
 
+bool Engine::TransformSystem::CheckForExistance(uint32_t ID)
+{
+	return m_transforms.check(ID);
+}
+
 void Engine::TransformSystem::SetModelPosition(uint32_t id, const std::vector<vec3>& position)
 {
 	auto& transformations = m_transforms[id];

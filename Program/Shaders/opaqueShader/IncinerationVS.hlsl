@@ -65,31 +65,8 @@ VOut main(VIn input)
     
     output.tc = input.tc;
     
-    //float3 toSphere = input.spherePosition - output.worldPos;
-    //float squaredDistanceToSphere = dot(toSphere, toSphere);
-        
-    //if (squaredDistanceToSphere < input.sphereRadius * input.sphereRadius &&
-    //    squaredDistanceToSphere > input.spherePreviousRadius * input.spherePreviousRadius && 
-    //    input.vertexID % 200 == 0)
-    //{
-    //    uint index;
-    //    InterlockedAdd(particleDataRange[0], 1u, index);
-        
-    //    index = (particleDataRange[1] + index) % MAX_PARTICLES;
-            
-    //    if(index >= MAX_PARTICLES)
-    //        InterlockedAdd(particleDataRange[0], -1);
-    //    else
-    //    {
-    //        particles[index].position = output.worldPos;
-    //        particles[index].velocity = normal * 2.0f;
-    //        particles[index].irradiance = input.particleColor;
-    //        particles[index].lifetime = 5.0f;
-    //        particles[index].passedTime = 0.0f;
-    //    }
-    //}
-    
-    output.spherePosition = input.spherePosition;
+
+    output.spherePosition = input.spherePosition + toWorld._41_42_43;
     output.sphereRadius = input.sphereRadius;
     output.spherePreviousRadius = input.spherePreviousRadius;
     output.objectId = input.objectId;
