@@ -14,9 +14,9 @@ namespace Engine
 		static  Box empty() { return  { { Inf, Inf, Inf }, { -Inf, -Inf, -Inf } }; }
 		static  Box unit() { return  { { -1.f, -1.f, -1.f }, { 1.f, 1.f, 1.f } }; }
 
-		vec3 size() const { return max - min; }
+		float size() const { return (max - min).length(); }
 		vec3 center() const { return (min + max) / 2.f; }
-		float radius() const { return size().length() / 2.f; }
+		float radius() const { return size() / 2.f; }
 
 		void reset()
 		{

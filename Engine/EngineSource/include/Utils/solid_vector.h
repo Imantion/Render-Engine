@@ -36,6 +36,15 @@ protected:
 
 public:
 
+    bool check(ID id)
+    {
+        if (id < m_occupied.size())
+        {
+            return m_occupied[id];
+        }
+
+        return false;
+    }
     bool occupied(ID id) const { DEV_ASSERT(id < m_occupied.size()); return m_occupied[id]; }
 
 	Index size() const { return Index(m_data.size()); }

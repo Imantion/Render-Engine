@@ -16,9 +16,9 @@ struct PSInput
 struct PSOutput
 {
     float4 albedo : SV_Target0;
-    float2 roughMetal : SV_Target1;
+    float4 roughMetal : SV_Target1;
     float4 normals : SV_Target2;
-    float3 emission : SV_Target3;
+    float4 emission : SV_Target3;
     uint objectId : SV_Target4;
     
 };
@@ -49,8 +49,10 @@ PSOutput main(PSInput input)
     output.normals.xy = packOctahedron(microNormal);
     output.normals.zw = packOctahedron(input.tbn._31_32_33);
     
-    output.emission = 0;
+    output.emission = float4(0, 0, 0, 1);
     output.objectId = input.objectId;
+    
+    output.roughMetal.zw = float2(0, 1);
     
     return output;
 }

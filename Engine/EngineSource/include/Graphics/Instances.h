@@ -53,4 +53,12 @@ namespace Instances
 	private:
 		float passedTime = 0.0f;
 	};
+
+	struct IncinerationInstance
+	{
+		Engine::vec3 spherePosition;
+		Engine::vec3 particlesColor;
+		float sphereRadius = 0.0f;
+		float previousRadius = 0.0f;
+	};
 }

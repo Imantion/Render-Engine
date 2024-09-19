@@ -10,11 +10,12 @@
 #include "Graphics/TextureManager.h"
 #include "Graphics/TransformSystem.h"
 #include "Graphics/Instances.h"
+#include "Graphics/DecalSystem.h"
 
 namespace Engine
 {
-	template <>
-	class OpaqueInstances<Instances::DissolutionInstance,Materials::DissolutionMaterial>
+	template <typename I>
+	class OpaqueInstances<I, Materials::DissolutionMaterial>
 	{
 	protected:
 
@@ -30,13 +31,14 @@ namespace Engine
 		struct instanceBufferData
 		{
 			TransformSystem::transforms transformData;
-			Instances::DissolutionInstance instanceData;
+			I instanceData;
+			uint32_t instanceID;
 		};
 
 		struct PerInstance
 		{
 			uint32_t transformsId;
-			Instances::DissolutionInstance instanceData;
+			I instanceData;
 			uint32_t instanceMeshId = g_meshIdGenerator++;
 		};
 
@@ -95,9 +97,9 @@ namespace Engine
 
 		OpaqueInstances() { meshData.create(); materialData.create(); }
 
-		std::vector<Instances::DissolutionInstance*> getInstanceByTransformId(uint32_t transformId)
+		std::vector<I*> getInstanceByTransformId(uint32_t transformId)
 		{
-			std::vector<Instances::DissolutionInstance*> modelInstanes;
+			std::vector<I*> modelInstanes;
 
 			for (size_t i = 0; i < perModel.size(); i++)
 			{
@@ -277,7 +279,56 @@ namespace Engine
 			return mData;
 		}
 
-		uint32_t addModel(std::shared_ptr<Model> model, const Materials::DissolutionMaterial& material, uint32_t modelTransformsId, const Instances::DissolutionInstance& instance) // returns model transform ID
+		void addModel(const ModelInstanceData& data)
+		{
+			auto it = perModel.end();
+			for (auto i = perModel.begin(); i != perModel.end(); i++)
+			{
+				if (i->model.get() == data.model.get())
+					it = i;
+			}
+
+			if (it == perModel.end())
+			{
+				PerModel perMod;
+				perMod.model = data.model;
+				for (size_t i = 0; i < data.model->m_meshes.size(); i++)
+				{
+					std::vector<PerInstance> inst(1, data.instance[i]);
+					PerMaterial perMat = { data.material[i],inst };
+					PerMesh perMes = { std::vector<PerMaterial>(1,perMat) };
+					perMod.perMesh.push_back(perMes);
+				}
+
+				perModel.push_back(perMod);
+			}
+			else
+			{
+				auto pModel = it;
+				for (uint32_t meshIndex = 0; meshIndex < pModel->perMesh.size(); ++meshIndex)
+				{
+
+					bool inserted = false;
+					for (auto& perMaterial : pModel->perMesh[meshIndex].perMaterial)
+					{
+						if (data.material[meshIndex] == perMaterial.material)
+						{
+							perMaterial.instances.push_back(data.instance[meshIndex]);
+							inserted = true;
+						}
+					}
+
+					if (!inserted)
+					{
+						std::vector<PerInstance> inst;
+						inst.push_back(data.instance[meshIndex]);
+						pModel->perMesh[meshIndex].perMaterial.push_back(PerMaterial{ data.material[meshIndex], inst });
+					}
+				}
+			}
+		}
+
+		uint32_t addModel(std::shared_ptr<Model> model, const Materials::DissolutionMaterial& material, uint32_t modelTransformsId, const I& instance) // returns model transform ID
 		{
 
 			auto it = perModel.end();
@@ -326,7 +377,7 @@ namespace Engine
 			return modelTransformsId;
 		}
 
-		uint32_t addModel(std::shared_ptr<Model> model, const std::vector<Materials::DissolutionMaterial>& material, uint32_t modelTransformsId, const Instances::DissolutionInstance& instance) // returns model transform ID
+		uint32_t addModel(std::shared_ptr<Model> model, const std::vector<Materials::DissolutionMaterial>& material, uint32_t modelTransformsId, const I& instance) // returns model transform ID
 		{
 
 			auto it = perModel.end();
@@ -380,7 +431,7 @@ namespace Engine
 			return modelTransformsId;
 		}
 
-		uint32_t addModel(std::shared_ptr<Model> model, const Materials::DissolutionMaterial& material, const TransformSystem::transforms& modelTransforms, const Instances::DissolutionInstance& instance)
+		uint32_t addModel(std::shared_ptr<Model> model, const Materials::DissolutionMaterial& material, const TransformSystem::transforms& modelTransforms, const I& instance)
 		{
 			auto TS = TransformSystem::Init();
 			uint32_t modelTransformsId = TS->AddModelTransform(modelTransforms, (uint32_t)model->m_meshes.size());
@@ -389,7 +440,7 @@ namespace Engine
 		}
 
 
-		uint32_t addModel(std::shared_ptr<Model> model, const std::vector<Materials::DissolutionMaterial>& material, const TransformSystem::transforms& modelTransforms, const Instances::DissolutionInstance& instance)
+		uint32_t addModel(std::shared_ptr<Model> model, const std::vector<Materials::DissolutionMaterial>& material, const TransformSystem::transforms& modelTransforms, const I& instance)
 		{
 			auto TS = TransformSystem::Init();
 			uint32_t modelTransformsId = TS->AddModelTransform(modelTransforms, (uint32_t)model->m_meshes.size());
@@ -431,7 +482,7 @@ namespace Engine
 						uint32_t numModelInstances = (uint32_t)instances.size();
 						for (uint32_t index = 0; index < numModelInstances; ++index)
 						{
-							dst[copiedNum++] = instanceBufferData{ TS->GetModelTransforms(instances[index].transformsId)[meshIndex],  instances[index].instanceData };
+							dst[copiedNum++] = instanceBufferData{ TS->GetModelTransforms(instances[index].transformsId)[meshIndex],  instances[index].instanceData, instances[index].instanceMeshId};
 						}
 					}
 				}
@@ -541,4 +592,104 @@ namespace Engine
 		}
 
 	};
+
+	template <>
+	inline void OpaqueInstances<Instances::IncinerationInstance, Materials::DissolutionMaterial>::update(float time) {
+
+		std::list<uint32_t> ids;
+
+		for (size_t i = 0; i < perModel.size(); i++)
+		{
+			float modelBoxSize = perModel[i].model->box.size();
+			vec3 modelBoxMin = perModel[i].model->box.min;
+			vec3 modelBoxMax = perModel[i].model->box.max;
+			for (uint32_t meshIndex = 0; meshIndex < perModel[i].perMesh.size(); ++meshIndex)
+			{
+				const Mesh& mesh = perModel[i].model->m_meshes[meshIndex];
+
+				for (size_t j = 0; j < perModel[i].perMesh[meshIndex].perMaterial.size(); j++)
+				{
+					auto& instances = perModel[i].perMesh[meshIndex].perMaterial[j].instances;
+
+					uint32_t numModelInstances = (uint32_t)instances.size();
+
+					if (std::find(ids.begin(), ids.end(), instances[0].transformsId) != ids.end())
+						continue;
+
+					for (uint32_t index = 0; index < numModelInstances; ++index)
+					{
+						auto& transform = TransformSystem::Init()->GetModelTransforms(instances[index].transformsId)[meshIndex].modelToWold;
+
+						vec3 transformedMin = vec4(modelBoxMin, 1.0f) * transform;
+						vec3 transformedMax = vec4(modelBoxMax, 1.0f) * transform;
+
+						if (instances[index].instanceData.sphereRadius * instances[index].instanceData.sphereRadius > (transformedMax - transformedMin).length_squared())
+						{
+							ids.push_back(instances[index].transformsId);
+							continue;
+						}
+
+						instances[index].instanceData.previousRadius = instances[index].instanceData.sphereRadius;
+						instances[index].instanceData.sphereRadius += modelBoxSize * time * 0.3f;
+					}
+				}
+			}
+		}
+
+		for (auto id : ids)
+		{
+			removeByTransformId(id, true);
+			DecalSystem::Init()->DeleteDecalByTransformId(id);
+		}
+
+		updateInstanceBuffers();
+	}
+
+	template <>
+	inline void OpaqueInstances<Instances::IncinerationInstance, Materials::DissolutionMaterial>::renderUsingShader(std::shared_ptr<shader> shaderToRender)
+	{
+		// Custom render implementation for TextureMaterial
+		if (instanceBuffer.getSize() == 0)
+			return;
+
+		D3D* d3d = D3D::GetInstance();
+
+		shaderToRender->BindShader();
+		instanceBuffer.bind(1u);
+		meshData.bind(2u, shaderTypes::VS);
+		materialData.bind(2u, shaderTypes::PS);
+		materialData.bind(4u, shaderTypes::GS);
+
+		uint32_t renderedInstances = 0;
+		for (const auto& perModel : perModel) {
+			if (perModel.model.get() == nullptr) continue;
+			perModel.model->m_vertices.bind();
+			perModel.model->m_indices.bind();
+			for (uint32_t meshIndex = 0; meshIndex < perModel.perMesh.size(); ++meshIndex) {
+				const Mesh& mesh = perModel.model->m_meshes[meshIndex];
+				const auto& meshRange = perModel.model->m_ranges[meshIndex];
+				meshData.updateBuffer(reinterpret_cast<const MeshData*>(mesh.instances.data())); // ... update shader local per-mesh uniform buffer
+				for (const auto& perMaterial : perModel.perMesh[meshIndex].perMaterial) {
+					if (perMaterial.instances.empty()) continue;
+					const auto& material = perMaterial.material;
+
+					MaterialData data = { vec4((float)material.opaqueTextures.usedTextures, material.opaqueTextures.roughness, material.opaqueTextures.metalness, (float)perModel.model->m_indices.getSize()) };
+
+					materialData.updateBuffer(&data);
+					uint32_t numInstances = uint32_t(perMaterial.instances.size());
+					// Custom rendering logic for TextureMaterial
+
+					perMaterial.material.opaqueTextures.albedoTexture->BindTexture(2u);
+					perMaterial.material.opaqueTextures.roughnessTexture->BindTexture(3u);
+					perMaterial.material.opaqueTextures.metalnessTexture->BindTexture(4u);
+					perMaterial.material.opaqueTextures.normalTexture->BindTexture(5u);
+					perMaterial.material.noiseTexture->BindTexture(14u);
+
+					d3d->GetContext()->DrawIndexedInstanced(meshRange.indexNum, numInstances, meshRange.indexOffset, meshRange.vertexOffset, renderedInstances);
+					renderedInstances += numInstances;
+				}
+			}
+		}
+	}
 }
+

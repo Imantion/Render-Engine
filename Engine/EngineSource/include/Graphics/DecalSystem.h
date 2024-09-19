@@ -24,7 +24,7 @@ namespace Engine
 		void Draw();
 
 		void SetShader(std::shared_ptr<shader> shader);
-
+		void DeleteDecalByTransformId(uint32_t id);
 		static DecalSystem* Init();
 		static void Deinit();
 

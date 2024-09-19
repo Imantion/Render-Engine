@@ -333,6 +333,9 @@ void Engine::ShadowSystem::groupToRenderIn(MeshSystem::RenderGroups renderGroupF
 	case Engine::MeshSystem::DISSOLUTION:
 		MS->dissolutionGroup.renderUsingShader(usedShader);
 		break;
+	case Engine::MeshSystem::INCINERATION:
+		MS->incinerationGroup.renderUsingShader(usedShader);
+		break;
 	default:
 		break;
 	}

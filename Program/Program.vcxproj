@@ -274,6 +274,21 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Shaders\Shadow\Incineration\PointLightShadowGS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\Shadow\Incineration\PointLightShadowPS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\Shadow\Incineration\PointLightShadowVS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\Shadow\Incineration\ShadowPS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\Shadow\Incineration\ShadowVS.hlsl">
+      <FileType>Document</FileType>
+    </None>
     <None Include="Shaders\opaqueShader\opaque.hlsli" />
     <None Include="Shaders\Shadow\ShadowPS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
@@ -486,6 +501,39 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
+    <None Include="Shaders\GPUParticles\BillboardPS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\GPUParticles\BillboardVS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\GPUParticles\ParticleIndirectDataUpdateCS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\GPUParticles\ParticleUpdateCS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\GPUParticles\SphereParticlePS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\GPUParticles\SphereParticleVS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\opaqueShader\IncinerationDS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\opaqueShader\IncinerationGS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\opaqueShader\IncinerationHS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\opaqueShader\IncinerationPS.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Shaders\opaqueShader\IncinerationVS.hlsl">
+      <FileType>Document</FileType>
+    </None>
     <FxCompile Include="Shaders\opaqueShader\opaquePS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>

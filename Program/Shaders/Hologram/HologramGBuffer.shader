@@ -179,10 +179,10 @@ VOut vsMain(VIn input)
 
 struct PSOutput
 {
-    float3 albedo : SV_Target0;
-    float2 roughMetal : SV_Target1;
+    float4 albedo : SV_Target0;
+    float4 roughMetal : SV_Target1;
     float4 normals : SV_Target2;
-    float3 emission : SV_Target3;
+    float4 emission : SV_Target3;
     uint objectId : SV_Target4;
 };
 
@@ -211,11 +211,11 @@ PSOutput psMain(GSOut input)
     
     color = lerp(color, longWaveColor, redWave * 0.25);
     
-    output.albedo = float3(0,0,0);
-    output.roughMetal = float2(0,0);
+    output.albedo = float4(0,0,0, 1);
+    output.roughMetal = float4(0,0,0,1);
     float2 packedNormal = packOctahedron(input.normal);
     output.normals = float4(packedNormal,packedNormal);
-    output.emission = color;
+    output.emission = float4(color,1);
     output.objectId = input.objectId;
 
     return output;

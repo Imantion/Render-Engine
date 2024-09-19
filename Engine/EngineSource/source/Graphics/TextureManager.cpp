@@ -13,9 +13,32 @@ void Engine::Texture::CreateTexture(const wchar_t* name)
 	assert(SUCCEEDED(hr));
 }
 
-void Engine::Texture::BindTexture(UINT slot) const
+void Engine::Texture::BindTexture(UINT slot, UINT ShaderType) const
 {
-	D3D::GetInstance()->GetContext()->PSSetShaderResources(slot, 1u, m_srv.GetAddressOf());
+	if (ShaderType & shaderTypes::VS)
+	{
+		Engine::D3D::GetInstance()->GetContext()->VSSetShaderResources(slot, 1, m_srv.GetAddressOf());
+	}
+	if (ShaderType & shaderTypes::HS)
+	{
+		Engine::D3D::GetInstance()->GetContext()->HSSetShaderResources(slot, 1, m_srv.GetAddressOf());
+	}
+	if (ShaderType & shaderTypes::DS)
+	{
+		Engine::D3D::GetInstance()->GetContext()->DSSetShaderResources(slot, 1, m_srv.GetAddressOf());
+	}
+	if (ShaderType & shaderTypes::GS)
+	{
+		Engine::D3D::GetInstance()->GetContext()->GSSetShaderResources(slot, 1, m_srv.GetAddressOf());
+	}
+	if (ShaderType & shaderTypes::PS)
+	{
+		Engine::D3D::GetInstance()->GetContext()->PSSetShaderResources(slot, 1, m_srv.GetAddressOf());
+	}
+	if (ShaderType & shaderTypes::CS)
+	{
+		Engine::D3D::GetInstance()->GetContext()->CSSetShaderResources(slot, 1, m_srv.GetAddressOf());
+	}
 }
 
 UINT Engine::Texture::getTextureWidth()
@@ -95,6 +118,7 @@ void Engine::TextureManager::BindSamplers()
 	static ID3D11SamplerState* samplers[3] = { m_pointSamplareState.Get(), m_linearSamplareState.Get(), m_anisotropicSamplareState.Get() };
 
 	context->PSSetSamplers(0, 3, samplers);
+	context->CSSetSamplers(0, 3, samplers);
 	context->PSSetSamplers(4, 1, m_pointSamplareState.GetAddressOf());
 }
 

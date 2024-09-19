@@ -82,8 +82,8 @@ void Engine::Renderer::InitDepthWithRTV(ID3D11Resource* RenderBuffer, UINT wWidt
 		perFrameData.texelWidth = 1.0f / (float)wWidth;
 		perFrameData.texelHeight = 1.0f / (float)wHeight;
 
-		perViewBuffer.bind(0u, shaderTypes::VS | shaderTypes::PS | shaderTypes::GS);
-		perFrameBuffer.bind(1u, shaderTypes::VS | shaderTypes::PS | shaderTypes::GS);
+		perViewBuffer.bind(0u, shaderTypes::VS | shaderTypes::PS | shaderTypes::GS | shaderTypes::CS);
+		perFrameBuffer.bind(1u, shaderTypes::VS | shaderTypes::PS | shaderTypes::GS | shaderTypes::CS);
 	}
 }
 
@@ -290,6 +290,7 @@ void Engine::Renderer::InitGBuffer(UINT wWidth, UINT wHeight)
 void Engine::Renderer::updatePerFrameCB(float deltaTime, float wWidth, float wHeight, float farCLip, float nearClip)
 {
 	perFrameData.g_time += deltaTime;
+	perFrameData.g_deltaTime = deltaTime;
 
 	if (perFrameData.g_resolution[0] != wWidth || perFrameData.g_resolution[1] != wHeight)
 	{
@@ -342,6 +343,8 @@ void Engine::Renderer::FillGBuffer()
 
 	auto context = Engine::D3D::GetInstance()->GetContext();
 	ID3D11RenderTargetView* views[5] = { GBufferRTVs[0].Get(),GBufferRTVs[1].Get(),GBufferRTVs[2].Get(),GBufferRTVs[3].Get(),GBufferRTVs[4].Get() };
+	auto& ringBuffer = ParticleSystem::Init()->getRingBuffer();
+	ID3D11UnorderedAccessView* uavs[2] = { ParticleSystem::Init()->getIncinerationBuffer().getUAV(), ringBuffer.m_dataRangebuffer.getUAV()};
 
 	context->ClearDepthStencilView(pViewDepth.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 0.0f, 0u);
 
@@ -351,8 +354,7 @@ void Engine::Renderer::FillGBuffer()
 		context->ClearRenderTargetView(GBufferRTVs[i].Get(), color);
 	}
 
-	context->OMSetBlendState(NULL, NULL, 0xffffffff);
-	context->OMSetRenderTargets(5U, views, pViewDepth.Get());
+	context->OMSetRenderTargetsAndUnorderedAccessViews(5U, views, pViewDepth.Get(), 5u, 2u, uavs, nullptr);
 	MeshSystem::Init()->renderGBuffer(pDSState.Get());
 	context->OMSetRenderTargets(0u, nullptr, nullptr);
 }
@@ -365,6 +367,7 @@ void Engine::Renderer::Render(Camera* camera)
 	static const float color[] = { 0.5f, 0.5f,0.5f,1.0f };
 	context->ClearRenderTargetView(pHDRRenderTarget.Get(), color);
 
+
 	Shadows(camera);
 
 	PerViewCB perView = PerViewCB{ camera->getViewMatrix() * camera->getProjectionMatrix(),
@@ -376,6 +379,11 @@ void Engine::Renderer::Render(Camera* camera)
 
 	
 	perViewBuffer.updateBuffer(&perView);
+
+	float blendFactor[4] = { 1.0f, 1.0f, 1.0f, 1.0f };  // Set blend factor (usually {1, 1, 1, 1} for standard blending)
+	UINT sampleMask = 0xFFFFFFFF;  // Sample mask (use all samples)
+	context->OMSetBlendState(pBlendState.Get(), blendFactor, sampleMask);
+
 
 	FillGBuffer();
 	CreateNoMSDepth();
@@ -403,19 +411,46 @@ void Engine::Renderer::Render(Camera* camera)
 	LightSystem::Init()->BindLightTextures();
 	TextureManager::Init()->BindComparisonSampler(5u);
 
+	ShadowSystem::Init()->BindShadowTextures(11u, 12u, 13u);
+	ShadowSystem::Init()->BindShadowBuffers(5u, 6u);
+
 	m_GBuffer.Bind(25u);
 	context->PSSetShaderResources(30u, 1u, pNoMSDepthSRV.GetAddressOf());
 	MeshSystem::Init()->defferedRender(pDSStencilOnlyState.Get());
+
 	ID3D11ShaderResourceView* const nullSRV = { NULL };
 	context->PSSetShaderResources(30u, 1u, &nullSRV);
 
 	pSkyBox->BindSkyBox(2u);
 	pSkyBox->Draw();
 
+	{
+		context->OMSetBlendState(pAdditiveBlend.Get(), blendFactor, sampleMask);
+		context->OMSetDepthStencilState(pDSReadOnlyState.Get(), 2u);
+		ID3D11ShaderResourceView* const srvs[3] = { m_GBuffer.Albedo.Get(), m_GBuffer.Normals.Get(), pNoMSDepthSRV.Get() };
+		context->PSSetShaderResources(3u, 3u, srvs);
+		ParticleSystem::Init()->RenderGPUParticles();
+
+		ID3D11ShaderResourceView* const nullSRV[3] = { NULL, NULL, NULL };
+		context->PSSetShaderResources(3u, 3u, nullSRV);
+		context->OMSetBlendState(pBlendState.Get(), blendFactor, sampleMask);
+		ParticleSystem::Init()->RenderGPUParticlesBillBoard();
+	}
+
 	RenderParticles(camera);
+
+	{
+		ID3D11ShaderResourceView* const srvs[2] = {m_GBuffer.Normals.Get(), pNoMSDepthSRV.Get()};
+		context->CSSetShaderResources(0u, 2u, srvs);
+		ParticleSystem::Init()->UpdateGPUParticles();
+		ID3D11ShaderResourceView* const nullSRV[2] = { NULL, NULL};
+		context->CSSetShaderResources(0u, 2u, nullSRV);
+	}
 
 	ID3D11ShaderResourceView* const pSRV[3] = { NULL, NULL, NULL };
 	context->PSSetShaderResources(11, 3u, pSRV);
+
+	context->OMSetBlendState(nullptr, blendFactor, sampleMask);
 }
 
 void Engine::Renderer::RenderDecals()
@@ -429,9 +464,6 @@ void Engine::Renderer::RenderDecals()
 	context->OMSetRenderTargets(4, views, nullptr);
 	context->OMSetDepthStencilState(nullptr, 0u);
 	context->RSSetState(pCullFrontRasterizerState.Get()); 
-	float blendFactor[4] = { 1.0f, 1.0f, 1.0f, 1.0f };  // Set blend factor (usually {1, 1, 1, 1} for standard blending)
-	UINT sampleMask = 0xFFFFFFFF;  // Sample mask (use all samples)
-	context->OMSetBlendState(pBlendState.Get(), blendFactor, sampleMask);
 
 	context->PSSetShaderResources(25u, 1, m_GBuffer.ObjectId.GetAddressOf());
 	context->PSSetShaderResources(26u, 1, m_GBuffer.SecondNormals.GetAddressOf());
@@ -566,6 +598,18 @@ Engine::Renderer::Renderer() :
 	hr = D3D::GetInstance()->GetDevice()->CreateBlendState(&blendDesc, &pBlendState);
 	assert(SUCCEEDED(hr));
 
+	D3D11_BLEND_DESC additiveBlendDesc = {};
+	additiveBlendDesc.RenderTarget[0].BlendEnable = TRUE;
+	additiveBlendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;        // Source color factor
+	additiveBlendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;       // Destination color factor
+	additiveBlendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;      // Add the two colors together
+	additiveBlendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;   // Same for alpha channel
+	additiveBlendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO; // Ignore the destination alpha
+	additiveBlendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD; // Add alpha values
+	additiveBlendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	hr = D3D::GetInstance()->GetDevice()->CreateBlendState(&additiveBlendDesc, &pAdditiveBlend);
+	assert(SUCCEEDED(hr));
+
 	D3D11_DEPTH_STENCIL_DESC depthStencilDesc = {};
 
 	// Enable depth testing
@@ -583,6 +627,11 @@ void Engine::Renderer::Shadows(const Camera* camera)
 {
 	auto context = D3D::GetInstance()->GetContext();
 
+	UINT sampleMask = 0xFFFFFFFF;  // Sample mask (use all samples)
+	context->OMSetBlendState(NULL, nullptr, sampleMask);
+
+	context->OMSetDepthStencilState(pDSState.Get(), 1u);
+
 	context->RSSetState(pRasterizerState.Get());
 	context->OMSetDepthStencilState(pDSState.Get(), 1u);
 	std::vector<Engine::vec3> positions;
@@ -596,7 +645,4 @@ void Engine::Renderer::Shadows(const Camera* camera)
 	Engine::MeshSystem::Init()->renderDepth2DDirectional(LightSystem::Init()->GetDirectionalLights(), camera);
 
 	context->RSSetState(nullptr);
-
-	ShadowSystem::Init()->BindShadowTextures(11u, 12u, 13u);
-	ShadowSystem::Init()->BindShadowBuffers(5u, 6u);
 }

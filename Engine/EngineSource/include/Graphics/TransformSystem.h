@@ -26,6 +26,7 @@ namespace Engine
 		uint32_t AddModelTransform(const transforms& transf, uint32_t meshesAmount);
 
 		std::vector<transforms>& GetModelTransforms(uint32_t ID);
+		bool CheckForExistance(uint32_t ID);
 
 		void RemoveModelTransform(uint32_t id);
 		void SetModelPosition(uint32_t id, const std::vector<vec3>& position);

@@ -25,6 +25,8 @@ namespace Engine
 		float nearClip;
 		float texelWidth;
 		float texelHeight;
+		float g_deltaTime;
+		float padding[3];
 	};
 
 	struct PerViewCB
@@ -141,6 +143,7 @@ namespace Engine
 		Microsoft::WRL::ComPtr<ID3D11RasterizerState> pRasterizerState;
 		Microsoft::WRL::ComPtr<ID3D11RasterizerState> pCullFrontRasterizerState;
 		Microsoft::WRL::ComPtr<ID3D11BlendState> pBlendState;
+		Microsoft::WRL::ComPtr<ID3D11BlendState> pAdditiveBlend;
 
 		std::shared_ptr<Texture> diffuseIBL;
 		std::shared_ptr<Texture> specularIBL;

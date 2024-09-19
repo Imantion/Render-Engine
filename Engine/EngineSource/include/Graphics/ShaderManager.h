@@ -16,6 +16,7 @@ namespace Engine
 		void DisableShader();
 		void BindInputLyout(ID3D11InputLayout* layout);
 		void BindShader();
+		bool BindComputeShader();
 
 		Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader;
 		Microsoft::WRL::ComPtr<ID3DBlob> vertexBlob;
@@ -23,6 +24,7 @@ namespace Engine
 		Microsoft::WRL::ComPtr<ID3D11HullShader> hullShader;
 		Microsoft::WRL::ComPtr<ID3D11DomainShader> domainShader;
 		Microsoft::WRL::ComPtr<ID3D11GeometryShader> geometryShader;
+		Microsoft::WRL::ComPtr<ID3D11ComputeShader> computeShader;
 		D3D_PRIMITIVE_TOPOLOGY topology;
 		
 		bool isEnabled = true;
@@ -44,6 +46,8 @@ namespace Engine
 			const D3D_SHADER_MACRO* vertexShaderMacro, const D3D_SHADER_MACRO* pixelShaderMacro, 
 			D3D_PRIMITIVE_TOPOLOGY topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST, const char* vsEntryPoint = "main", const char* psEntryPoint = "main", 
 			const char* hsEntryPoint = "main", const char* dsEntryPoint = "main",const char* gsEntryPoint = "main");
+
+		static std::shared_ptr<shader> CompileAndCreateComputeShader(const char* shaderName, const wchar_t* computeShaderSource, const D3D_SHADER_MACRO* computeShaderMacro, const char* csEntryPoint = "main");
 
 		static ID3D11InputLayout* CreateInputLayout(const char* InputLayouName, ID3DBlob* vsBlob, const D3D11_INPUT_ELEMENT_DESC* ied, UINT iedSize);
 

@@ -28,6 +28,9 @@ bool Engine::shader::create(ID3DBlob* blob, shaderTypes shaderType)
 	case Engine::shaderTypes::PS:
 		hr = device->CreatePixelShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &pixelShader);
 		break;
+	case Engine::shaderTypes::CS:
+		hr = device->CreateComputeShader(blob->GetBufferPointer(), blob->GetBufferSize(), nullptr, &computeShader);
+		break;
 	default:
 		break;
 	}
@@ -69,6 +72,16 @@ void Engine::shader::BindShader()
 		d3d->GetContext()->IASetInputLayout(inputLayout);
 		d3d->GetContext()->IASetPrimitiveTopology(topology);
 	}
+}
+
+bool Engine::shader::BindComputeShader()
+{
+	if (!computeShader)
+		return false;
+
+	D3D::GetInstance()->GetContext()->CSSetShader(computeShader.Get(), nullptr, 0u);
+
+	return true;
 }
 
 
@@ -176,6 +189,40 @@ std::shared_ptr<Engine::shader> Engine::ShaderManager::CompileAndCreateShader(co
 	shaders.insert({ shaderName, shader });
 
 	return shader;
+}
+
+std::shared_ptr<Engine::shader> Engine::ShaderManager::CompileAndCreateComputeShader(const char* shaderName, const wchar_t* computeShaderSource, const D3D_SHADER_MACRO* computeShaderMacro, const char* csEntryPoint)
+{
+	UINT flags = 0;
+#ifdef _DEBUG 
+	flags |= D3DCOMPILE_DEBUG;
+#endif
+
+	shader shrd;
+
+	Microsoft::WRL::ComPtr<ID3DBlob> csBlob;
+	Microsoft::WRL::ComPtr<ID3DBlob> errorBlob;
+	HRESULT hr = D3DCompileFromFile(computeShaderSource,        // Path to HLSL file
+		computeShaderMacro,           // Optional macro definitions
+		D3D_COMPILE_STANDARD_FILE_INCLUDE,           // Optional include files
+		csEntryPoint,          // Entry point function
+		"cs_5_0",          // Target shader model (cs_5_0 for compute shaders)
+		flags,                 // Shader compile flags (use D3DCOMPILE_DEBUG for debugging)
+		0,                 // Optional effect flags
+		&csBlob,           // Blob that will contain the compiled bytecode
+		&errorBlob);       // Blob for error messages
+	if (FAILED(hr)) {
+		if (errorBlob) {
+			OutputDebugStringA((char*)errorBlob->GetBufferPointer());
+		}
+		assert(hr);
+	}
+
+	shrd.create(csBlob.Get(), shaderTypes::CS);
+
+	shaders.insert({ shaderName, std::make_shared<shader>(shrd) });
+
+	return shaders[shaderName];
 }
 
 ID3D11InputLayout* Engine::ShaderManager::CreateInputLayout(const char* InputLayoutName, ID3DBlob* vsBlob, const D3D11_INPUT_ELEMENT_DESC* ied, UINT iedSize)

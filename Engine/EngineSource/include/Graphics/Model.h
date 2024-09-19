@@ -43,6 +43,7 @@ namespace Engine
 		template <typename I, typename M>
 		friend class OpaqueInstances;
 		friend class ModelManager;
+		friend class ParticleSystem;
 
 	private:
 		std::vector<Mesh> m_meshes;

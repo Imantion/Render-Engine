@@ -14,7 +14,10 @@ int Engine::MeshSystem::intersect(const ray& r, hitInfo& hInfo)
 	int third = opaqueGroup.intersect(r, hInfo);
 	int fourth = emmisiveGroup.intersect(r, hInfo);
 	int fifth = dissolutionGroup.intersect(r, hInfo);
+	int sixth = incinerationGroup.intersect(r, hInfo);
 
+	if (sixth != -1)
+		return sixth;
 	if (fifth != -1)
 		return fifth;
 	if (fourth != -1)
@@ -58,8 +61,8 @@ void Engine::MeshSystem::updateInstanceBuffers()
 	hologramGroup.updateInstanceBuffers();
 	opaqueGroup.updateInstanceBuffers();
 	emmisiveGroup.updateInstanceBuffers();
-	shadowGroup.updateInstanceBuffers();
 	dissolutionGroup.updateInstanceBuffers();
+	incinerationGroup.updateInstanceBuffers();
 }
 
 void Engine::MeshSystem::render()
@@ -73,13 +76,15 @@ void Engine::MeshSystem::render()
 void Engine::MeshSystem::renderGBuffer(ID3D11DepthStencilState* depthStencilState)
 {
 	auto context = D3D::GetInstance()->GetContext();
-	context->OMSetDepthStencilState(depthStencilState, 1u);
-	opaqueGroup.renderUsingShader(opaqueGroup.GBufferShader);
-	dissolutionGroup.renderUsingShader(dissolutionGroup.GBufferShader);
 
 	context->OMSetDepthStencilState(depthStencilState, 2u);
 	emmisiveGroup.renderUsingShader(emmisiveGroup.GBufferShader);
 	hologramGroup.renderUsingShader(hologramGroup.GBufferShader);
+
+	context->OMSetDepthStencilState(depthStencilState, 1u);
+	opaqueGroup.renderUsingShader(opaqueGroup.GBufferShader);
+	dissolutionGroup.renderUsingShader(dissolutionGroup.GBufferShader);
+	incinerationGroup.renderUsingShader(incinerationGroup.GBufferShader);
 }
 
 void Engine::MeshSystem::defferedRender(ID3D11DepthStencilState* dsStencilOnlyState)
@@ -120,9 +125,9 @@ void Engine::MeshSystem::renderDepthCubemaps(const std::vector<vec3>& lightPosit
 {
 	auto opaqueShadowShader = ShaderManager::GetShader("PLshadow");
 	auto dissShadowShader = ShaderManager::GetShader("DissPLshadow");
-
+	auto inceShadow = ShaderManager::GetShader("IncinerationPLShadow");
 	ShadowSystem::Init()->RenderPointLightShadowMaps(lightPositions, { ShadowSystem::ShadowRenderGroupInfo{RenderGroups::OPAQUEGROUP,opaqueShadowShader},
-		ShadowSystem::ShadowRenderGroupInfo{RenderGroups::DISSOLUTION,dissShadowShader} });
+		ShadowSystem::ShadowRenderGroupInfo{RenderGroups::DISSOLUTION,dissShadowShader}, ShadowSystem::ShadowRenderGroupInfo{ RenderGroups::INCINERATION, inceShadow } });
 }
 
 void Engine::MeshSystem::renderDepth2D(const std::vector<Engine::SpotLight>& spotlights)
@@ -131,8 +136,9 @@ void Engine::MeshSystem::renderDepth2D(const std::vector<Engine::SpotLight>& spo
 
 	auto opaqueShadowShader = ShaderManager::GetShader("shadow");
 	auto dissShadowShader = ShaderManager::GetShader("DissShadow");
+	auto inceShadow = ShaderManager::GetShader("IncinerationShadow");
 	ShadowSystem::Init()->RenderSpotLightShadowMaps({ ShadowSystem::ShadowRenderGroupInfo{RenderGroups::OPAQUEGROUP,opaqueShadowShader},
-		ShadowSystem::ShadowRenderGroupInfo{RenderGroups::DISSOLUTION,dissShadowShader} });
+		ShadowSystem::ShadowRenderGroupInfo{RenderGroups::DISSOLUTION,dissShadowShader}, ShadowSystem::ShadowRenderGroupInfo{ RenderGroups::INCINERATION, inceShadow } });
 }
 
 void Engine::MeshSystem::renderDepth2DDirectional(const std::vector<DirectionalLight>& directionalLights, const Camera* camera)
@@ -141,8 +147,9 @@ void Engine::MeshSystem::renderDepth2DDirectional(const std::vector<DirectionalL
 
 	auto opaqueShadowShader = ShaderManager::GetShader("shadow");
 	auto dissShadowShader = ShaderManager::GetShader("DissShadow");
+	auto inceShadow = ShaderManager::GetShader("IncinerationShadow");
 	ShadowSystem::Init()->RenderDirectLightShadowMaps({ ShadowSystem::ShadowRenderGroupInfo{RenderGroups::OPAQUEGROUP,opaqueShadowShader},
-		ShadowSystem::ShadowRenderGroupInfo{RenderGroups::DISSOLUTION,dissShadowShader} });
+		ShadowSystem::ShadowRenderGroupInfo{RenderGroups::DISSOLUTION,dissShadowShader}, ShadowSystem::ShadowRenderGroupInfo{ RenderGroups::INCINERATION, inceShadow } });
 }
 
 

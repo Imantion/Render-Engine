@@ -2,6 +2,7 @@
 #include "Graphics/TransformSystem.h"
 #include "Graphics/TextureManager.h"
 #include "Graphics/ShaderManager.h"
+#include "Graphics/Model.h"
 #include "Utils/Random.h"
 #include "Utils/RadixSort.h"
 #include <cmath>
@@ -166,6 +167,20 @@ void Engine::ParticleSystem::Deinit()
 	m_instance = nullptr;
 }
 
+void Engine::ParticleSystem::InitGPUParticles()
+{
+	m_sphereModel = ModelManager::GetInstance()->GetModel("UNIT_SPHERE");
+
+	RingBuffer::DataRange dataRange = { 0 , 0, 0 };
+	RingBuffer::IndirectCall drawCall = { m_sphereModel->m_indices.getSize(), 0u, 0u, 0u, 0u, 6u, 0u, 0u, 0u, 0u, 0u, 1u, 1u};
+
+
+	m_ringBuffer.m_dataRangebuffer.create(&dataRange, 1u, DXGI_FORMAT_R32_UINT, 0u, true);
+	m_ringBuffer.m_indirectDrawbuffer.create(&drawCall, 1u, DXGI_FORMAT_R32_UINT, D3D11_RESOURCE_MISC_DRAWINDIRECT_ARGS, true);
+
+	m_incinerationBuffer.create(10000u, true);
+}
+
 void Engine::ParticleSystem::addSmokeEmitter(const Emitter& emitter)
 {
 	m_emmiters.push_back(emitter);
@@ -242,6 +257,26 @@ void Engine::ParticleSystem::UpdateBuffers(const vec3& cameraPosition)
 	m_vertexBuffer.create(m_vertexBufferSortedData.data(), (UINT)particlesAmount);
 }
 
+void Engine::ParticleSystem::UpdateGPUParticles()
+{
+	auto context = D3D::GetInstance()->GetContext();
+
+	m_incinerationBuffer.bindWrite(0u);
+	m_ringBuffer.m_dataRangebuffer.bindWrite(1u);
+	m_ringBuffer.m_indirectDrawbuffer.bindWrite(2u);
+	
+	m_GPUParticlesUpdateCS->BindComputeShader();
+	context->DispatchIndirect(m_ringBuffer.m_indirectDrawbuffer.getBuffer(), 10 * sizeof(UINT));
+
+
+	m_GPUParticlesDrawCallUpdateCS->BindComputeShader();
+	context->Dispatch(1, 1, 1);
+
+
+	m_incinerationBuffer.unbindWrite(0u);
+	m_ringBuffer.m_dataRangebuffer.unbindWrite(1u);
+}
+
 void Engine::ParticleSystem::SetSmokeTextures(std::shared_ptr<Texture> RLU, std::shared_ptr<Texture> DBF, std::shared_ptr<Texture> EMVA)
 {
 	m_RLU = RLU;
@@ -250,6 +285,19 @@ void Engine::ParticleSystem::SetSmokeTextures(std::shared_ptr<Texture> RLU, std:
 
 	PartilcleAtlasInfo data = { textureRowCount, textureColumnCount };
 	m_cbTextureData.updateBuffer(&data);
+}
+
+void Engine::ParticleSystem::SetSparkTexture(std::shared_ptr<Texture> spark)
+{
+	m_spark = spark;
+}
+
+void Engine::ParticleSystem::SetGPUParticlesShaders(std::shared_ptr<shader> GPUBillboardshader, std::shared_ptr<shader> GPULightParticles, std::shared_ptr<shader> GPUParticlesUpdateCS, std::shared_ptr<shader> GPUParticlesDrawCallUpdateCS)
+{
+	m_GPUBillboardshader = GPUBillboardshader;
+	m_GPULightParticles = GPULightParticles;
+	m_GPUParticlesUpdateCS = GPUParticlesUpdateCS;
+	m_GPUParticlesDrawCallUpdateCS = GPUParticlesDrawCallUpdateCS;
 }
 
 void Engine::ParticleSystem::Render()
@@ -267,6 +315,45 @@ void Engine::ParticleSystem::Render()
 	m_DBF->BindTexture(22);
 
 	context->DrawIndexedInstanced(6u, particlesAmount, 0, 0, 0);
+}
+
+void Engine::ParticleSystem::RenderGPUParticles()
+{
+	auto context = D3D::GetInstance()->GetContext();
+
+	m_GPULightParticles->BindShader();
+
+	m_incinerationBuffer.bind(4u, VS);
+	m_ringBuffer.m_dataRangebuffer.bind(5u, VS);
+
+	m_sphereModel->m_vertices.bind();
+	m_sphereModel->m_indices.bind();
+
+	
+	context->DrawIndexedInstancedIndirect(m_ringBuffer.m_indirectDrawbuffer.getBuffer(), 0u);
+
+	m_incinerationBuffer.unbind(4u, VS);
+	m_ringBuffer.m_dataRangebuffer.unbind(5u, VS);
+}
+
+void Engine::ParticleSystem::RenderGPUParticlesBillBoard()
+{
+	auto context = D3D::GetInstance()->GetContext();
+
+	m_GPUBillboardshader->BindShader();
+
+	m_incinerationBuffer.bind(4u, VS);
+	m_ringBuffer.m_dataRangebuffer.bind(5u, VS);
+	m_spark->BindTexture(4u, PS);
+
+	m_indexBuffer.bind();
+
+
+	context->DrawIndexedInstancedIndirect(m_ringBuffer.m_indirectDrawbuffer.getBuffer(), 5u * sizeof(UINT));
+
+	m_incinerationBuffer.unbind(4u, VS);
+	m_ringBuffer.m_dataRangebuffer.unbind(5u, VS);
+
 }
 
 Engine::ParticleSystem::ParticleSystem()
@@ -290,4 +377,5 @@ Engine::ParticleSystem::ParticleSystem()
 	
 	auto layout = ShaderManager::CreateInputLayout("ParticleLayout", m_shader->vertexBlob.Get(), particleInputLayout, sizeof(particleInputLayout) / sizeof(D3D11_INPUT_ELEMENT_DESC));
 	m_shader->BindInputLyout(layout);
+
 }
