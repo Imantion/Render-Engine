@@ -77,7 +77,7 @@ std::shared_ptr<Engine::Model> Engine::ModelManager::AddModel(std::string name, 
 	return models[name];
 }
 
-std::shared_ptr<Engine::Model> Engine::ModelManager::loadModel(std::string path, bool flipBT)
+std::shared_ptr<Engine::Model> Engine::ModelManager::loadModel(std::string path, bool flipBT, std::vector<uint32_t>* materialIndexes)
 {
 	if (models.find(path) != models.end())
 		return models.find(path)->second;
@@ -127,11 +127,17 @@ std::shared_ptr<Engine::Model> Engine::ModelManager::loadModel(std::string path,
 	vec3 min = vec3(std::numeric_limits<float>().max());
 	vec3 max = vec3(-std::numeric_limits<float>().max());
 	
+	if(materialIndexes)
+		materialIndexes->reserve(numMeshes);
+
 	for (uint32_t i = 0; i < numMeshes; ++i)
 	{
 		auto& srcMesh = assimpScene->mMeshes[i];
 		auto& dstMesh = model->m_meshes[i];
 		auto& dstMeshRange = model->m_ranges[i];
+
+		if(materialIndexes)
+			materialIndexes->push_back(srcMesh->mMaterialIndex);
 
 		dstMesh.name = srcMesh->mName.C_Str();
 		dstMesh.box.min = reinterpret_cast<vec3&>(srcMesh->mAABB.mMin);

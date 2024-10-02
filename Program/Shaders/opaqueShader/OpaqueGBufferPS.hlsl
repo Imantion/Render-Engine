@@ -27,7 +27,10 @@ PSOutput main(PSInput input)
 {
     PSOutput output;
     
-    output.albedo = float4(CalculateAlbedo(input.tc), 1.0f);
+    output.albedo = CalculateAlbedo4(input.tc);
+    if (output.albedo.a < 0.05)
+        discard;
+    
     CalculateMaterialProperties(input.tc, output.roughMetal.y, output.roughMetal.x);
     
     if (input.isSelected)

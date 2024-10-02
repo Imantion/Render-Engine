@@ -99,6 +99,8 @@ namespace Engine
 		VertexBuffer<instanceBufferData> instanceBuffer;
 		ConstBuffer<MeshData> meshData;
 		ConstBuffer<MaterialData> materialData;
+
+		std::vector<std::shared_ptr<Model>> m_modelsHitIgnore;
 	public:
 		struct ModelInstanceData
 		{
@@ -182,6 +184,9 @@ namespace Engine
 			ray transformedRay = r;
 			for (size_t i = 0; i < perModel.size(); i++)
 			{
+				if(std::find(m_modelsHitIgnore.begin(), m_modelsHitIgnore.end(), perModel[i].model) != m_modelsHitIgnore.end())
+					continue;
+
 				for (uint32_t meshIndex = 0; meshIndex < perModel[i].perMesh.size(); ++meshIndex)
 				{
 					const Mesh& mesh = perModel[i].model->m_meshes[meshIndex];
@@ -220,6 +225,9 @@ namespace Engine
 			ray transformedRay = r;
 			for (size_t i = 0; i < perModel.size(); i++)
 			{
+				if (std::find(m_modelsHitIgnore.begin(), m_modelsHitIgnore.end(), perModel[i].model) != m_modelsHitIgnore.end())
+					continue;
+
 				for (uint32_t meshIndex = 0; meshIndex < perModel[i].perMesh.size(); ++meshIndex)
 				{
 					const Mesh& mesh = perModel[i].model->m_meshes[meshIndex];
@@ -422,7 +430,7 @@ namespace Engine
 				for (size_t i = 0; i < model->m_meshes.size(); i++)
 				{
 					std::vector<PerInstance> inst(1, PerInstance{ modelTransformsId, instance, g_meshIdGenerator++ });
-					PerMaterial perMat = { material[i],inst };
+					PerMaterial perMat = { material[i],inst};
 					PerMesh perMes = { std::vector<PerMaterial>(1,perMat) };
 
 					perMod.perMesh[i] = perMes;
@@ -465,6 +473,11 @@ namespace Engine
 			return addModel(model, material, modelTransformsId, instance);
 		}
 
+		void addIntersectIgnoredModel(std::shared_ptr<Model> model)
+		{
+			m_modelsHitIgnore.emplace_back(model);
+		}
+
 
 		uint32_t addModel(std::shared_ptr<Model> model, const std::vector<M>& material, const TransformSystem::transforms& modelTransforms, const I& instance = {})
 		{
@@ -474,7 +487,30 @@ namespace Engine
 			return addModel(model, material, modelTransformsId, instance);
 		}
 
+		std::shared_ptr<Model> GetModelByTransformID(uint32_t transformID)
+		{
+			for (const auto& perModel : perModel)
+			{
+				for (uint32_t meshIndex = 0; meshIndex < perModel.perMesh.size(); ++meshIndex)
+				{
+					const Mesh& mesh = perModel.model->m_meshes[meshIndex];
 
+					for (const auto& perMaterial : perModel.perMesh[meshIndex].perMaterial)
+					{
+						auto& instances = perMaterial.instances;
+
+						uint32_t numModelInstances = (uint32_t)instances.size();
+						for (uint32_t index = 0; index < numModelInstances; ++index)
+						{
+							if (transformID == instances[index].transformsId)
+								return perModel.model;
+						}
+					}
+				}
+			}
+
+			return nullptr;
+		}
 
 		void updateInstanceBuffers()
 		{

@@ -23,6 +23,11 @@ float3 CalculateAlbedo(float2 texCoord)
     return albed.Sample(g_sampler, texCoord);
 }
 
+float4 CalculateAlbedo4(float2 texCoord)
+{
+    return albed.Sample(g_sampler, texCoord);
+}
+
 void CalculateMaterialProperties(float2 tc, out float metalness, out float roughness)
 {
     metalness = material_metalness;

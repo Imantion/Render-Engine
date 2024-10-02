@@ -66,7 +66,7 @@ namespace Engine
 		void initUnitQuad();
 
 		std::shared_ptr<Model> AddModel(std::string name, Model&& model);
-		std::shared_ptr<Model> loadModel(std::string path, bool flipBT = false);
+		std::shared_ptr<Model> loadModel(std::string path, bool flipBT = false, std::vector<uint32_t>* materialIndexes = nullptr);
 		std::shared_ptr<Model> GetModel(std::string name);
 
 	protected:

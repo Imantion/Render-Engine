@@ -92,8 +92,11 @@ void Engine::TextureManager::Deinit()
 
 std::shared_ptr<Engine::Texture> Engine::TextureManager::LoadFromFile(const char* name, const wchar_t* path)
 {
+	//if (m_textures.find(name) != m_textures.end())
+	//	throw std::runtime_error("Texture with name '" + std::string(name) + "' already exists");
+
 	if (m_textures.find(name) != m_textures.end())
-		throw std::runtime_error("Texture with name '" + std::string(name) + "' already exists");
+		return m_textures[name];
 
 	auto texture = std::make_shared<Texture>(path);
 	m_textures.emplace(name, texture);

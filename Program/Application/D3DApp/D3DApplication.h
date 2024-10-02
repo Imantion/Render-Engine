@@ -35,6 +35,7 @@ private:
 	void InitLights();
 	void InitCrateModel();
 	void InitFloor();
+	void InitSponza();
 	void InitSkybox();
 	void InitPostProcess();
 	void GUI();

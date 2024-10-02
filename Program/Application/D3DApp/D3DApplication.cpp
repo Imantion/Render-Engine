@@ -307,7 +307,7 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 	InitSamuraiModel();
 	InitLights();
 	InitCrateModel();
-	InitFloor();
+	InitSponza();
 	InitSkybox();
 	InitPostProcess();
 	ImGui_ImplWin32_Init(pWindow->getHWND());	
@@ -942,7 +942,7 @@ void D3DApplication::InitLights()
 	spotLight.bindedObjectId = camera->getCameraTransformId();
 	Engine::LightSystem::Init()->AddFlashLight(spotLight, TM->LoadFromFile("flashlight", L"Textures\\flashlightMask.dds"));
 
-	Engine::DirectionalLight directionalLight(Engine::vec3(-0.3205475307f, -0.595605361f, -0.10348193f).normalized(), Engine::vec3(0.84f * 7.5f, 0.86264f * 7.5f, 0.89019f * 7.5f), 0.15f);
+	Engine::DirectionalLight directionalLight(Engine::vec3(-0.3205475307f, -0.595605361f, -0.10348193f).normalized(), Engine::vec3(0.84f * 7.5f, 0.86264f * 7.5f, 0.89019f * 7.5f), 1.5f);
 	Engine::LightSystem::Init()->AddDirectionalLight(directionalLight);
 
 	Engine::TransformSystem::transforms bombo = {
@@ -1050,6 +1050,185 @@ void D3DApplication::InitFloor()
 			Engine::MeshSystem::Init()->opaqueGroup.addModel(model, floorMaterial, inst);
 		}
 	}
+}
+
+void D3DApplication::InitSponza()
+{
+	auto TM = Engine::TextureManager::Init();
+
+	Engine::TransformSystem::transforms inst = { Engine::transformMatrix(Engine::vec3(0.0f, -5.0f, 0.0f), Engine::vec3(0.0f, 0.0f, 0.025f), Engine::vec3(0.025, 0.0f, 0.0f), Engine::vec3(0.0f,  0.025, 0.0f)) };
+	auto emptyTexture = std::make_shared<Engine::Texture>();
+
+	std::vector<Materials::OpaqueTextureMaterial> sponzaTextures = {
+
+		// vase - Vase Hanging
+		{ TM->LoadFromFile("vase_hanging_diffuse", L"Textures\\Sponza\\VaseHanging_diffuse.dds"),
+		TM->LoadFromFile("vase_hanging_roughness", L"Textures\\Sponza\\VaseHanging_roughness.dds"),
+		emptyTexture,
+		TM->LoadFromFile("vase_hanging_normal", L"Textures\\Sponza\\VaseHanging_normal.dds") },
+
+		// Material__25
+		{ TM->LoadFromFile("lion_diffuse", L"Textures\\Sponza\\Lion_Albedo.dds"),
+		TM->LoadFromFile("lion_roughness", L"Textures\\Sponza\\Lion_Roughness.dds"),
+		emptyTexture,
+		TM->LoadFromFile("lion_normal", L"Textures\\Sponza\\Lion_Normal.dds") },
+
+
+		// Background
+		{ TM->LoadFromFile("background_diffuse", L"Textures\\Sponza\\Background_Albedo.dds"),
+		TM->LoadFromFile("background_roughness", L"Textures\\Sponza\\Background_Roughness.dds"),
+		emptyTexture,
+		TM->LoadFromFile("background_normal", L"Textures\\Sponza\\Background_Normal.dds") },
+
+		// Material__47 (no maps listed)
+		{ emptyTexture, emptyTexture, emptyTexture, emptyTexture },
+
+		// Material__57
+		{ TM->LoadFromFile("vase_plant_diffuse", L"Textures\\Sponza\\VasePlant_diffuse.dds"),
+		TM->LoadFromFile("vase_plant_roughness", L"Textures\\Sponza\\VasePlant_roughness.dds"),
+		emptyTexture,
+		TM->LoadFromFile("vase_plant_normal", L"Textures\\Sponza\\VasePlant_normal.dds") },
+
+		// Material arch
+		{ TM->LoadFromFile("arch_diffuse", L"Textures\\Sponza\\Sponza_Arch_diffuse.dds"),
+		TM->LoadFromFile("arch_roughness", L"Textures\\Sponza\\Sponza_Arch_roughness.dds"),
+		emptyTexture,
+		TM->LoadFromFile("arch_normal", L"Textures\\Sponza\\Sponza_Arch_normal.dds") },
+
+		// Material bricks
+		{ TM->LoadFromFile("bricks_diffuse", L"Textures\\Sponza\\Sponza_Bricks_a_Albedo.dds"),
+		TM->LoadFromFile("bricks_roughness", L"Textures\\Sponza\\Sponza_Bricks_a_Roughness.dds"),
+		emptyTexture,
+		TM->LoadFromFile("bricks_normal", L"Textures\\Sponza\\Sponza_Bricks_a_Normal.dds") },
+
+		// Material ceiling
+		{ TM->LoadFromFile("ceiling_diffuse", L"Textures\\Sponza\\Sponza_Ceiling_diffuse.dds"),
+		TM->LoadFromFile("ceiling_roughness", L"Textures\\Sponza\\Sponza_Ceiling_roughness.dds"),
+		emptyTexture,
+		TM->LoadFromFile("ceiling_normal", L"Textures\\Sponza\\Sponza_Ceiling_normal.dds") },
+
+		// Material chain
+		{ TM->LoadFromFile("chain_diffuse", L"Textures\\Sponza\\ChainTexture_Albedo.dds"),
+		TM->LoadFromFile("chain_roughness", L"Textures\\Sponza\\ChainTexture_Roughness.dds"),
+		TM->LoadFromFile("chain_metallic", L"Textures\\Sponza\\ChainTexture_Metallic.dds"),
+		TM->LoadFromFile("chain_normal", L"Textures\\Sponza\\ChainTexture_Normal.dds") },
+
+		// Material column_a
+		{ TM->LoadFromFile("column_a_diffuse", L"Textures\\Sponza\\Sponza_Column_a_diffuse.dds"),
+		TM->LoadFromFile("column_a_roughness", L"Textures\\Sponza\\Sponza_Column_a_roughness.dds"),
+		emptyTexture,
+		TM->LoadFromFile("column_a_normal", L"Textures\\Sponza\\Sponza_Column_a_normal.dds") },
+
+		// Material column_b
+		{ TM->LoadFromFile("column_b_diffuse", L"Textures\\Sponza\\Sponza_Column_b_diffuse.dds"),
+		TM->LoadFromFile("column_b_roughness", L"Textures\\Sponza\\Sponza_Column_b_roughness.dds"),
+		emptyTexture,
+		TM->LoadFromFile("column_b_normal", L"Textures\\Sponza\\Sponza_Column_b_normal.dds") },
+
+
+		// Material column_c
+		{ TM->LoadFromFile("column_c_diffuse", L"Textures\\Sponza\\Sponza_Column_c_diffuse.dds"),
+		TM->LoadFromFile("column_c_roughness", L"Textures\\Sponza\\Sponza_Column_c_roughness.dds"),
+		emptyTexture,
+		TM->LoadFromFile("column_c_normal", L"Textures\\Sponza\\Sponza_Column_c_normal.dds") },
+
+
+		// Material details
+		{ TM->LoadFromFile("details_diffuse", L"Textures\\Sponza\\Sponza_Details_diffuse.dds"),
+		TM->LoadFromFile("details_roughness", L"Textures\\Sponza\\Sponza_Details_roughness.dds"),
+		TM->LoadFromFile("details_metallic", L"Textures\\Sponza\\Sponza_Details_metallic.dds"),
+		TM->LoadFromFile("details_normal", L"Textures\\Sponza\\Sponza_Details_normal.dds") },
+
+		// fabric_b - Sponza Fabric Green
+		{ TM->LoadFromFile("sponza_fabric_green_diffuse", L"Textures\\Sponza\\Sponza_Fabric_Green_diffuse.dds"),
+		TM->LoadFromFile("sponza_fabric_roughness", L"Textures\\Sponza\\Sponza_Fabric_roughness.dds"),
+		emptyTexture,
+		TM->LoadFromFile("sponza_fabric_green_normal", L"Textures\\Sponza\\Sponza_Fabric_Green_normal.dds") },
+
+		// curtain_red - Red Curtain
+		{ TM->LoadFromFile("curtain_red_diffuse", L"Textures\\Sponza\\Sponza_Curtain_Red_diffuse.dds"),
+		TM->LoadFromFile("curtain_roughness", L"Textures\\Sponza\\Sponza_Curtain_roughness.dds"),
+		emptyTexture,
+		TM->LoadFromFile("curtain_red_normal", L"Textures\\Sponza\\Sponza_Curtain_Red_normal.dds") },
+		
+		// fabric_a - Sponza Fabric Blue
+		{ TM->LoadFromFile("sponza_fabric_blue_diffuse", L"Textures\\Sponza\\Sponza_Fabric_Blue_diffuse.dds"),
+		TM->LoadFromFile("sponza_fabric_roughness", L"Textures\\Sponza\\Sponza_Fabric_roughness.dds"),
+		emptyTexture,
+		TM->LoadFromFile("sponza_fabric_blue_normal", L"Textures\\Sponza\\Sponza_Fabric_Blue_normal.dds") },
+
+
+		// fabric_c - Sponza Fabric Red
+		{ TM->LoadFromFile("sponza_fabric_red_diffuse", L"Textures\\Sponza\\Sponza_Fabric_Red_diffuse.dds"),
+		TM->LoadFromFile("sponza_fabric_roughness", L"Textures\\Sponza\\Sponza_Fabric_roughness.dds"),
+		emptyTexture,
+		TM->LoadFromFile("sponza_fabric_red_normal", L"Textures\\Sponza\\Sponza_Fabric_Red_normal.dds") },
+
+		// Curtain - Green
+		{ TM->LoadFromFile("sponza_curtain_green_diffuse", L"Textures\\Sponza\\Sponza_Curtain_Green_diffuse.dds"),
+		TM->LoadFromFile("sponza_curtain_roughness", L"Textures\\Sponza\\Sponza_Curtain_roughness.dds"),
+		emptyTexture,
+		TM->LoadFromFile("sponza_curtain_green_normal", L"Textures\\Sponza\\Sponza_Curtain_Green_normal.dds") },
+
+		// curtain_blue - Blue Curtain
+		{ TM->LoadFromFile("curtain_blue_diffuse", L"Textures\\Sponza\\Sponza_Curtain_Blue_diffuse.dds"),
+		TM->LoadFromFile("curtain_roughness", L"Textures\\Sponza\\Sponza_Curtain_roughness.dds"),
+		emptyTexture,
+		TM->LoadFromFile("curtain_blue_normal", L"Textures\\Sponza\\Sponza_Curtain_Blue_normal.dds") },
+
+		// Flag - flag
+		{ TM->LoadFromFile("flag_albedo", L"Textures\\Sponza\\Sponza_FlagPole_diffuse.dds"),
+		TM->LoadFromFile("flag_roughness", L"Textures\\Sponza\\Sponza_FlagPole_roughness.dds"),
+		emptyTexture,
+		TM->LoadFromFile("flag_normal", L"Textures\\Sponza\\Sponza_FlagPole_normal.dds"), },
+
+		// floor - Sponza Floor
+		{ TM->LoadFromFile("sponza_floor_diffuse", L"Textures\\Sponza\\Sponza_Floor_diffuse.dds"),
+		TM->LoadFromFile("sponza_floor_roughness", L"Textures\\Sponza\\Sponza_Floor_roughness.dds"),
+		emptyTexture,
+		TM->LoadFromFile("sponza_floor_normal", L"Textures\\Sponza\\Sponza_Floor_normal.dds") },
+
+
+
+		// Thorne - Thorne
+		{ TM->LoadFromFile("thorn_diffuse", L"Textures\\Sponza\\Sponza_Thorn_diffuse.dds"),
+		TM->LoadFromFile("thorn_diffuse_roughness", L"Textures\\Sponza\\Sponza_Thorn_roughness.dds"),
+		emptyTexture,
+		TM->LoadFromFile("thorn_diffuse_normal", L"Textures\\Sponza\\Sponza_Thorn_normal.dds") },
+	
+		// roof - Sponza Roof
+		{ TM->LoadFromFile("sponza_roof_diffuse", L"Textures\\Sponza\\Sponza_Roof_diffuse.dds"),
+		TM->LoadFromFile("sponza_roof_roughness", L"Textures\\Sponza\\Sponza_Roof_roughness.dds"),
+		emptyTexture,
+		TM->LoadFromFile("sponza_roof_normal", L"Textures\\Sponza\\Sponza_Roof_normal.dds") },
+
+
+		// vase - Vase
+		{ TM->LoadFromFile("vase_diffuse", L"Textures\\Sponza\\Vase_diffuse.dds"),
+		TM->LoadFromFile("vase_roughness", L"Textures\\Sponza\\Vase_roughness.dds"),
+		emptyTexture,
+		TM->LoadFromFile("vase_normal", L"Textures\\Sponza\\Vase_normal.dds") },
+
+		// vase - Vase Round
+		{ TM->LoadFromFile("vase_round_diffuse", L"Textures\\Sponza\\VaseRound_diffuse.dds"),
+		TM->LoadFromFile("vase_round_roughness", L"Textures\\Sponza\\VaseRound_roughness.dds"),
+		emptyTexture,
+		TM->LoadFromFile("vase_round_normal", L"Textures\\Sponza\\VaseRound_normal.dds") },
+
+		};
+
+	std::vector<uint32_t> materialIndexes;
+	auto model = Engine::ModelManager::GetInstance()->loadModel("Models\\sponza.obj", false, &materialIndexes);
+
+	std::vector<Materials::OpaqueTextureMaterial> sponzaMaterials;
+	sponzaMaterials.resize(materialIndexes.size());
+	for (size_t i = 0; i < sponzaMaterials.size(); i++)
+	{
+		sponzaMaterials[i] = sponzaTextures[materialIndexes[i] % sponzaTextures.size()];
+	}
+	inst.modelToWold = inst.modelToWold * Engine::mat4::rotateY(M_PI_2);
+	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, sponzaMaterials, inst);
+	Engine::MeshSystem::Init()->opaqueGroup.addIntersectIgnoredModel(model);
 }
 
 void D3DApplication::InitSkybox()
