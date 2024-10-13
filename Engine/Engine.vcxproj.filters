@@ -134,6 +134,12 @@
     <ClCompile Include="EngineSource\source\Graphics\DecalSystem.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="EngineSource\source\Graphics\Bone.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="EngineSource\source\Graphics\Animation.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EngineSource\include\Math\math.h">
@@ -275,6 +281,15 @@
       <Filter>Include</Filter>
     </ClInclude>
     <ClInclude Include="EngineSource\include\Graphics\DecalSystem.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineSource\include\SkeletalAnimation\Bone.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineSource\include\Graphics\Bone.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineSource\include\Graphics\Animation.h">
       <Filter>Include</Filter>
     </ClInclude>
   </ItemGroup>

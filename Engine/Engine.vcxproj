@@ -158,6 +158,8 @@
     <ClCompile Include="..\imgui\imgui_draw.cpp" />
     <ClCompile Include="..\imgui\imgui_tables.cpp" />
     <ClCompile Include="..\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="EngineSource\source\Graphics\Animation.cpp" />
+    <ClCompile Include="EngineSource\source\Graphics\Bone.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\DecalSystem.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\ParticleSystem.cpp" />
     <ClCompile Include="EngineSource\source\Graphics\ShadowSystem.cpp" />
@@ -191,6 +193,8 @@
     <ClInclude Include="..\imgui\imstb_rectpack.h" />
     <ClInclude Include="..\imgui\imstb_textedit.h" />
     <ClInclude Include="..\imgui\imstb_truetype.h" />
+    <ClInclude Include="EngineSource\include\Graphics\Animation.h" />
+    <ClInclude Include="EngineSource\include\Graphics\Bone.h" />
     <ClInclude Include="EngineSource\include\Graphics\Buffers.h" />
     <ClInclude Include="EngineSource\include\Graphics\D3D.h" />
     <ClInclude Include="EngineSource\include\Graphics\DDSTextureLoader11.h" />
@@ -217,6 +221,7 @@
     <ClInclude Include="EngineSource\include\Math\triangle.h" />
     <ClInclude Include="EngineSource\include\Render\Camera.h" />
     <ClInclude Include="EngineSource\include\Math\vec.h" />
+    <ClInclude Include="EngineSource\include\SkeletalAnimation\Bone.h" />
     <ClInclude Include="EngineSource\include\Utils\Definitions.h" />
     <ClInclude Include="EngineSource\include\Utils\ISelected.h" />
     <ClInclude Include="EngineSource\include\Utils\RadixSort.h" />

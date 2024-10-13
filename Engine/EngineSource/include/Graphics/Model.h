@@ -5,6 +5,8 @@
 #include <vector>
 #include <unordered_map>
 #include <memory>
+#include <map>
+#include "Utils/Definitions.h"
 
 namespace Engine
 {
@@ -13,6 +15,13 @@ namespace Engine
 	struct ray;
 	struct hitInfo;
 	class ModelManager;
+
+	struct BoneInfo
+	{
+		int id;
+
+		mat4 offset;
+	};
 
 	class Model
 	{
@@ -44,6 +53,7 @@ namespace Engine
 		friend class OpaqueInstances;
 		friend class ModelManager;
 		friend class ParticleSystem;
+		friend class Animation;
 
 	private:
 		std::vector<Mesh> m_meshes;
@@ -52,6 +62,13 @@ namespace Engine
 		Box box;
 		IndexBuffer m_indices; // stores vertex indices of all meshes of this Model
 		std::string name;
+
+		std::map<std::string, BoneInfo> m_BoneInfoMap; 
+		int m_BoneCounter = 0;
+
+		auto& GetBoneInfoMap() { return m_BoneInfoMap; }
+		int& GetBoneCount() { return m_BoneCounter; }
+
 	};
 
 
@@ -66,8 +83,13 @@ namespace Engine
 		void initUnitQuad();
 
 		std::shared_ptr<Model> AddModel(std::string name, Model&& model);
-		std::shared_ptr<Model> loadModel(std::string path, bool flipBT = false, std::vector<uint32_t>* materialIndexes = nullptr);
+		std::shared_ptr<Model> loadModel(std::string path, bool flipBT = false, std::vector<uint32_t>* materialIndexes = nullptr, bool useSkeletalMesh = false);
 		std::shared_ptr<Model> GetModel(std::string name);
+
+	private:
+		void SetVertexBoneDataToDefault(Mesh::vertex& vertex);
+		void SetVertexBoneData(Mesh::vertex& vertex, int boneID, float weight);
+		void ExtractBoneWeightForVertices(std::shared_ptr<Model> model, std::vector<Mesh::vertex>& vertices, void* aiMesh, const void* aiScene);
 
 	protected:
 		std::unordered_map<std::string, std::shared_ptr<Model>> models;

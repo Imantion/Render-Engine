@@ -12,6 +12,15 @@ Engine::mat4::mat4(float t)
 	}
 }
 
+Engine::mat4::mat4(float x0, float y0, float z0, float w0, float x1, float y1, float z1, float w1, float x2, float y2, float z2, float w2, float x3, float y3, float z3, float w3)
+{
+	mat[0][0] = x0; mat[0][1] = y0; mat[0][2] = z0; mat[0][3] = w0;
+	mat[1][0] = x1; mat[1][1] = y1; mat[1][2] = z1; mat[1][3] = w1;
+	mat[2][0] = x2; mat[2][1] = y2; mat[2][2] = z2; mat[2][3] = w2;
+	mat[3][0] = x3; mat[3][1] = y3; mat[3][2] = z3; mat[3][3] = w3;
+
+}
+
 
 Engine::mat4::mat4(vec4 x, vec4 y, vec4 z, vec4 w)
 {
