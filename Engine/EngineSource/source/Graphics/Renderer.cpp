@@ -437,6 +437,9 @@ void Engine::Renderer::Render(Camera* camera)
 		ParticleSystem::Init()->RenderGPUParticlesBillBoard();
 	}
 
+	context->OMSetDepthStencilState(pDSState.Get(), 1u);
+	MeshSystem::Init()->boneWeightShow.render();
+
 	RenderParticles(camera);
 
 	{

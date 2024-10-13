@@ -72,7 +72,6 @@ void Engine::MeshSystem::render()
 	normVisGroup.render();
 	hologramGroup.render();
 	emmisiveGroup.render();
-	boneWeightShow.render();
 }
 
 void Engine::MeshSystem::renderGBuffer(ID3D11DepthStencilState* depthStencilState)

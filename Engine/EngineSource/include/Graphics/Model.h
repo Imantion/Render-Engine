@@ -47,6 +47,7 @@ namespace Engine
 		};
 
 		bool intersect(const ray& r, hitInfo& info);
+		int getBoneCount() { return m_BoneCounter; }
 
 		friend class ModelManager;
 		template <typename I, typename M>

@@ -44,6 +44,7 @@ static enum objectToSpawn
 } modelToSpawn;
 
 static float cameraSpeed = 2.0f;
+static int bone = 0;
 
 static auto changepos = [](Engine::TransformSystem::transforms& inst, const Engine::vec3& pos) {
 	for (size_t i = 0; i < 3; i++) {
@@ -88,6 +89,27 @@ static void InitMeshSystem()
 	{"TOWORLD", 2, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
 	{"TOWORLD", 3, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
 	{"OBJECTID", 0, DXGI_FORMAT_R32_UINT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+	};
+
+	D3D11_INPUT_ELEMENT_DESC skeletalIED[] = {
+		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"BITANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"TC", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"BONES", 0, DXGI_FORMAT_R32_SINT , 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"BONES", 1, DXGI_FORMAT_R32_SINT , 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"BONES", 2, DXGI_FORMAT_R32_SINT , 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"BONES", 3, DXGI_FORMAT_R32_SINT , 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"WEIGHTS", 0, DXGI_FORMAT_R32_FLOAT , 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"WEIGHTS", 1, DXGI_FORMAT_R32_FLOAT , 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"WEIGHTS", 2, DXGI_FORMAT_R32_FLOAT , 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"WEIGHTS", 3, DXGI_FORMAT_R32_FLOAT , 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"TOWORLD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+		{"TOWORLD", 1, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+		{"TOWORLD", 2, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+		{"TOWORLD", 3, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+		{"OBJECTID", 0, DXGI_FORMAT_R32_UINT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
 	};
 
 	D3D11_INPUT_ELEMENT_DESC secondIed[] = {
@@ -191,6 +213,9 @@ static void InitMeshSystem()
 	auto gpuSphereShader = Engine::ShaderManager::CompileAndCreateShader("GPUSphere", L"Shaders\\GPUParticles\\SphereParticleVS.hlsl",
 				L"Shaders\\GPUParticles\\SphereParticlePS.hlsl", nullptr, nullptr);
 
+	auto skeletalShader = Engine::ShaderManager::CompileAndCreateShader("Skeletal", L"Shaders\\SkeletalCheck\\VertexShader.hlsl",
+		L"Shaders\\SkeletalCheck\\PixelShader.hlsl", nullptr, nullptr);
+
 	D3D_SHADER_MACRO shaders[] = { "MAX_DIRECTIONAL_LIGHTS", "1",
 		"MAX_POINT_LIGHTS", "10",
 		"MAX_SPOT_LIGHTS","10",
@@ -248,6 +273,7 @@ static void InitMeshSystem()
 	auto fourthLayout = Engine::ShaderManager::CreateInputLayout("Fourth", dissolutionShader->vertexBlob.Get(), thirdIed, sizeof(thirdIed) / sizeof(D3D11_INPUT_ELEMENT_DESC));
 	auto incinerationLayout = Engine::ShaderManager::CreateInputLayout("incinerationLayout", incenerationShader->vertexBlob.Get(), incinerationIED, sizeof(incinerationIED) / sizeof(D3D11_INPUT_ELEMENT_DESC));
 	auto sphereLayout = Engine::ShaderManager::CreateInputLayout("sphereLayout", gpuSphereShader->vertexBlob.Get(), gpuSphereIED, sizeof(gpuSphereIED) / sizeof(D3D11_INPUT_ELEMENT_DESC));
+	auto skeletalLayout = Engine::ShaderManager::CreateInputLayout("skelet", skeletalShader->vertexBlob.Get(), skeletalIED, sizeof(skeletalIED) / sizeof(D3D11_INPUT_ELEMENT_DESC));
 
 	decalShader->BindInputLyout(decalLayout);
 	NormalVisColor->BindInputLyout(thirdLayout);
@@ -268,6 +294,7 @@ static void InitMeshSystem()
 	incerShadowPL->BindInputLyout(incinerationLayout);
 	incerShadowSLDL->BindInputLyout(incinerationLayout);
 	gpuSphereShader->BindInputLyout(sphereLayout);
+	skeletalShader->BindInputLyout(skeletalLayout);
 	Engine::ShadowSystem::Init()->SetShadowShaders(shadowShader, shadowShader2, shadowShader2);
 	Engine::DecalSystem::Init()->SetShader(decalShader);
 	
@@ -295,6 +322,7 @@ static void InitMeshSystem()
 	ms->dissolutionGroup.addShader(dissolutionShader);
 	ms->incinerationGroup.setGBufferShader(incenerationShader);
 	ms->incinerationGroup.addShader(incenerationShader);
+	ms->boneWeightShow.addShader(skeletalShader);
 
 	Engine::ParticleSystem::Init()->SetGPUParticlesShaders(GPUbillboardShader, gpuSphereShader, cs1, cs2);
 }
@@ -341,6 +369,18 @@ void D3DApplication::Update(float deltaTime)
 	Engine::ParticleSystem::Init()->Update(deltaTime);
 
 	Engine::Renderer* renderer = Engine::Renderer::GetInstance();
+	struct boneId
+	{
+		int id;
+		int padding[3];
+	};
+	boneId cbBone;
+	cbBone.id = bone;
+	Engine::ConstBuffer<boneId> cb;
+	cb.create();
+	cb.updateBuffer(&cbBone);
+	cb.bind(13u, Engine::shaderTypes::PS);
+
 	renderer->updatePerFrameCB(deltaTime, (FLOAT)pWindow->getWindowWidth(), (FLOAT)pWindow->getWindowHeight(), camera->getNearClip(), camera->getFarClip());
 	renderer->Render(camera.get());
 		
@@ -419,7 +459,10 @@ void D3DApplication::UpdateInput(float deltaTime)
 	else if (Input::keyPresseed(Input::KeyboardButtons::TWO))
 		Engine::TextureManager::Init()->BindSampleByFilter(D3D11_FILTER_MIN_MAG_POINT_MIP_LINEAR, 3u);
 	else if (Input::keyPresseed(Input::KeyboardButtons::THREE))
+	{
 		Engine::TextureManager::Init()->BindSampleByFilter(D3D11_FILTER_ANISOTROPIC, 3u);
+		bone = (bone + 1) % Engine::ModelManager::Init()->GetModel("Models\\NeoNCat.fbx")->getBoneCount();
+	}
 
 	if (Input::keyPresseed(Input::KeyboardButtons::M))
 	{
@@ -900,8 +943,12 @@ void D3DApplication::InitSamuraiModel()
 	{
 		samuraiDisolutionMaterial.push_back({ samuraiTextures[i], noiseTexture });
 	}
+	Engine::TransformSystem::transforms catInst = {
+	Engine::transformMatrix(Engine::vec3(0.0f, 10.0f, 0.0f), Engine::vec3(0.0f, 0.0f, 0.001f), Engine::vec3(0.001f, 0.0f, 0.0f), Engine::vec3(0.0f, 0.001f, 0.0f)) };
 
 	auto model = Engine::ModelManager::GetInstance()->loadModel("Models\\NeoNCat.fbx", false, nullptr, true);
+	Engine::MeshSystem::Init()->boneWeightShow.addModel(model, Materials::EmmisiveMaterial{}, catInst);
+
 	 model = Engine::ModelManager::GetInstance()->loadModel("Models\\Samurai.fbx");
 	Engine::TransformSystem::transforms inst = {
 		Engine::transformMatrix(Engine::vec3(0.0f, -1.0f, 0.0f), Engine::vec3(0.0f, 0.0f, 1.0f), Engine::vec3(1.0f, 0.0f, 0.0f), Engine::vec3(0.0f, 1.0f, 0.0f)) };
