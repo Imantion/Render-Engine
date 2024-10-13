@@ -238,7 +238,8 @@ ID3D11InputLayout* Engine::ShaderManager::CreateInputLayout(const char* InputLay
 	}
 
 	inputLayouts[InputLayoutName] = Microsoft::WRL::ComPtr<ID3D11InputLayout>();
-	D3D::GetInstance()->GetDevice()->CreateInputLayout(ied, iedSize, vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), &inputLayouts[InputLayoutName]);
+	HRESULT hr = D3D::GetInstance()->GetDevice()->CreateInputLayout(ied, iedSize, vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), &inputLayouts[InputLayoutName]);
+	assert(SUCCEEDED(hr));
 
 	return inputLayouts[InputLayoutName].Get();
 }
