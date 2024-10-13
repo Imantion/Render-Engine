@@ -89,7 +89,7 @@ namespace Engine
 	private:
 		void SetVertexBoneDataToDefault(Mesh::vertex& vertex);
 		void SetVertexBoneData(Mesh::vertex& vertex, int boneID, float weight);
-		void ExtractBoneWeightForVertices(std::shared_ptr<Model> model, std::vector<Mesh::vertex>& vertices, void* aiMesh, const void* aiScene);
+		void ExtractBoneWeightForVertices(std::shared_ptr<Model> model, void* vertices, void* aiMesh, const void* aiScene);
 
 	protected:
 		std::unordered_map<std::string, std::shared_ptr<Model>> models;

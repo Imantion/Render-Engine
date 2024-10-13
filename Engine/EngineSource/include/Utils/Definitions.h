@@ -1,6 +1,6 @@
 #pragma once
 
-#define MAX_BONE_INFLUENCE 3
+#define MAX_BONE_INFLUENCE 4
 
 namespace Engine
 {

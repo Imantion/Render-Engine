@@ -91,7 +91,7 @@ std::shared_ptr<Engine::Model> Engine::ModelManager::loadModel(std::string path,
 
 	uint32_t flags;
 	if (useSkeletalMesh)
-		 flags = uint32_t(aiProcess_Triangulate | aiProcess_GenBoundingBoxes | aiProcess_ConvertToLeftHanded | aiProcess_CalcTangentSpace | aiProcess_JoinIdenticalVertices);
+		 flags = uint32_t(aiProcess_Triangulate | aiProcess_GenBoundingBoxes | aiProcess_ConvertToLeftHanded | aiProcess_CalcTangentSpace | aiProcess_JoinIdenticalVertices | aiProcess_LimitBoneWeights);
 	else
 	 flags = uint32_t(aiProcess_Triangulate | aiProcess_GenBoundingBoxes | aiProcess_ConvertToLeftHanded | aiProcess_CalcTangentSpace);
 	// aiProcess_Triangulate - ensure that all faces are triangles and not polygonals, otherwise triangulare them
@@ -185,7 +185,7 @@ std::shared_ptr<Engine::Model> Engine::ModelManager::loadModel(std::string path,
 			indicies.emplace_back(dstMesh.triangles[f]);
 		}
 
-		ExtractBoneWeightForVertices(model, verticies, srcMesh, assimpScene);
+		ExtractBoneWeightForVertices(model, (void*)(verticies.data() + vertexOffset), srcMesh, assimpScene);
 
 		dstMesh.updateOctree();
 		vertexOffset += dstMeshRange.vertexNum;
@@ -254,10 +254,11 @@ void Engine::ModelManager::SetVertexBoneData(Mesh::vertex& vertex, int boneID, f
 	}
 }
 
-void Engine::ModelManager::ExtractBoneWeightForVertices(std::shared_ptr<Model> model, std::vector<Mesh::vertex>& vertices, void* aimesh, const void* aiscene)
+void Engine::ModelManager::ExtractBoneWeightForVertices(std::shared_ptr<Model> model, void* vertices, void* aimesh, const void* aiscene)
 {
 	aiMesh* mesh = reinterpret_cast<aiMesh*>(aimesh);
 	const aiScene* scene = reinterpret_cast<const aiScene*>(aiscene);
+	Mesh::vertex* castedVertices = reinterpret_cast<Mesh::vertex*>(vertices);
 
 	for (int boneIndex = 0; boneIndex < mesh->mNumBones; ++boneIndex)
 	{
@@ -285,7 +286,7 @@ void Engine::ModelManager::ExtractBoneWeightForVertices(std::shared_ptr<Model> m
 			int vertexId = weights[weightIndex].mVertexId;
 			float weight = weights[weightIndex].mWeight;
 			
-			SetVertexBoneData(vertices[vertexId], boneID, weight);
+			SetVertexBoneData(castedVertices[vertexId], boneID, weight);
 		}
 	}
 }
