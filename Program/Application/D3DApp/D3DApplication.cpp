@@ -901,7 +901,8 @@ void D3DApplication::InitSamuraiModel()
 		samuraiDisolutionMaterial.push_back({ samuraiTextures[i], noiseTexture });
 	}
 
-	auto model = Engine::ModelManager::GetInstance()->loadModel("Models\\Samurai.fbx");
+	auto model = Engine::ModelManager::GetInstance()->loadModel("Models\\NeoNCat.fbx", false, nullptr, true);
+	 model = Engine::ModelManager::GetInstance()->loadModel("Models\\Samurai.fbx");
 	Engine::TransformSystem::transforms inst = {
 		Engine::transformMatrix(Engine::vec3(0.0f, -1.0f, 0.0f), Engine::vec3(0.0f, 0.0f, 1.0f), Engine::vec3(1.0f, 0.0f, 0.0f), Engine::vec3(0.0f, 1.0f, 0.0f)) };
 	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, samuraiTextures, inst);
@@ -942,7 +943,7 @@ void D3DApplication::InitLights()
 	spotLight.bindedObjectId = camera->getCameraTransformId();
 	Engine::LightSystem::Init()->AddFlashLight(spotLight, TM->LoadFromFile("flashlight", L"Textures\\flashlightMask.dds"));
 
-	Engine::DirectionalLight directionalLight(Engine::vec3(-0.3205475307f, -0.595605361f, -0.10348193f).normalized(), Engine::vec3(0.84f * 7.5f, 0.86264f * 7.5f, 0.89019f * 7.5f), 1.5f);
+	Engine::DirectionalLight directionalLight(Engine::vec3(-0.3205475307f, -0.595605361f, -0.10348193f).normalized(), Engine::vec3(0.84f * 7.5f, 0.86264f * 7.5f, 0.89019f * 7.5f), 0.2f);
 	Engine::LightSystem::Init()->AddDirectionalLight(directionalLight);
 
 	Engine::TransformSystem::transforms bombo = {
@@ -1218,7 +1219,7 @@ void D3DApplication::InitSponza()
 		};
 
 	std::vector<uint32_t> materialIndexes;
-	auto model = Engine::ModelManager::GetInstance()->loadModel("Models\\sponza.obj", false, &materialIndexes);
+	auto model = Engine::ModelManager::GetInstance()->loadModel("Models\\sponza.obj", true, &materialIndexes);
 
 	std::vector<Materials::OpaqueTextureMaterial> sponzaMaterials;
 	sponzaMaterials.resize(materialIndexes.size());

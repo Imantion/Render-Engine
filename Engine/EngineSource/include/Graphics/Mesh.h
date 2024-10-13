@@ -6,6 +6,7 @@
 #include "Math/matrix.h"
 #include "Math/Box.hpp"
 #include "Utils/TriangleOctree.hpp"
+#include "Utils/Definitions.h"
 
 namespace Engine
 {
@@ -21,6 +22,11 @@ namespace Engine
 			vec3 tangent;
 			vec3 bitangent;
 			vec2 tc;
+
+			//bone indexes which will influence this vertex
+			int m_BoneIDs[MAX_BONE_INFLUENCE];
+			//weights from each bone
+			float m_Weights[MAX_BONE_INFLUENCE];
 
 			static vertex initial()
 			{

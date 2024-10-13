@@ -15,6 +15,7 @@
 #include "backends/imgui_impl_win32.h"
 #include "backends/imgui_impl_dx11.h"
 #include "Graphics/LightSystem.h"
+#include "Graphics/Bone.h"
 
 #define FRAME_RATE 60
 

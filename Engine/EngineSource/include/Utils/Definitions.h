@@ -1,7 +1,10 @@
 #pragma once
 
+#define MAX_BONE_INFLUENCE 3
+
 namespace Engine
 {
+
 	struct IndexedDistance
 	{
 		float distance;
@@ -23,4 +26,6 @@ namespace Engine
 		READ = 1,
 		WRITE = 2,	
 	};
+
+
 }

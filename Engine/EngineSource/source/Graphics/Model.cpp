@@ -3,9 +3,11 @@
 #include "assimp/postprocess.h"
 #include "assimp/Importer.hpp"
 #include "assimp/scene.h"
+#include "assimp/mesh.h"
 #include "Math/hitable.h"
 #include "Math/math.h"
 #include <functional>
+
 
 std::mutex Engine::ModelManager::mutex_;
 Engine::ModelManager* Engine::ModelManager::pInstance = nullptr;
@@ -77,7 +79,7 @@ std::shared_ptr<Engine::Model> Engine::ModelManager::AddModel(std::string name, 
 	return models[name];
 }
 
-std::shared_ptr<Engine::Model> Engine::ModelManager::loadModel(std::string path, bool flipBT, std::vector<uint32_t>* materialIndexes)
+std::shared_ptr<Engine::Model> Engine::ModelManager::loadModel(std::string path, bool flipBT, std::vector<uint32_t>* materialIndexes, bool useSkeletalMesh)
 {
 	if (models.find(path) != models.end())
 		return models.find(path)->second;
@@ -87,8 +89,11 @@ std::shared_ptr<Engine::Model> Engine::ModelManager::loadModel(std::string path,
 	if (flipBT)
 		sign = -1.0f;
 
-
-	uint32_t flags = uint32_t(aiProcess_Triangulate | aiProcess_GenBoundingBoxes | aiProcess_ConvertToLeftHanded | aiProcess_CalcTangentSpace);
+	uint32_t flags;
+	if (useSkeletalMesh)
+		 flags = uint32_t(aiProcess_Triangulate | aiProcess_GenBoundingBoxes | aiProcess_ConvertToLeftHanded | aiProcess_CalcTangentSpace | aiProcess_JoinIdenticalVertices);
+	else
+	 flags = uint32_t(aiProcess_Triangulate | aiProcess_GenBoundingBoxes | aiProcess_ConvertToLeftHanded | aiProcess_CalcTangentSpace);
 	// aiProcess_Triangulate - ensure that all faces are triangles and not polygonals, otherwise triangulare them
 	// aiProcess_GenBoundingBoxes - automatically compute bounding box, though we could do that manually
 	// aiProcess_ConvertToLeftHanded - Assimp assumes left-handed basis orientation by default, convert for Direct3D
@@ -166,8 +171,9 @@ std::shared_ptr<Engine::Model> Engine::ModelManager::loadModel(std::string path,
 			vert.normal = reinterpret_cast<Engine::vec3&>(srcMesh->mNormals[v]);
 			vert.tangent = reinterpret_cast<Engine::vec3&>(srcMesh->mTangents[v]) * sign;
 			vert.bitangent = reinterpret_cast<Engine::vec3&>(srcMesh->mBitangents[v]) * -1.f * sign; // Flip V
+			SetVertexBoneDataToDefault(vert);
 
-			verticies.push_back(vert);
+			verticies.emplace_back(vert);
 		}
 
 		for (uint32_t f = 0; f < srcMesh->mNumFaces; ++f)
@@ -176,8 +182,10 @@ std::shared_ptr<Engine::Model> Engine::ModelManager::loadModel(std::string path,
 			//DEV_ASSERT(face.mNumIndices == 3);
 			dstMesh.triangles[f] = *reinterpret_cast<Mesh::triangle*>(face.mIndices);
 
-			indicies.push_back(dstMesh.triangles[f]);
+			indicies.emplace_back(dstMesh.triangles[f]);
 		}
+
+		ExtractBoneWeightForVertices(model, verticies, srcMesh, assimpScene);
 
 		dstMesh.updateOctree();
 		vertexOffset += dstMeshRange.vertexNum;
@@ -222,6 +230,64 @@ std::shared_ptr<Engine::Model> Engine::ModelManager::GetModel(std::string name)
 		return nullptr;
 
 	return (*it).second;
+}
+
+void Engine::ModelManager::SetVertexBoneDataToDefault(Mesh::vertex& vertex)
+{
+	for (int i = 0; i < MAX_BONE_INFLUENCE; i++)
+	{
+		vertex.m_BoneIDs[i] = -1;
+		vertex.m_Weights[i] = 0.0f;
+	}
+}
+
+void Engine::ModelManager::SetVertexBoneData(Mesh::vertex& vertex, int boneID, float weight)
+{
+	for (int i = 0; i < MAX_BONE_INFLUENCE; ++i)
+	{
+		if (vertex.m_BoneIDs[i] < 0)
+		{
+			vertex.m_Weights[i] = weight;
+			vertex.m_BoneIDs[i] = boneID;
+			break;
+		}
+	}
+}
+
+void Engine::ModelManager::ExtractBoneWeightForVertices(std::shared_ptr<Model> model, std::vector<Mesh::vertex>& vertices, void* aimesh, const void* aiscene)
+{
+	aiMesh* mesh = reinterpret_cast<aiMesh*>(aimesh);
+	const aiScene* scene = reinterpret_cast<const aiScene*>(aiscene);
+
+	for (int boneIndex = 0; boneIndex < mesh->mNumBones; ++boneIndex)
+	{
+		int boneID = -1;
+		std::string boneName = mesh->mBones[boneIndex]->mName.C_Str();
+		if (model->m_BoneInfoMap.find(boneName) == model->m_BoneInfoMap.end())
+		{
+			BoneInfo newBoneInfo;
+			newBoneInfo.id = model->m_BoneCounter;
+			newBoneInfo.offset = reinterpret_cast<const mat4&>(mesh->mBones[boneIndex]->mOffsetMatrix.Transpose());
+			model->m_BoneInfoMap[boneName] = newBoneInfo;
+			boneID = model->m_BoneCounter;
+			model->m_BoneCounter++;
+		}
+		else
+		{
+			boneID = model->m_BoneInfoMap[boneName].id;
+		}
+		assert(boneID != -1);
+		auto weights = mesh->mBones[boneIndex]->mWeights;
+		int numWeights = mesh->mBones[boneIndex]->mNumWeights;
+
+		for (int weightIndex = 0; weightIndex < numWeights; ++weightIndex)
+		{
+			int vertexId = weights[weightIndex].mVertexId;
+			float weight = weights[weightIndex].mWeight;
+			
+			SetVertexBoneData(vertices[vertexId], boneID, weight);
+		}
+	}
 }
 
 bool Engine::Model::intersect(const ray& r, hitInfo& info)

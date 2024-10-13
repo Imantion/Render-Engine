@@ -1,5 +1,6 @@
 #include "Math\quaternion.h"
 #include "Math\math.h"
+
 #include <math.h>
 
 float Engine::quaternion::norm() const
@@ -57,4 +58,45 @@ Engine::vec3 Engine::quaternion::operator*(const vec3& v) const
 Engine::quaternion Engine::quaternion::operator*(const float t) const
 {
 	return quaternion(r * t, im * t);
+}
+
+Engine::mat4 Engine::quaternion::toMat4()
+{
+	float x = this->im.x;
+	float y = this->im.y;
+	float z = this->im.z;
+	float w = this->r;
+
+	return mat4(
+		1.0f - 2.0f * (y * y + z * z), 2.0f * (x * y + w * z), 2.0f * (x * z - w * y), 0.0f,
+		2.0f * (x * y - w * z), 1.0f - 2.0f * (x * x + z * z), 2.0f * (y * z + w * x), 0.0f,
+		2.0f * (x * z + w * y), 2.0f * (y * z - w * x), 1.0f - 2.0f * (x * x + y * y), 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
+	);
+}
+
+Engine::quaternion Engine::quaternion::slerp(quaternion q1, quaternion q2, double lambda)
+{
+	quaternion qr;
+	float dotproduct = q1.im.x * q2.im.x + q1.im.y * q2.im.y + q1.im.z * q2.im.z + q1.r * q2.r;
+	float theta, st, sut, sout, coeff1, coeff2;
+
+	// algorithm adapted from Shoemake's paper
+	lambda = lambda / 2.0;
+
+	theta = (float)acos(dotproduct);
+	if (theta < 0.0) theta = -theta;
+
+	st = (float)sin(theta);
+	sut = (float)sin(lambda * theta);
+	sout = (float)sin((1 - lambda) * theta);
+	coeff1 = sout / st;
+	coeff2 = sut / st;
+
+	qr.im.x = coeff1 * q1.im.x + coeff2 * q2.im.x;
+	qr.im.y = coeff1 * q1.im.y + coeff2 * q2.im.y;
+	qr.im.z = coeff1 * q1.im.z + coeff2 * q2.im.z;
+	qr.r = coeff1 * q1.r + coeff2 * q2.r;
+
+	return qr.normalize();
 }
