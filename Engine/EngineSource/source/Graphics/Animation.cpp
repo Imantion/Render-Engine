@@ -12,6 +12,8 @@ Engine::Animation::Animation(const char* path, std::shared_ptr<Model> model)
     auto animation = scene->mAnimations[0];
     m_duration = animation->mDuration;
     m_TicksPerSecond = animation->mTicksPerSecond;
+    ReadHeirarchyData(m_RootNode, scene->mRootNode);
+    ReadMissingBones(animation, *(model.get()));
 }
 
 Bone* Animation::FindBone(const std::string& name)

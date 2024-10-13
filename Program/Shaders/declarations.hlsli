@@ -7,6 +7,8 @@
 
 #define MAX_PARTICLES 10000
 
+#define MAX_BONE_INFLUENCE 4
+
 cbuffer perView : register(b0)
 {
     matrix viewProjection;
