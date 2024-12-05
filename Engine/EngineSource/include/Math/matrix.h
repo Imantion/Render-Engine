@@ -19,6 +19,7 @@ namespace Engine
 
 		static mat4 Inverse(const mat4& m);
 		static mat4 Identity();
+		static mat4 Transpose(const mat4& m);
 
 		static mat4 rotateX(float angle);
 		static mat4 rotateY(float angle);

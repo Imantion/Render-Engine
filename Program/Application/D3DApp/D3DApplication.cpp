@@ -20,6 +20,7 @@
 #include "Graphics/ShadowSystem.h"
 #include "Utils/ISelected.h"
 #include "Utils/Random.h"
+#include "Graphics/Animation.h"
 #include <assert.h>
 
 #ifdef UNICODE
@@ -45,6 +46,10 @@ static enum objectToSpawn
 
 static float cameraSpeed = 2.0f;
 static int bone = 0;
+static Engine::Animation* animation;
+static Engine::Animator* animator;
+static Engine::ConstBuffer<Engine::mat4> animTransformCB;
+
 
 static auto changepos = [](Engine::TransformSystem::transforms& inst, const Engine::vec3& pos) {
 	for (size_t i = 0; i < 3; i++) {
@@ -343,6 +348,8 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 
 	Engine::ParticleSystem::Init()->SetSparkTexture(Engine::TextureManager::Init()->LoadFromFile("spark", L"Textures\\spark.dds"));
 	Engine::ParticleSystem::Init()->InitGPUParticles();
+
+	animTransformCB.create(D3D11_USAGE_DYNAMIC, 128u);
 }
 
 
@@ -381,6 +388,10 @@ void D3DApplication::Update(float deltaTime)
 	cb.updateBuffer(&cbBone);
 	cb.bind(13u, Engine::shaderTypes::PS);
 
+	/*animator->UpdateAnimation(deltaTime);*/
+
+	animTransformCB.updateBuffer(animator->GetFinalBoneMatrices().data(), 128u);
+	animTransformCB.bind(13u, Engine::shaderTypes::VS);
 	renderer->updatePerFrameCB(deltaTime, (FLOAT)pWindow->getWindowWidth(), (FLOAT)pWindow->getWindowHeight(), camera->getNearClip(), camera->getFarClip());
 	renderer->Render(camera.get());
 		
@@ -461,7 +472,8 @@ void D3DApplication::UpdateInput(float deltaTime)
 	else if (Input::keyPresseed(Input::KeyboardButtons::THREE))
 	{
 		Engine::TextureManager::Init()->BindSampleByFilter(D3D11_FILTER_ANISOTROPIC, 3u);
-		bone = (bone + 1) % Engine::ModelManager::Init()->GetModel("Models\\NeoNCat.fbx")->getBoneCount();
+		int boneCount = Engine::ModelManager::Init()->GetModel("Models\\NeoNCat.fbx")->getBoneCount();
+		bone = (bone + 1) % boneCount;
 	}
 
 	if (Input::keyPresseed(Input::KeyboardButtons::M))
@@ -892,7 +904,7 @@ void D3DApplication::OpaqueToIncineration(uint32_t transformId, const Engine::ve
 
 void D3DApplication::InitCamera(int windowWidth, int windowHeight)
 {
-	camera.reset(new Engine::Camera(45.0f, 0.01f, 100.0f));
+	camera.reset(new Engine::Camera(45.0f, 0.01f, 10000.0f));
 	camera->calculateProjectionMatrix(windowWidth, windowHeight);
 	camera->calculateRayDirections();
 }
@@ -947,6 +959,8 @@ void D3DApplication::InitSamuraiModel()
 	Engine::transformMatrix(Engine::vec3(0.0f, 10.0f, 0.0f), Engine::vec3(0.0f, 0.0f, 0.001f), Engine::vec3(0.001f, 0.0f, 0.0f), Engine::vec3(0.0f, 0.001f, 0.0f)) };
 
 	auto model = Engine::ModelManager::GetInstance()->loadModel("Models\\NeoNCat.fbx", false, nullptr, true);
+	animation = new Engine::Animation("Models\\NeoNCat.fbx", model);
+	animator = new Engine::Animator(animation);
 	Engine::MeshSystem::Init()->boneWeightShow.addModel(model, Materials::EmmisiveMaterial{}, catInst);
 
 	 model = Engine::ModelManager::GetInstance()->loadModel("Models\\Samurai.fbx");

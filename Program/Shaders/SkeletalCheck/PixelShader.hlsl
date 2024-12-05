@@ -6,8 +6,8 @@ struct PSIn
     float3 worldPos : WorldPos;
     float3x3 tbn : TBN;
     float2 tc : TC;
-    nointerpolation int BoneIDs[MAX_BONE_INFLUENCE] : BONES;
-    nointerpolation float Weights[MAX_BONE_INFLUENCE] : WEIGHTS;
+    int BoneIDs[MAX_BONE_INFLUENCE] : BONES;
+    float Weights[MAX_BONE_INFLUENCE] : WEIGHTS;
     nointerpolation uint objectId : OBJECTID;
     
 };

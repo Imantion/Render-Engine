@@ -1,5 +1,7 @@
 #include "Graphics/Animation.h"
 #include "assimp/Importer.hpp"
+#include "assimp/anim.h"
+#include "assimp/scene.h"
 #include "assimp/postprocess.h"
 
 using namespace Engine;
@@ -57,7 +59,7 @@ void Animation::ReadHeirarchyData(AssimpNodeData& dest, const aiNode* src)
     assert(src);
 
     dest.name = src->mName.data;
-    dest.transformation = reinterpret_cast<const mat4&>(src->mTransformation);
+    dest.transformation = mat4::Transpose(reinterpret_cast<const mat4&>(src->mTransformation));
     dest.childrenCount = src->mNumChildren;
 
     for (int i = 0; i < src->mNumChildren; i++)
@@ -71,8 +73,8 @@ void Animation::ReadHeirarchyData(AssimpNodeData& dest, const aiNode* src)
 Animator::Animator(Animation* animation)
     : m_CurrentAnimation(animation), m_CurrentTime(0.0f), m_DeltaTime(0.0f)
 {
-    m_FinalBoneMatrices.reserve(100);
-    for (int i = 0; i < 100; i++)
+    m_FinalBoneMatrices.reserve(128);
+    for (int i = 0; i < 128; i++)
         m_FinalBoneMatrices.push_back(mat4::Identity());
 }
 
@@ -106,21 +108,21 @@ void Animator::CalculateBoneTransform(const AssimpNodeData* node, mat4 parentTra
         nodeTransform = bone->GetLocalTransform();
     }
 
-    mat4 globalTransformation = parentTransform * nodeTransform;
+    mat4 globalTransformation = nodeTransform * parentTransform;
 
     auto boneInfoMap = m_CurrentAnimation->GetBoneIDMap();
     if (boneInfoMap.find(nodeName) != boneInfoMap.end())
     {
         int index = boneInfoMap[nodeName].id;
         mat4 offset = boneInfoMap[nodeName].offset;
-        m_FinalBoneMatrices[index] = globalTransformation * offset;
+        m_FinalBoneMatrices[index] = offset * globalTransformation;
     }
 
     for (int i = 0; i < node->childrenCount; i++)
         CalculateBoneTransform(&node->children[i], globalTransformation);
 }
 
-std::vector<mat4> Animator::GetFinalBoneMatrices()
+std::vector<mat4>& Animator::GetFinalBoneMatrices()
 {
     return m_FinalBoneMatrices;
 }

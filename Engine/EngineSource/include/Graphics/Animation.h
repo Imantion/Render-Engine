@@ -6,12 +6,11 @@
 #include <cassert>
 #include <algorithm>
 #include "Bone.h"
-#include "assimp/anim.h"
-#include "assimp/scene.h"
 #include "Graphics/Model.h"
 
 struct BoneInfo;
-
+struct aiAnimation;
+struct aiNode;
 
 namespace Engine
 {
@@ -57,7 +56,7 @@ namespace Engine
 
         void UpdateAnimation(float dt);
         void PlayAnimation(Animation* pAnimation);
-        std::vector<mat4> GetFinalBoneMatrices();
+        std::vector<mat4>& GetFinalBoneMatrices();
 
     private:
         void CalculateBoneTransform(const AssimpNodeData* node, mat4 parentTransform);

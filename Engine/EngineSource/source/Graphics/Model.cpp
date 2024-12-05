@@ -91,7 +91,7 @@ std::shared_ptr<Engine::Model> Engine::ModelManager::loadModel(std::string path,
 
 	uint32_t flags;
 	if (useSkeletalMesh)
-		 flags = uint32_t(aiProcess_Triangulate | aiProcess_GenBoundingBoxes | aiProcess_ConvertToLeftHanded | aiProcess_CalcTangentSpace | aiProcess_JoinIdenticalVertices | aiProcess_LimitBoneWeights);
+		 flags = uint32_t(aiProcess_Triangulate | aiProcess_GenBoundingBoxes | aiProcess_ConvertToLeftHanded | aiProcess_CalcTangentSpace | aiProcess_JoinIdenticalVertices );
 	else
 	 flags = uint32_t(aiProcess_Triangulate | aiProcess_GenBoundingBoxes | aiProcess_ConvertToLeftHanded | aiProcess_CalcTangentSpace);
 	// aiProcess_Triangulate - ensure that all faces are triangles and not polygonals, otherwise triangulare them

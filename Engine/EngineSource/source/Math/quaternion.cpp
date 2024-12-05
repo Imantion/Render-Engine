@@ -86,6 +86,8 @@ Engine::quaternion Engine::quaternion::slerp(quaternion q1, quaternion q2, doubl
 
 	theta = (float)acos(dotproduct);
 	if (theta < 0.0) theta = -theta;
+	if (theta < 0.001)
+		return q1;
 
 	st = (float)sin(theta);
 	sut = (float)sin(lambda * theta);

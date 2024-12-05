@@ -283,9 +283,6 @@
     <ClInclude Include="EngineSource\include\Graphics\DecalSystem.h">
       <Filter>Include</Filter>
     </ClInclude>
-    <ClInclude Include="EngineSource\include\SkeletalAnimation\Bone.h">
-      <Filter>Include</Filter>
-    </ClInclude>
     <ClInclude Include="EngineSource\include\Graphics\Bone.h">
       <Filter>Include</Filter>
     </ClInclude>

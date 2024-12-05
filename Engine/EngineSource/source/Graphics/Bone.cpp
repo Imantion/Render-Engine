@@ -49,7 +49,7 @@ namespace Engine
         mat4 translation = InterpolatePosition(animationTime);
         mat4 rotation = InterpolateRotation(animationTime);
         mat4 scale = InterpolateScaling(animationTime);
-        m_LocalTransform = translation * rotation * scale;
+        m_LocalTransform = translation;
     }
 
     int Bone::GetPositionIndex(float animationTime)
