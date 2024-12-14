@@ -388,7 +388,7 @@ void D3DApplication::Update(float deltaTime)
 	cb.updateBuffer(&cbBone);
 	cb.bind(13u, Engine::shaderTypes::PS);
 
-	/*animator->UpdateAnimation(deltaTime);*/
+	animator->UpdateAnimation(deltaTime);
 
 	animTransformCB.updateBuffer(animator->GetFinalBoneMatrices().data(), 128u);
 	animTransformCB.bind(13u, Engine::shaderTypes::VS);
@@ -472,7 +472,7 @@ void D3DApplication::UpdateInput(float deltaTime)
 	else if (Input::keyPresseed(Input::KeyboardButtons::THREE))
 	{
 		Engine::TextureManager::Init()->BindSampleByFilter(D3D11_FILTER_ANISOTROPIC, 3u);
-		int boneCount = Engine::ModelManager::Init()->GetModel("Models\\NeoNCat.fbx")->getBoneCount();
+		int boneCount = Engine::ModelManager::Init()->GetModel("Models\\boblampclean.md5mesh")->getBoneCount();
 		bone = (bone + 1) % boneCount;
 	}
 
@@ -956,10 +956,11 @@ void D3DApplication::InitSamuraiModel()
 		samuraiDisolutionMaterial.push_back({ samuraiTextures[i], noiseTexture });
 	}
 	Engine::TransformSystem::transforms catInst = {
-	Engine::transformMatrix(Engine::vec3(0.0f, 10.0f, 0.0f), Engine::vec3(0.0f, 0.0f, 0.001f), Engine::vec3(0.001f, 0.0f, 0.0f), Engine::vec3(0.0f, 0.001f, 0.0f)) };
+	Engine::transformMatrix(Engine::vec3(0.0f, 10.0f, 0.0f), Engine::vec3(0.0f, 0.0f, 0.1f), Engine::vec3(0.1f, 0.0f, 0.0f), Engine::vec3(0.0f, 0.1f, 0.0f)) };
+	
 
-	auto model = Engine::ModelManager::GetInstance()->loadModel("Models\\NeoNCat.fbx", false, nullptr, true);
-	animation = new Engine::Animation("Models\\NeoNCat.fbx", model);
+	auto model = Engine::ModelManager::GetInstance()->loadModel("Models\\boblampclean.md5mesh", false, nullptr, true);
+	animation = new Engine::Animation("Models\\boblampclean.md5anim", model);
 	animator = new Engine::Animator(animation);
 	Engine::MeshSystem::Init()->boneWeightShow.addModel(model, Materials::EmmisiveMaterial{}, catInst);
 

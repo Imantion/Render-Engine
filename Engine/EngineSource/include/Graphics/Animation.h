@@ -59,7 +59,7 @@ namespace Engine
         std::vector<mat4>& GetFinalBoneMatrices();
 
     private:
-        void CalculateBoneTransform(const AssimpNodeData* node, mat4 parentTransform);
+        void CalculateBoneTransform(const AssimpNodeData* node, const mat4& parentTransform);
 
         std::vector<mat4> m_FinalBoneMatrices;
         Animation* m_CurrentAnimation;

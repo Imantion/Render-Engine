@@ -122,6 +122,7 @@ Engine::mat4 Engine::mat4::rotateX(float angle)
 	return result;
 }
 
+// angle in radians
 Engine::mat4 Engine::mat4::rotateY(float angle)
 {
 	mat4 result;

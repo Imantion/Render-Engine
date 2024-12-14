@@ -30,7 +30,7 @@ cbuffer meshData : register(b2)
     float4x4 meshToModel;
 }
 
-cbuffer meshData : register(b13)
+cbuffer animData : register(b13)
 {
     float4x4 animationTransform[128];
 }
@@ -60,6 +60,7 @@ VOut main(VIn input)
     float3x3 normalizedToWorld = float3x3(normalize(input.modelToWorld[0].rgb), normalize(input.modelToWorld[1].rgb), normalize(input.modelToWorld[2].rgb));
     VOut output;
     output.worldPos = mul(mul(totalPosition, meshToModel), toWorld);
+    //output.worldPos = mul(totalPosition, toWorld);
     output.pos = mul(float4(output.worldPos, 1.0f), viewProjection);
     
     float3x3 transformTBN = mul((float3x3) meshToModel, normalizedToWorld);

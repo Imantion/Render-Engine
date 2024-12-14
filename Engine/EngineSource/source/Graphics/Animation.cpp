@@ -6,6 +6,8 @@
 
 using namespace Engine;
 
+#define TRANSFORMATION_MATRIXES 128
+
 Engine::Animation::Animation(const char* path, std::shared_ptr<Model> model)
 {
     Assimp::Importer importer;
@@ -73,8 +75,8 @@ void Animation::ReadHeirarchyData(AssimpNodeData& dest, const aiNode* src)
 Animator::Animator(Animation* animation)
     : m_CurrentAnimation(animation), m_CurrentTime(0.0f), m_DeltaTime(0.0f)
 {
-    m_FinalBoneMatrices.reserve(128);
-    for (int i = 0; i < 128; i++)
+    m_FinalBoneMatrices.reserve(TRANSFORMATION_MATRIXES);
+    for (int i = 0; i < TRANSFORMATION_MATRIXES; i++)
         m_FinalBoneMatrices.push_back(mat4::Identity());
 }
 
@@ -94,8 +96,8 @@ void Animator::PlayAnimation(Animation* pAnimation)
     m_CurrentAnimation = pAnimation;
     m_CurrentTime = 0.0f;
 }
-
-void Animator::CalculateBoneTransform(const AssimpNodeData* node, mat4 parentTransform)
+    
+void Animator::CalculateBoneTransform(const AssimpNodeData* node, const mat4& parentTransform)
 {
     std::string nodeName = node->name;
     mat4 nodeTransform = node->transformation;
