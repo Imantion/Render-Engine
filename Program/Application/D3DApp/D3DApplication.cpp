@@ -664,9 +664,19 @@ void D3DApplication::GUI()
 
 	ImGui::Begin("Settings");
 
-
 	if (ImGui::BeginTabBar("Light computation states"))
 	{
+		if (ImGui::BeginTabItem("Animation"))
+		{
+			ImGui::SliderFloat("Animation Speed", &speedAnimation, 0.05f, 3.f);
+
+			if (ImGui::Button("Reset"))
+			{
+				speedAnimation = 1.0f;
+			}
+
+			ImGui::EndTabItem();
+		}
 
 		if (ImGui::BeginTabItem("Light"))
 		{
@@ -960,14 +970,14 @@ void D3DApplication::InitSamuraiModel()
 	};
 
 	std::vector<Materials::OpaqueTextureMaterial> animationTexture = {
-		{ TM->LoadFromFile("lama_albedo",		   L"Models\\15898_T_M_MED_Fortnite_DJ_Body_D.dds"),
-		  TM->LoadFromFile("lama_sword_roughness", L"Models\\body_roughness_map.dds"),
-		  TM->LoadFromFile("lama_sword_metallic",  L"Models\\body_metalness_map.dds"),
-		  TM->LoadFromFile("lama_sword_normal",    L"Models\\normal.dds") },
-		{ TM->LoadFromFile("lama_head",            L"Models\\15888_T_M_MED_Fortnite_DJ_HEAD_D.dds"),
-		  TM->LoadFromFile("lama_head_rougness",   L"Models\\head_roughness_map.dds"),
-		  TM->LoadFromFile("lama_head_metalness",  L"Models\\head_metalness_map.dds"),
-		  TM->LoadFromFile("lama_head_normal",	   L"Models\\normal.dds") },
+		{ TM->LoadFromFile("lama_albedo",		   L"Textures\\Lama\\15898_T_M_MED_Fortnite_DJ_Body_D.dds"),
+		  TM->LoadFromFile("lama_roughness",       L"Textures\\Lama\\body_roughness_map.dds"),
+		  TM->LoadFromFile("lama_metallic",        L"Textures\\Lama\\body_metalness_map.dds"),
+		  TM->LoadFromFile("lama_normal",          L"Textures\\Lama\\normal.dds") },
+		{ TM->LoadFromFile("lama_head",            L"Textures\\Lama\\15888_T_M_MED_Fortnite_DJ_HEAD_D.dds"),
+		  TM->LoadFromFile("lama_head_rougness",   L"Textures\\Lama\\head_roughness_map.dds"),
+		  TM->LoadFromFile("lama_head_metalness",  L"Textures\\Lama\\head_metalness_map.dds"),
+		  TM->LoadFromFile("lama_head_normal",	   L"Textures\\Lama\\normal.dds") },
 	};
 
 	samuraiDisolutionMaterial.reserve(samuraiTextures.size());
