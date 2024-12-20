@@ -49,6 +49,7 @@ static enum objectToSpawn
 
 static float cameraSpeed = 2.0f;
 static int bone = 0;
+static float speedAnimation = 1.0f;
 static Engine::Animation* animation;
 static Engine::Animator* animator;
 static Engine::ConstBuffer<Engine::mat4> animTransformCB;
@@ -395,7 +396,7 @@ void D3DApplication::Update(float deltaTime)
 	cb.updateBuffer(&cbBone);
 	cb.bind(13u, Engine::shaderTypes::PS);
 
-	animator->UpdateAnimation(deltaTime);
+	animator->UpdateAnimation(deltaTime * speedAnimation);
 
 	animTransformCB.updateBuffer(animator->GetFinalBoneMatrices().data(), TRANSFORMATION_MATRICES);
 	animTransformCB.bind(13u, Engine::shaderTypes::VS);
@@ -681,6 +682,7 @@ void D3DApplication::GUI()
 		{
 			ImGui::Checkbox("Can move", &cameraStates.canMove);
 			ImGui::Checkbox("Can rotate", &cameraStates.canRotate);
+			ImGui::SliderFloat("AnimationSpeed", &speedAnimation, 0.05f, 3.0f);
 
 			ImGui::EndTabItem();
 		}
@@ -980,7 +982,7 @@ void D3DApplication::InitSamuraiModel()
 	auto model = Engine::ModelManager::GetInstance()->loadModel(MODEL_NAME, false, nullptr, true);
 	animation = new Engine::Animation(MODEL_ANIM, model);
 	animator = new Engine::Animator(animation);
-	Engine::MeshSystem::Init()->boneWeightShow.addModel(model, Materials::EmmisiveMaterial{}, catInst);
+	Engine::MeshSystem::Init()->boneWeightShow.addModel(model, animationTexture, catInst);
 
 	 model = Engine::ModelManager::GetInstance()->loadModel("Models\\Samurai.fbx");
 	Engine::TransformSystem::transforms inst = {
