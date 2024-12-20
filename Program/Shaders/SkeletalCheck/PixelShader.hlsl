@@ -19,7 +19,7 @@ cbuffer bone : register(b13)
 
 float4 main(PSIn input) : SV_TARGET
 {
-	float3 fragColor = float3(0.0f, 0.0f, 1.0f);
+    float3 fragColor = float3(0.0f, 0.0f, 1.0f);
     
     for (int i = 0; i < MAX_BONE_INFLUENCE; i++)
     {
@@ -42,4 +42,5 @@ float4 main(PSIn input) : SV_TARGET
     
    
     return float4(fragColor, 1);
+    
 }

@@ -28,6 +28,7 @@ namespace Engine
             float timeStamp = channel->mRotationKeys[rotationIndex].mTime;
             KeyRotation data;
             data.orientation = reinterpret_cast<quaternion&>(aiOrientation);
+			data.orientation = data.orientation.normalize();
             data.timeStamp = timeStamp;
             m_Rotations.push_back(data);
         }

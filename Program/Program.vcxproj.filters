@@ -193,6 +193,8 @@
     <None Include="Shaders\opaqueShader\IncinerationPS.hlsl" />
     <None Include="Shaders\GPUParticles\ParticleUpdateCS.hlsl" />
     <None Include="Shaders\SkeletalCheck\PixelShader.hlsl" />
+    <None Include="Shaders\opaqueShader\SkeletalVS.hlsl" />
+    <None Include="Shaders\opaqueShader\SkeletalPS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\declarations.hlsli">

@@ -624,6 +624,7 @@ namespace Engine
 		
 		OpaqueInstances<Instances::Instance, Materials::HologramMaterial> hologramGroup;
 		OpaqueInstances<Instances::Instance, Materials::EmmisiveMaterial> boneWeightShow;
+		//OpaqueInstances<Instances::Instance, Materials::EmmisiveMaterial> boneWeightShow;
 		OpaqueInstances<Instances::Instance, Materials::NormVisMaterial> normVisGroup;
 		OpaqueInstances<Instances::PBRInstance, Materials::OpaqueTextureMaterial> opaqueGroup;
 		OpaqueInstances<Instances::EmmisiveInstance, Materials::EmmisiveMaterial> emmisiveGroup;

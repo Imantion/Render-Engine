@@ -23,6 +23,9 @@
 #include "Graphics/Animation.h"
 #include <assert.h>
 
+#define MODEL_NAME "Models\\Unity2Skfb.gltf"
+#define MODEL_ANIM "Models\\Unity2Skfb.gltf"
+
 #ifdef UNICODE
 typedef std::wostringstream tstringstream;
 #else
@@ -218,8 +221,12 @@ static void InitMeshSystem()
 	auto gpuSphereShader = Engine::ShaderManager::CompileAndCreateShader("GPUSphere", L"Shaders\\GPUParticles\\SphereParticleVS.hlsl",
 				L"Shaders\\GPUParticles\\SphereParticlePS.hlsl", nullptr, nullptr);
 
-	auto skeletalShader = Engine::ShaderManager::CompileAndCreateShader("Skeletal", L"Shaders\\SkeletalCheck\\VertexShader.hlsl",
-		L"Shaders\\SkeletalCheck\\PixelShader.hlsl", nullptr, nullptr);
+	//auto skeletalShader = Engine::ShaderManager::CompileAndCreateShader("Skeletal", L"Shaders\\SkeletalCheck\\VertexShader.hlsl",
+	//	L"Shaders\\SkeletalCheck\\PixelShader.hlsl", nullptr, nullptr);
+
+
+	auto skeletalShader = Engine::ShaderManager::CompileAndCreateShader("Skeletal", L"Shaders\\opaqueShader\\SkeletalVS.hlsl",
+		L"Shaders\\opaqueShader\\SkeletalPS.hlsl", nullptr, nullptr);
 
 	D3D_SHADER_MACRO shaders[] = { "MAX_DIRECTIONAL_LIGHTS", "1",
 		"MAX_POINT_LIGHTS", "10",
@@ -349,7 +356,7 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 	Engine::ParticleSystem::Init()->SetSparkTexture(Engine::TextureManager::Init()->LoadFromFile("spark", L"Textures\\spark.dds"));
 	Engine::ParticleSystem::Init()->InitGPUParticles();
 
-	animTransformCB.create(D3D11_USAGE_DYNAMIC, 128u);
+	animTransformCB.create(D3D11_USAGE_DYNAMIC, TRANSFORMATION_MATRICES);
 }
 
 
@@ -390,7 +397,7 @@ void D3DApplication::Update(float deltaTime)
 
 	animator->UpdateAnimation(deltaTime);
 
-	animTransformCB.updateBuffer(animator->GetFinalBoneMatrices().data(), 128u);
+	animTransformCB.updateBuffer(animator->GetFinalBoneMatrices().data(), TRANSFORMATION_MATRICES);
 	animTransformCB.bind(13u, Engine::shaderTypes::VS);
 	renderer->updatePerFrameCB(deltaTime, (FLOAT)pWindow->getWindowWidth(), (FLOAT)pWindow->getWindowHeight(), camera->getNearClip(), camera->getFarClip());
 	renderer->Render(camera.get());
@@ -472,7 +479,7 @@ void D3DApplication::UpdateInput(float deltaTime)
 	else if (Input::keyPresseed(Input::KeyboardButtons::THREE))
 	{
 		Engine::TextureManager::Init()->BindSampleByFilter(D3D11_FILTER_ANISOTROPIC, 3u);
-		int boneCount = Engine::ModelManager::Init()->GetModel("Models\\boblampclean.md5mesh")->getBoneCount();
+		int boneCount = Engine::ModelManager::Init()->GetModel(MODEL_NAME)->getBoneCount();
 		bone = (bone + 1) % boneCount;
 	}
 
@@ -950,17 +957,28 @@ void D3DApplication::InitSamuraiModel()
 		  TM->LoadFromFile("samurai_torso_normal", L"Textures\\Samurai\\Torso_Normal.dds") }
 	};
 
+	std::vector<Materials::OpaqueTextureMaterial> animationTexture = {
+		{ TM->LoadFromFile("lama_albedo",		   L"Models\\15898_T_M_MED_Fortnite_DJ_Body_D.dds"),
+		  TM->LoadFromFile("lama_sword_roughness", L"Models\\body_roughness_map.dds"),
+		  TM->LoadFromFile("lama_sword_metallic",  L"Models\\body_metalness_map.dds"),
+		  TM->LoadFromFile("lama_sword_normal",    L"Models\\normal.dds") },
+		{ TM->LoadFromFile("lama_head",            L"Models\\15888_T_M_MED_Fortnite_DJ_HEAD_D.dds"),
+		  TM->LoadFromFile("lama_head_rougness",   L"Models\\head_roughness_map.dds"),
+		  TM->LoadFromFile("lama_head_metalness",  L"Models\\head_metalness_map.dds"),
+		  TM->LoadFromFile("lama_head_normal",	   L"Models\\normal.dds") },
+	};
+
 	samuraiDisolutionMaterial.reserve(samuraiTextures.size());
 	for (size_t i = 0; i < samuraiTextures.size(); i++)
 	{
 		samuraiDisolutionMaterial.push_back({ samuraiTextures[i], noiseTexture });
 	}
 	Engine::TransformSystem::transforms catInst = {
-	Engine::transformMatrix(Engine::vec3(0.0f, 10.0f, 0.0f), Engine::vec3(0.0f, 0.0f, 0.1f), Engine::vec3(0.1f, 0.0f, 0.0f), Engine::vec3(0.0f, 0.1f, 0.0f)) };
+	Engine::transformMatrix(Engine::vec3(0.0f, 10.0f, 0.0f), Engine::vec3(0.0f, 0.0f, 1), Engine::vec3(1, 0.0f, 0.0f), Engine::vec3(0.0f, 1, 0.0f)) };
 	
 
-	auto model = Engine::ModelManager::GetInstance()->loadModel("Models\\boblampclean.md5mesh", false, nullptr, true);
-	animation = new Engine::Animation("Models\\boblampclean.md5anim", model);
+	auto model = Engine::ModelManager::GetInstance()->loadModel(MODEL_NAME, false, nullptr, true);
+	animation = new Engine::Animation(MODEL_ANIM, model);
 	animator = new Engine::Animator(animation);
 	Engine::MeshSystem::Init()->boneWeightShow.addModel(model, Materials::EmmisiveMaterial{}, catInst);
 

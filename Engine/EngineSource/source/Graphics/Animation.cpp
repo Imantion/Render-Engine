@@ -6,7 +6,7 @@
 
 using namespace Engine;
 
-#define TRANSFORMATION_MATRIXES 128
+
 
 Engine::Animation::Animation(const char* path, std::shared_ptr<Model> model)
 {
@@ -75,8 +75,8 @@ void Animation::ReadHeirarchyData(AssimpNodeData& dest, const aiNode* src)
 Animator::Animator(Animation* animation)
     : m_CurrentAnimation(animation), m_CurrentTime(0.0f), m_DeltaTime(0.0f)
 {
-    m_FinalBoneMatrices.reserve(TRANSFORMATION_MATRIXES);
-    for (int i = 0; i < TRANSFORMATION_MATRIXES; i++)
+    m_FinalBoneMatrices.reserve(TRANSFORMATION_MATRICES);
+    for (int i = 0; i < TRANSFORMATION_MATRICES; i++)
         m_FinalBoneMatrices.push_back(mat4::Identity());
 }
 

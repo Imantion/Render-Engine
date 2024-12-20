@@ -159,6 +159,11 @@ namespace Engine
 		return clampedVector;
 	}
 
+	inline float clamp(float floatToClamp, int min = -1, int max = 1)
+	{
+		return floatToClamp < min ? min : floatToClamp > max ? max : floatToClamp;
+	}
+
 	inline uint32_t ConvertToRGB(const vec3& color)
 	{
 		vec3 clampedColor = clampVec(color, 1.0f);

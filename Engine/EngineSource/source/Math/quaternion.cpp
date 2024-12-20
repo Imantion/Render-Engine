@@ -84,9 +84,7 @@ Engine::quaternion Engine::quaternion::slerp(quaternion q1, quaternion q2, doubl
 	// algorithm adapted from Shoemake's paper
 	lambda = lambda / 2.0;
 
-	theta = (float)acos(dotproduct);
-	if (abs(dotproduct - 1.f) < 0.001)
-		return q1;
+	theta = (float)acos(clamp(dotproduct));
 	if (theta < 0.0) theta = -theta;
 	if (theta < 0.001)
 		return q1;

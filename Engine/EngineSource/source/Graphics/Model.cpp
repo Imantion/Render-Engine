@@ -168,9 +168,9 @@ std::shared_ptr<Engine::Model> Engine::ModelManager::loadModel(std::string path,
 			Mesh::vertex& vert = dstMesh.vertices[v];
 			vert.pos = reinterpret_cast<Engine::vec3&>(srcMesh->mVertices[v]);
 			vert.tc = reinterpret_cast<Engine::vec2&>(srcMesh->mTextureCoords[0][v]);
-			//vert.normal = reinterpret_cast<Engine::vec3&>(srcMesh->mNormals[v]);
-			//vert.tangent = reinterpret_cast<Engine::vec3&>(srcMesh->mTangents[v]) * sign;
-			//vert.bitangent = reinterpret_cast<Engine::vec3&>(srcMesh->mBitangents[v]) * -1.f * sign; // Flip V
+			vert.normal = reinterpret_cast<Engine::vec3&>(srcMesh->mNormals[v]);
+			vert.tangent = reinterpret_cast<Engine::vec3&>(srcMesh->mTangents[v]) * sign;
+			vert.bitangent = reinterpret_cast<Engine::vec3&>(srcMesh->mBitangents[v]) * -1.f * sign; // Flip V
 			SetVertexBoneDataToDefault(vert);
 
 			verticies.emplace_back(vert);
@@ -215,6 +215,23 @@ std::shared_ptr<Engine::Model> Engine::ModelManager::loadModel(std::string path,
 		};
 
 	loadInstances(assimpScene->mRootNode);
+
+	for (size_t i = 0; i < verticies.size(); i++)
+	{
+		float sum = 0;
+		for (int j = 0; j < MAX_BONE_INFLUENCE; j++)
+		{
+			sum += verticies[i].m_Weights[j];
+		}
+
+		if (sum <= 0.055)
+		{
+			for (int j = 0; j < MAX_BONE_INFLUENCE; j++)
+			{
+				verticies[i].m_Weights[j] = 0.25f;
+			}
+		}
+	}
 
 	model->m_vertices.create(verticies.data(), (UINT)verticies.size());
 	model->m_indices.create(reinterpret_cast<unsigned int*>(indicies.data()), (UINT)indicies.size() * 3u);

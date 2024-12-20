@@ -19,8 +19,6 @@ struct VOut
     float3 worldPos : WorldPos;
     float3x3 tbn : TBN;
     float2 tc : TC;
-    int m_BoneIDs[MAX_BONE_INFLUENCE] : BONES;
-    float m_Weights[MAX_BONE_INFLUENCE] : WEIGHTS;
     nointerpolation uint objectId : OBJECTID;
     
 };
@@ -78,11 +76,6 @@ VOut main(VIn input)
     
     output.tc = input.tc;
     
-    for(int i = 0; i < MAX_BONE_INFLUENCE; i++)
-    {
-        output.m_BoneIDs[i] = input.m_BoneIDs[i];
-        output.m_Weights[i] = input.m_Weights[i];
-    }
     output.objectId = input.objectId;
     
     return output;

@@ -11,9 +11,12 @@
 struct BoneInfo;
 struct aiAnimation;
 struct aiNode;
+#define TRANSFORMATION_MATRICES 206
 
 namespace Engine
 {
+
+
     struct AssimpNodeData
     {
         mat4 transformation;
