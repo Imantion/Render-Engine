@@ -1,5 +1,6 @@
 #pragma once
 #include "Math\vec.h"
+#include "Math\matrix.h"
 
 namespace Engine
 {
@@ -13,6 +14,7 @@ namespace Engine
 		float norm() const;
 		float norm_squared() const;
 		quaternion normalize() const;
+		mat4 toMat4();
 		static quaternion angleAxis(float angle, vec3 axis);
 		static vec3 rotate(quaternion q, vec3 v) { return q * v; }
 
@@ -21,6 +23,10 @@ namespace Engine
 		quaternion operator*(const quaternion& q) const;
 		vec3 operator*(const vec3& q) const;
 		quaternion operator*(const float t) const;
+		
+		
+		static quaternion slerp(quaternion q1, quaternion q2, double lambda);
+
 		float r;
 		vec3 im;
 	};

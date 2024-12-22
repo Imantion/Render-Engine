@@ -15,7 +15,10 @@ int Engine::MeshSystem::intersect(const ray& r, hitInfo& hInfo)
 	int fourth = emmisiveGroup.intersect(r, hInfo);
 	int fifth = dissolutionGroup.intersect(r, hInfo);
 	int sixth = incinerationGroup.intersect(r, hInfo);
+	int eight = boneWeightShow.intersect(r, hInfo);
 
+	if (eight != -1)
+		return eight;
 	if (sixth != -1)
 		return sixth;
 	if (fifth != -1)
@@ -63,6 +66,7 @@ void Engine::MeshSystem::updateInstanceBuffers()
 	emmisiveGroup.updateInstanceBuffers();
 	dissolutionGroup.updateInstanceBuffers();
 	incinerationGroup.updateInstanceBuffers();
+	boneWeightShow.updateInstanceBuffers();
 }
 
 void Engine::MeshSystem::render()

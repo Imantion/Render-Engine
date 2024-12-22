@@ -10,11 +10,16 @@ namespace Engine
 	{
 		mat4() : mat4(0.0f) {}
 		mat4(float t);
+		mat4(float x0, float y0, float z0, float w0,
+			float x1, float y1, float z1, float w1,
+			float x2, float y2, float z2, float w2,
+			float x3, float y3, float z3, float w3);
 		mat4(vec4 x, vec4 y, vec4 z, vec4 w);
 		mat4(const mat4& other);
 
 		static mat4 Inverse(const mat4& m);
 		static mat4 Identity();
+		static mat4 Transpose(const mat4& m);
 
 		static mat4 rotateX(float angle);
 		static mat4 rotateY(float angle);

@@ -159,6 +159,11 @@ namespace Engine
 		return clampedVector;
 	}
 
+	inline float clamp(float floatToClamp, int min = -1, int max = 1)
+	{
+		return floatToClamp < min ? min : floatToClamp > max ? max : floatToClamp;
+	}
+
 	inline uint32_t ConvertToRGB(const vec3& color)
 	{
 		vec3 clampedColor = clampVec(color, 1.0f);
@@ -404,5 +409,11 @@ namespace Engine
 		screenCoord.y = (screenCoord.y / (float)height - 0.5f) * 2.0f;
 
 		return screenCoord;
+	}
+
+	template<typename T>
+	inline T lerp(const T& a, const T& b, float t)
+	{
+		return a * (1 - t) +  b * t;
 	}
 }

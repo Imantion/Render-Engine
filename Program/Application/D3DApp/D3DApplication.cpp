@@ -20,7 +20,11 @@
 #include "Graphics/ShadowSystem.h"
 #include "Utils/ISelected.h"
 #include "Utils/Random.h"
+#include "Graphics/Animation.h"
 #include <assert.h>
+
+#define MODEL_NAME "Models\\Unity2Skfb.gltf"
+#define MODEL_ANIM "Models\\Unity2Skfb.gltf"
 
 #ifdef UNICODE
 typedef std::wostringstream tstringstream;
@@ -44,6 +48,12 @@ static enum objectToSpawn
 } modelToSpawn;
 
 static float cameraSpeed = 2.0f;
+static int bone = 0;
+static float speedAnimation = 1.0f;
+static Engine::Animation* animation;
+static Engine::Animator* animator;
+static Engine::ConstBuffer<Engine::mat4> animTransformCB;
+
 
 static auto changepos = [](Engine::TransformSystem::transforms& inst, const Engine::vec3& pos) {
 	for (size_t i = 0; i < 3; i++) {
@@ -88,6 +98,27 @@ static void InitMeshSystem()
 	{"TOWORLD", 2, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
 	{"TOWORLD", 3, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
 	{"OBJECTID", 0, DXGI_FORMAT_R32_UINT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+	};
+
+	D3D11_INPUT_ELEMENT_DESC skeletalIED[] = {
+		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"BITANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"TC", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"BONES", 0, DXGI_FORMAT_R32_SINT , 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"BONES", 1, DXGI_FORMAT_R32_SINT , 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"BONES", 2, DXGI_FORMAT_R32_SINT , 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"BONES", 3, DXGI_FORMAT_R32_SINT , 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"WEIGHTS", 0, DXGI_FORMAT_R32_FLOAT , 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"WEIGHTS", 1, DXGI_FORMAT_R32_FLOAT , 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"WEIGHTS", 2, DXGI_FORMAT_R32_FLOAT , 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"WEIGHTS", 3, DXGI_FORMAT_R32_FLOAT , 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"TOWORLD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+		{"TOWORLD", 1, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+		{"TOWORLD", 2, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+		{"TOWORLD", 3, DXGI_FORMAT_R32G32B32A32_FLOAT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
+		{"OBJECTID", 0, DXGI_FORMAT_R32_UINT , 1, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_INSTANCE_DATA, 1},
 	};
 
 	D3D11_INPUT_ELEMENT_DESC secondIed[] = {
@@ -191,6 +222,16 @@ static void InitMeshSystem()
 	auto gpuSphereShader = Engine::ShaderManager::CompileAndCreateShader("GPUSphere", L"Shaders\\GPUParticles\\SphereParticleVS.hlsl",
 				L"Shaders\\GPUParticles\\SphereParticlePS.hlsl", nullptr, nullptr);
 
+	//auto skeletalShader = Engine::ShaderManager::CompileAndCreateShader("Skeletal", L"Shaders\\SkeletalCheck\\VertexShader.hlsl",
+	//	L"Shaders\\SkeletalCheck\\PixelShader.hlsl", nullptr, nullptr);
+
+	std::string intToLPCSTR = std::to_string(TRANSFORMATION_MATRICES);
+	LPCSTR lpcstrInt = intToLPCSTR.c_str();
+
+	D3D_SHADER_MACRO skeletalDef[] = { "TRANSFORMATION_MATRICES", lpcstrInt, NULL,NULL };
+	auto skeletalShader = Engine::ShaderManager::CompileAndCreateShader("Skeletal", L"Shaders\\opaqueShader\\SkeletalVS.hlsl",
+		L"Shaders\\opaqueShader\\SkeletalPS.hlsl", skeletalDef, nullptr);
+
 	D3D_SHADER_MACRO shaders[] = { "MAX_DIRECTIONAL_LIGHTS", "1",
 		"MAX_POINT_LIGHTS", "10",
 		"MAX_SPOT_LIGHTS","10",
@@ -248,6 +289,7 @@ static void InitMeshSystem()
 	auto fourthLayout = Engine::ShaderManager::CreateInputLayout("Fourth", dissolutionShader->vertexBlob.Get(), thirdIed, sizeof(thirdIed) / sizeof(D3D11_INPUT_ELEMENT_DESC));
 	auto incinerationLayout = Engine::ShaderManager::CreateInputLayout("incinerationLayout", incenerationShader->vertexBlob.Get(), incinerationIED, sizeof(incinerationIED) / sizeof(D3D11_INPUT_ELEMENT_DESC));
 	auto sphereLayout = Engine::ShaderManager::CreateInputLayout("sphereLayout", gpuSphereShader->vertexBlob.Get(), gpuSphereIED, sizeof(gpuSphereIED) / sizeof(D3D11_INPUT_ELEMENT_DESC));
+	auto skeletalLayout = Engine::ShaderManager::CreateInputLayout("skelet", skeletalShader->vertexBlob.Get(), skeletalIED, sizeof(skeletalIED) / sizeof(D3D11_INPUT_ELEMENT_DESC));
 
 	decalShader->BindInputLyout(decalLayout);
 	NormalVisColor->BindInputLyout(thirdLayout);
@@ -268,6 +310,7 @@ static void InitMeshSystem()
 	incerShadowPL->BindInputLyout(incinerationLayout);
 	incerShadowSLDL->BindInputLyout(incinerationLayout);
 	gpuSphereShader->BindInputLyout(sphereLayout);
+	skeletalShader->BindInputLyout(skeletalLayout);
 	Engine::ShadowSystem::Init()->SetShadowShaders(shadowShader, shadowShader2, shadowShader2);
 	Engine::DecalSystem::Init()->SetShader(decalShader);
 	
@@ -295,6 +338,7 @@ static void InitMeshSystem()
 	ms->dissolutionGroup.addShader(dissolutionShader);
 	ms->incinerationGroup.setGBufferShader(incenerationShader);
 	ms->incinerationGroup.addShader(incenerationShader);
+	ms->boneWeightShow.addShader(skeletalShader);
 
 	Engine::ParticleSystem::Init()->SetGPUParticlesShaders(GPUbillboardShader, gpuSphereShader, cs1, cs2);
 }
@@ -315,6 +359,10 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 
 	Engine::ParticleSystem::Init()->SetSparkTexture(Engine::TextureManager::Init()->LoadFromFile("spark", L"Textures\\spark.dds"));
 	Engine::ParticleSystem::Init()->InitGPUParticles();
+
+	animTransformCB.create(D3D11_USAGE_DYNAMIC, TRANSFORMATION_MATRICES);
+
+	Engine::TextureManager::Init()->BindSampleByFilter(D3D11_FILTER_ANISOTROPIC, 3u);
 }
 
 
@@ -341,6 +389,22 @@ void D3DApplication::Update(float deltaTime)
 	Engine::ParticleSystem::Init()->Update(deltaTime);
 
 	Engine::Renderer* renderer = Engine::Renderer::GetInstance();
+	struct boneId
+	{
+		int id;
+		int padding[3];
+	};
+	boneId cbBone;
+	cbBone.id = bone;
+	Engine::ConstBuffer<boneId> cb;
+	cb.create();
+	cb.updateBuffer(&cbBone);
+	cb.bind(13u, Engine::shaderTypes::PS);
+
+	animator->UpdateAnimation(deltaTime * speedAnimation);
+
+	animTransformCB.updateBuffer(animator->GetFinalBoneMatrices().data(), TRANSFORMATION_MATRICES);
+	animTransformCB.bind(13u, Engine::shaderTypes::VS);
 	renderer->updatePerFrameCB(deltaTime, (FLOAT)pWindow->getWindowWidth(), (FLOAT)pWindow->getWindowHeight(), camera->getNearClip(), camera->getFarClip());
 	renderer->Render(camera.get());
 		
@@ -419,7 +483,11 @@ void D3DApplication::UpdateInput(float deltaTime)
 	else if (Input::keyPresseed(Input::KeyboardButtons::TWO))
 		Engine::TextureManager::Init()->BindSampleByFilter(D3D11_FILTER_MIN_MAG_POINT_MIP_LINEAR, 3u);
 	else if (Input::keyPresseed(Input::KeyboardButtons::THREE))
+	{
 		Engine::TextureManager::Init()->BindSampleByFilter(D3D11_FILTER_ANISOTROPIC, 3u);
+		int boneCount = Engine::ModelManager::Init()->GetModel(MODEL_NAME)->getBoneCount();
+		bone = (bone + 1) % boneCount;
+	}
 
 	if (Input::keyPresseed(Input::KeyboardButtons::M))
 	{
@@ -525,6 +593,7 @@ void D3DApplication::UpdateInput(float deltaTime)
 		auto& emmisiveGroup = Engine::MeshSystem::Init()->emmisiveGroup;
 		int emmisiveHit = emmisiveGroup.intersect(r, hInfo);
 
+
 		if (selected && opaqueHit != selected->getTransformId() && selectedObject == Opaque)
 		{
 			Instances::PBRInstance data = { false };
@@ -601,9 +670,19 @@ void D3DApplication::GUI()
 
 	ImGui::Begin("Settings");
 
-
 	if (ImGui::BeginTabBar("Light computation states"))
 	{
+		if (ImGui::BeginTabItem("Animation"))
+		{
+			ImGui::SliderFloat("Animation Speed", &speedAnimation, 0.05f, 3.f);
+
+			if (ImGui::Button("Reset"))
+			{
+				speedAnimation = 1.0f;
+			}
+
+			ImGui::EndTabItem();
+		}
 
 		if (ImGui::BeginTabItem("Light"))
 		{
@@ -619,6 +698,7 @@ void D3DApplication::GUI()
 		{
 			ImGui::Checkbox("Can move", &cameraStates.canMove);
 			ImGui::Checkbox("Can rotate", &cameraStates.canRotate);
+			ImGui::SliderFloat("AnimationSpeed", &speedAnimation, 0.05f, 3.0f);
 
 			ImGui::EndTabItem();
 		}
@@ -849,7 +929,7 @@ void D3DApplication::OpaqueToIncineration(uint32_t transformId, const Engine::ve
 
 void D3DApplication::InitCamera(int windowWidth, int windowHeight)
 {
-	camera.reset(new Engine::Camera(45.0f, 0.01f, 100.0f));
+	camera.reset(new Engine::Camera(45.0f, 0.01f, 10000.0f));
 	camera->calculateProjectionMatrix(windowWidth, windowHeight);
 	camera->calculateRayDirections();
 }
@@ -895,15 +975,34 @@ void D3DApplication::InitSamuraiModel()
 		  TM->LoadFromFile("samurai_torso_normal", L"Textures\\Samurai\\Torso_Normal.dds") }
 	};
 
+	std::vector<Materials::OpaqueTextureMaterial> animationTexture = {
+		{ TM->LoadFromFile("lama_albedo",		   L"Textures\\Lama\\15898_T_M_MED_Fortnite_DJ_Body_D.dds"),
+		  TM->LoadFromFile("lama_roughness",       L"Textures\\Lama\\body_roughness_map.dds"),
+		  TM->LoadFromFile("lama_metallic",        L"Textures\\Lama\\body_metalness_map.dds"),
+		  TM->LoadFromFile("lama_normal",          L"Textures\\Lama\\normal.dds") },
+		{ TM->LoadFromFile("lama_head",            L"Textures\\Lama\\15888_T_M_MED_Fortnite_DJ_HEAD_D.dds"),
+		  TM->LoadFromFile("lama_head_rougness",   L"Textures\\Lama\\head_roughness_map.dds"),
+		  TM->LoadFromFile("lama_head_metalness",  L"Textures\\Lama\\head_metalness_map.dds"),
+		  TM->LoadFromFile("lama_head_normal",	   L"Textures\\Lama\\normal.dds") },
+	};
+
 	samuraiDisolutionMaterial.reserve(samuraiTextures.size());
 	for (size_t i = 0; i < samuraiTextures.size(); i++)
 	{
 		samuraiDisolutionMaterial.push_back({ samuraiTextures[i], noiseTexture });
 	}
+	Engine::TransformSystem::transforms catInst = {
+	Engine::transformMatrix(Engine::vec3(0.0f, -1.0f, 9.0f), Engine::vec3(0.0f, 0.0f, 1), Engine::vec3(1, 0.0f, 0.0f), Engine::vec3(0.0f, 1, 0.0f)) };
+	
 
-	auto model = Engine::ModelManager::GetInstance()->loadModel("Models\\Samurai.fbx");
+	auto model = Engine::ModelManager::GetInstance()->loadModel(MODEL_NAME, false, nullptr, true);
+	animation = new Engine::Animation(MODEL_ANIM, model);
+	animator = new Engine::Animator(animation);
+	Engine::MeshSystem::Init()->boneWeightShow.addModel(model, animationTexture, catInst);
+
+	 model = Engine::ModelManager::GetInstance()->loadModel("Models\\Samurai.fbx");
 	Engine::TransformSystem::transforms inst = {
-		Engine::transformMatrix(Engine::vec3(0.0f, -1.0f, 0.0f), Engine::vec3(0.0f, 0.0f, 1.0f), Engine::vec3(1.0f, 0.0f, 0.0f), Engine::vec3(0.0f, 1.0f, 0.0f)) };
+		Engine::transformMatrix(Engine::vec3(0.0f, -1.0f, 6.0f), Engine::vec3(0.0f, 0.0f, 1.0f), Engine::vec3(1.0f, 0.0f, 0.0f), Engine::vec3(0.0f, 1.0f, 0.0f)) };
 	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, samuraiTextures, inst);
 
 	changepos(inst, Engine::vec3(4.0f, -3.0f, 0.0f));
@@ -942,7 +1041,7 @@ void D3DApplication::InitLights()
 	spotLight.bindedObjectId = camera->getCameraTransformId();
 	Engine::LightSystem::Init()->AddFlashLight(spotLight, TM->LoadFromFile("flashlight", L"Textures\\flashlightMask.dds"));
 
-	Engine::DirectionalLight directionalLight(Engine::vec3(-0.3205475307f, -0.595605361f, -0.10348193f).normalized(), Engine::vec3(0.84f * 7.5f, 0.86264f * 7.5f, 0.89019f * 7.5f), 1.5f);
+	Engine::DirectionalLight directionalLight(Engine::vec3(-0.3205475307f, -0.595605361f, -0.10348193f).normalized(), Engine::vec3(0.84f * 7.5f, 0.86264f * 7.5f, 0.89019f * 7.5f), 0.2f);
 	Engine::LightSystem::Init()->AddDirectionalLight(directionalLight);
 
 	Engine::TransformSystem::transforms bombo = {
@@ -1218,7 +1317,7 @@ void D3DApplication::InitSponza()
 		};
 
 	std::vector<uint32_t> materialIndexes;
-	auto model = Engine::ModelManager::GetInstance()->loadModel("Models\\sponza.obj", false, &materialIndexes);
+	auto model = Engine::ModelManager::GetInstance()->loadModel("Models\\sponza.obj", true, &materialIndexes);
 
 	std::vector<Materials::OpaqueTextureMaterial> sponzaMaterials;
 	sponzaMaterials.resize(materialIndexes.size());
