@@ -1,5 +1,8 @@
 #include "..\declarations.hlsli"
 
+#ifndef TRANSFORMATION_MATRICES
+#define TRANSFORMATION_MATRICES 1
+#endif
 struct VIn
 {
     float3 pos : POSITION;
@@ -30,7 +33,7 @@ cbuffer meshData : register(b2)
 
 cbuffer animData : register(b13)
 {
-    float4x4 animationTransform[350];
+    float4x4 animationTransform[TRANSFORMATION_MATRICES];
 }
 
 

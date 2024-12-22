@@ -225,9 +225,12 @@ static void InitMeshSystem()
 	//auto skeletalShader = Engine::ShaderManager::CompileAndCreateShader("Skeletal", L"Shaders\\SkeletalCheck\\VertexShader.hlsl",
 	//	L"Shaders\\SkeletalCheck\\PixelShader.hlsl", nullptr, nullptr);
 
+	std::string intToLPCSTR = std::to_string(TRANSFORMATION_MATRICES);
+	LPCSTR lpcstrInt = intToLPCSTR.c_str();
 
+	D3D_SHADER_MACRO skeletalDef[] = { "TRANSFORMATION_MATRICES", lpcstrInt, NULL,NULL };
 	auto skeletalShader = Engine::ShaderManager::CompileAndCreateShader("Skeletal", L"Shaders\\opaqueShader\\SkeletalVS.hlsl",
-		L"Shaders\\opaqueShader\\SkeletalPS.hlsl", nullptr, nullptr);
+		L"Shaders\\opaqueShader\\SkeletalPS.hlsl", skeletalDef, nullptr);
 
 	D3D_SHADER_MACRO shaders[] = { "MAX_DIRECTIONAL_LIGHTS", "1",
 		"MAX_POINT_LIGHTS", "10",
@@ -358,6 +361,8 @@ D3DApplication::D3DApplication(int windowWidth, int windowHeight, WinProc window
 	Engine::ParticleSystem::Init()->InitGPUParticles();
 
 	animTransformCB.create(D3D11_USAGE_DYNAMIC, TRANSFORMATION_MATRICES);
+
+	Engine::TextureManager::Init()->BindSampleByFilter(D3D11_FILTER_ANISOTROPIC, 3u);
 }
 
 
@@ -587,6 +592,7 @@ void D3DApplication::UpdateInput(float deltaTime)
 
 		auto& emmisiveGroup = Engine::MeshSystem::Init()->emmisiveGroup;
 		int emmisiveHit = emmisiveGroup.intersect(r, hInfo);
+
 
 		if (selected && opaqueHit != selected->getTransformId() && selectedObject == Opaque)
 		{
@@ -986,7 +992,7 @@ void D3DApplication::InitSamuraiModel()
 		samuraiDisolutionMaterial.push_back({ samuraiTextures[i], noiseTexture });
 	}
 	Engine::TransformSystem::transforms catInst = {
-	Engine::transformMatrix(Engine::vec3(0.0f, 10.0f, 0.0f), Engine::vec3(0.0f, 0.0f, 1), Engine::vec3(1, 0.0f, 0.0f), Engine::vec3(0.0f, 1, 0.0f)) };
+	Engine::transformMatrix(Engine::vec3(0.0f, -1.0f, 9.0f), Engine::vec3(0.0f, 0.0f, 1), Engine::vec3(1, 0.0f, 0.0f), Engine::vec3(0.0f, 1, 0.0f)) };
 	
 
 	auto model = Engine::ModelManager::GetInstance()->loadModel(MODEL_NAME, false, nullptr, true);
@@ -996,7 +1002,7 @@ void D3DApplication::InitSamuraiModel()
 
 	 model = Engine::ModelManager::GetInstance()->loadModel("Models\\Samurai.fbx");
 	Engine::TransformSystem::transforms inst = {
-		Engine::transformMatrix(Engine::vec3(0.0f, -1.0f, 0.0f), Engine::vec3(0.0f, 0.0f, 1.0f), Engine::vec3(1.0f, 0.0f, 0.0f), Engine::vec3(0.0f, 1.0f, 0.0f)) };
+		Engine::transformMatrix(Engine::vec3(0.0f, -1.0f, 6.0f), Engine::vec3(0.0f, 0.0f, 1.0f), Engine::vec3(1.0f, 0.0f, 0.0f), Engine::vec3(0.0f, 1.0f, 0.0f)) };
 	Engine::MeshSystem::Init()->opaqueGroup.addModel(model, samuraiTextures, inst);
 
 	changepos(inst, Engine::vec3(4.0f, -3.0f, 0.0f));
